@@ -54,9 +54,13 @@ first</b> (tell Claude tonight: "run the drill"). Pad items = ideas you dropped
 Bench decisions + dreamer items = calls only you can make. Green line = machine's
 fine without you today.</p>
 <p><b>🏁 Goals & proving ground</b> — the ladder every strategy climbs before real
-money: 🌱 collecting → ✅ paper-proven → 🏦 TS-SIM → 💵 live-small. The bars show
-verified reps toward the 20-rep verdict bar. This is "is the machine earning
-trust", not account value — <b>your real numbers live in the
+money: 🌱 collecting → ✅ paper-proven → 🏦 TS-SIM → 💵 live-small. <b>Version-aware:</b>
+strategies evolve through numbered rulesets (v1, v2, v3…) and the verdict grades the
+CURRENT version's own trades — a redesigned strategy starts a fresh 🌱 cohort instead
+of wearing its dead ancestor's grade. The ↳ line under each bar is the lineage: what
+the retired versions did and why they died. Bars show verified reps toward the 20-rep
+verdict. This is "is the machine earning trust", not account value — <b>your real
+numbers live in the
 <a href="https://gleesonjeremy-source.github.io/option-tracker/">option tracker</a></b>.</p>
 <p><b>🔍 Today's signals</b> — what the scanners found this morning (top of the
 ranked digest). The phone pitches are the curated subset; this is the fuller board.</p>
@@ -143,18 +147,33 @@ function needsYou(d){
 
 function goals(d){
   var g=(d.goals||[]).map(function(x){return '<div class="item"><b>'+esc(x.id)+'</b> · '+esc(x.title)+'</div>'}).join('');
-  var ev=d.evidence||{},pv={};(d.proving||[]).forEach(function(r){pv[r.strategy]=r});
-  var keys=Object.keys(ev).sort(function(a,b){return (ev[b].trusted||0)-(ev[a].trusted||0)});
-  var lad=keys.slice(0,8).map(function(k){
-    var e=ev[k],p=pv[k],pct=Math.min(100,100*(e.trusted||0)/20);
+  var ev=d.evidence||{};
+  var pvdoc=d.proving||{};
+  var pvrows=Array.isArray(pvdoc)?pvdoc:(pvdoc.rows||[]);
+  var pv={};pvrows.forEach(function(r){pv[r.strategy]=r});
+  // ladder base = every strategy with a verdict row OR live evidence; fresh
+  // v-cohorts (n=0 after a rules bump) stay VISIBLE with an empty bar
+  var keys={};pvrows.forEach(function(r){keys[r.strategy]=1});Object.keys(ev).forEach(function(k){keys[k]=1});
+  var list=Object.keys(keys).sort(function(a,b){
+    var ea=(ev[a]||{}).trusted||0,eb=(ev[b]||{}).trusted||0;
+    if(eb!==ea)return eb-ea;
+    return ((pv[b]||{}).n||0)-((pv[a]||{}).n||0);
+  });
+  var lad=list.slice(0,9).map(function(k){
+    var e=ev[k]||{},p=pv[k],pct=Math.min(100,100*(e.trusted||0)/20);
     var v=String(p?p.verdict:'');
     var cls=v.indexOf('PROVEN')>-1?'good':(v.indexOf('NO-EDGE')>-1?'hi':'');
-    var tag=p?' <span class="pill '+cls+'">'+esc(p.verdict)+(p.n?' n='+p.n:'')+'</span>':'';
-    return '<div class="item"><div class="row"><span class="tk">'+esc(k)+'</span>'+tag+
+    var ver=p&&p.version?'<span class="pill">v'+p.version+'</span>':'';
+    var tag=p?' <span class="pill '+cls+'">'+esc(p.verdict)+(p.n?' n='+p.n:' n=0')+'</span>':'';
+    var lin=(p&&p.lineage&&p.lineage.length)?
+      '<span class="why">↳ '+p.lineage.map(function(l){
+        return 'v'+l.version+': n='+l.n+' '+(l.total>0?'+':'')+'$'+l.total+' ('+esc(l.grade)+')';
+      }).join(' · ')+'</span>':'';
+    return '<div class="item"><div class="row"><span><span class="tk">'+esc(k)+'</span>'+ver+tag+'</span>'+
       '<span class="num muted">'+(e.trusted||0)+'/20 verified</span></div>'+
-      '<div class="bar"><div class="'+(pct<100?'part':'')+'" style="width:'+pct+'%"></div></div></div>';
+      '<div class="bar"><div class="'+(pct<100?'part':'')+'" style="width:'+pct+'%"></div></div>'+lin+'</div>';
   }).join('');
-  return '<div class="card"><h2>🏁 Goals & proving ground<span class="tag">20 reps → verdict</span></h2>'+g+
+  return '<div class="card"><h2>🏁 Goals & proving ground<span class="tag">current ruleset · 20 reps → verdict</span></h2>'+g+
     (lad?'<div style="margin-top:8px">'+lad+'</div>':'')+'</div>';
 }
 
