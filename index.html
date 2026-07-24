@@ -19,6 +19,7 @@ h1{font-size:21px;margin:4px 0 0}.sub{color:#8b949e;font-size:12px;margin:2px 0 
 .item .why{color:#8b949e;font-size:12px;display:block}
 .pill{display:inline-block;font-size:10px;border:1px solid #30363d;border-radius:999px;padding:0 8px;margin-left:6px;color:#8b949e;vertical-align:1px}
 .pill.hi{border-color:#f85149;color:#f85149}.pill.med{border-color:#d29922;color:#d29922}
+.pill.good{border-color:#3fb950;color:#3fb950}
 .bar{background:#21262d;border-radius:4px;height:7px;overflow:hidden;margin-top:4px}
 .bar>div{height:100%;background:#3fb950}
 .bar>div.part{background:#d29922}
@@ -116,7 +117,9 @@ function goals(d){
   var keys=Object.keys(ev).sort(function(a,b){return (ev[b].trusted||0)-(ev[a].trusted||0)});
   var lad=keys.slice(0,8).map(function(k){
     var e=ev[k],p=pv[k],pct=Math.min(100,100*(e.trusted||0)/20);
-    var tag=p?' <span class="pill '+(String(p.verdict).indexOf('PROVEN')>-1?'hi':'')+'">'+esc(p.verdict)+(p.n?' n='+p.n:'')+'</span>':'';
+    var v=String(p?p.verdict:'');
+    var cls=v.indexOf('PROVEN')>-1?'good':(v.indexOf('NO-EDGE')>-1?'hi':'');
+    var tag=p?' <span class="pill '+cls+'">'+esc(p.verdict)+(p.n?' n='+p.n:'')+'</span>':'';
     return '<div class="item"><div class="row"><span class="tk">'+esc(k)+'</span>'+tag+
       '<span class="num muted">'+(e.trusted||0)+'/20 verified</span></div>'+
       '<div class="bar"><div class="'+(pct<100?'part':'')+'" style="width:'+pct+'%"></div></div></div>';
@@ -158,9 +161,9 @@ function reps(d){
   var w=r.weekly.slice(-8),max=Math.max.apply(null,w.map(function(x){return x[1]}))||1;
   var bw=100/w.length;
   var bars=w.map(function(x,i){
-    var h=64*x[1]/max;
+    var h=58*x[1]/max;
     return '<rect x="'+(i*bw+bw*0.15)+'" y="'+(70-h)+'" width="'+(bw*0.7)+'" height="'+h+'" rx="1.5" fill="#3fb950"/>'+
-      '<text x="'+(i*bw+bw/2)+'" y="'+(66-h)+'" font-size="6" fill="#c9d1d9" text-anchor="middle">'+x[1]+'</text>'+
+      '<text x="'+(i*bw+bw/2)+'" y="'+Math.max(7,66-h)+'" font-size="6" fill="#c9d1d9" text-anchor="middle">'+x[1]+'</text>'+
       '<text x="'+(i*bw+bw/2)+'" y="78" font-size="5" fill="#8b949e" text-anchor="middle">'+esc(String(x[0]).slice(5))+'</text>';
   }).join('');
   return '<div class="card"><h2>📈 Reps per week<span class="tag">evidence velocity</span></h2>'+
