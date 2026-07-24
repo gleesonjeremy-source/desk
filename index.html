@@ -190,7 +190,7 @@ function signals(d){
   }).join('');
   return '<div class="card"><h2>🔍 Today\'s signals<span class="tag">'+esc(dg.date||'')+' · '+(dg.n||0)+' found · '+(dg.n_high||0)+' high</span></h2>'+
     (rows||'<div class="item muted">no qualifying setups today</div>')+
-    '<div class="item why" style="border:none;padding-top:10px">the phone pitches are the curated cut — this is the fuller board · always verify the live mid before entering (Massive is 15-min delayed)</div></div>';
+    '<div class="item why" style="border:none;padding-top:10px">the phone pitches are the curated cut — this is the fuller board · prices are as-of scan time — always verify the live mid before entering</div></div>';
 }
 
 function milestones(d){
