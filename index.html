@@ -60,6 +60,12 @@ trust", not account value — <b>your real numbers live in the
 <a href="https://gleesonjeremy-source.github.io/option-tracker/">option tracker</a></b>.</p>
 <p><b>🔍 Today's signals</b> — what the scanners found this morning (top of the
 ranked digest). The phone pitches are the curated subset; this is the fuller board.</p>
+<p><b>🎯 Are the ideas good?</b> — the machine grading its own picks. Every
+HIGH/MED idea automatically runs as a paper trade; this panel shows what those
+trades actually did, split by conviction tier and by feed (pitched to your phone
+vs board-only). The contract with yourself: <b>HIGH must beat MEDIUM</b> — if it
+doesn't, the panel flags it and the ranking gets fixed. This is how "the ideas
+must improve over time" stops being a hope and becomes a number.</p>
 <p><b>🏟️ The traders' book</b> — the tournament agents' open trades: exact
 contract, live P&amp;L, and their plan (thesis + target/stop). This is where you
 coach: spot a mistake or a better idea, text the bot <code>desk: tell vega the
@@ -198,6 +204,26 @@ function weekLabel(s){ /* "2026-W30" -> "Jul 20" (that week's Monday) */
   var mon=new Date(jan4);mon.setUTCDate(jan4.getUTCDate()-((jan4.getUTCDay()||7)-1)+(+m[2]-1)*7);
   return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][mon.getUTCMonth()]+' '+mon.getUTCDate();
 }
+function ideaQuality(d){
+  var q=d.idea_quality;if(!q)return '';
+  function fr(label,r){
+    if(!r||!r.n)return '';
+    var win=r.closed?Math.round(100*r.wins/r.closed)+'% win':'no closes yet';
+    return '<div class="item"><div class="row"><span>'+label+'</span>'+
+      '<span class="num">'+r.n+' ideas · '+r.closed+' closed · '+win+
+      ' · <span class="'+(r.net>0?'ok':(r.net<0?'bad':'muted'))+'">'+(r.net>0?'+':'')+'$'+(r.net||0)+'</span></span></div></div>';
+  }
+  var bc=q.by_conviction||{},hi=bc.HIGH,md=bc.MEDIUM,warn='';
+  if(hi&&md&&hi.closed>=5&&md.closed>=5&&(md.net/md.closed)>(hi.net/hi.closed)){
+    warn='<div class="item warn">⚠️ MEDIUM ideas are outperforming HIGH — the ranking needs work, tell Claude</div>';
+  }
+  var feeds=(q.feeds||[]).map(function(r){
+    return fr(esc(r.feed),{n:r.n,closed:r.n_closed,wins:r.wins,net:Math.round(r.realized||0)});
+  }).join('');
+  return '<div class="card"><h2>🎯 Are the ideas good?<span class="tag">last '+(q.window_days||21)+' days, scored by outcome</span></h2>'+
+    warn+fr('🔥 HIGH conviction',hi)+fr('⚡ MEDIUM conviction',md)+feeds+
+    '<div class="item why" style="border:none;padding-top:10px">every idea auto-runs as a paper trade — this is the machine grading its own picks; it must improve over time</div></div>';
+}
 function traders(d){
   var tb=d.traders;if(!tb)return '';
   var agents=Object.keys(tb).sort();
@@ -245,7 +271,7 @@ function render(d){
   if(age_h>26){$('#stale').style.display='block';
     $('#stale').textContent='⚠️ data is '+Math.round(age_h)+'h old — the generator may be stuck; ask Claude to run triage'}
   else $('#stale').style.display='none';
-  $('#panels').innerHTML=needsYou(d)+signals(d)+traders(d)+goals(d)+build(d)+reps(d);
+  $('#panels').innerHTML=needsYou(d)+signals(d)+ideaQuality(d)+traders(d)+goals(d)+build(d)+reps(d);
 }
 
 function load(){
