@@ -206,12 +206,17 @@ function milestones(d){
 function build(d){
   var b=d.build||{};
   var now=(b.now||[]).map(function(t){return '<div class="item">🔨 '+esc(t)+'</div>'}).join('');
-  var nxt=(b.next||[]).slice(0,4).map(function(t){return '<div class="item muted">🧭 '+esc(t)+'</div>'}).join('');
+  if(b.open_slots)now+='<div class="item ok">🟢 '+b.open_slots+' build slot'+(b.open_slots>1?'s':'')+' open — next in queue moves up</div>';
+  var wait=(b.waiting||[]).map(function(w){return '<div class="item muted">⏳ '+esc(w.title)+'<span class="why">waiting on: '+esc(w.on)+'</span></div>'}).join('');
+  var nxt=(b.next||[]).slice(0,5).map(function(t,i){
+    return '<div class="item'+(t.indexOf('🚨')===0?' bad':' muted')+'">'+(i+1)+'. '+esc(t)+'</div>'}).join('');
   var sh=(b.shipped||[]).slice(0,3).map(function(t){return '<div class="item why" style="padding:4px 0">🚚 '+esc(t)+'</div>'}).join('');
   var wip=(b.now||[]).length>2?'<div class="item warn">⚠️ more than 2 builds in flight — finishing beats starting</div>':'';
-  return '<div class="card"><h2>🗺️ The build</h2>'+wip+(now||'<div class="item muted">nothing actively building</div>')+
-    (nxt?'<div style="margin-top:6px">'+nxt+'</div>':'')+
-    (sh?'<div style="margin-top:6px"><span class="why">shipped recently:</span>'+sh+'</div>':'')+'</div>';
+  return '<div class="card"><h2>🗺️ The build<span class="tag">now → queue → watching → shipped</span></h2>'+wip+
+    (now||'<div class="item muted">nothing actively building</div>')+
+    (nxt?'<div style="margin-top:8px"><span class="why">up next (P1s pinned — "desk: bump/demote" to reorder):</span>'+nxt+'</div>':'')+
+    (wait?'<div style="margin-top:8px"><span class="why">progressing on their own (nobody\'s building these — they\'re accumulating evidence):</span>'+wait+'</div>':'')+
+    (sh?'<div style="margin-top:8px"><span class="why">shipped recently:</span>'+sh+'</div>':'')+'</div>';
 }
 
 function weekLabel(s){ /* "2026-W30" -> "Jul 20" (that week's Monday) */
