@@ -60,6 +60,13 @@ trust", not account value — <b>your real numbers live in the
 <a href="https://gleesonjeremy-source.github.io/option-tracker/">option tracker</a></b>.</p>
 <p><b>🔍 Today's signals</b> — what the scanners found this morning (top of the
 ranked digest). The phone pitches are the curated subset; this is the fuller board.</p>
+<p><b>💼 The pitches — did they pay?</b> — the money funnel: what the machine
+pitched to your phone → which ones YOU took for real → what happened. This is
+the panel that answers "is the phone channel making me money." <b>The habit
+that powers it:</b> when you take a pitch for real, tell the tracker session
+"<code>&lt;TICKER&gt; found by scanner</code>" — that stamps the link, and your
+personal take-rate and hit-rate start accumulating. Paper outcomes shown here;
+real dollars stay in the tracker.</p>
 <p><b>🎯 Are the ideas good?</b> — the machine grading its own picks. Every
 HIGH/MED idea automatically runs as a paper trade; this panel shows what those
 trades actually did, split by conviction tier and by feed (pitched to your phone
@@ -245,6 +252,25 @@ function ideaQuality(d){
     warn+fr('🔥 HIGH conviction',hi)+fr('⚡ MEDIUM conviction',md)+feeds+
     '<div class="item why" style="border:none;padding-top:10px">every idea auto-runs as a paper trade — this is the machine grading its own picks; it must improve over time</div></div>';
 }
+function pitchBoard(d){
+  var q=d.pitch_scoreboard;if(!q)return '';
+  var head='<div class="item"><div class="row"><span>'+q.n_pitched+' pitched · <b>'+q.n_taken+' taken by you</b>'+
+    ' · '+q.closed+' closed ('+(q.closed?Math.round(100*q.wins/q.closed)+'% win':'—')+')</span>'+
+    '<span class="num">realized <span class="'+(q.realized>0?'ok':(q.realized<0?'bad':'muted'))+'">'+(q.realized>0?'+':'')+'$'+q.realized+'</span>'+
+    ' · open <span class="'+(q.open_mark>0?'ok':(q.open_mark<0?'bad':'muted'))+'">'+(q.open_mark>0?'+':'')+'$'+q.open_mark+'</span></span></div></div>';
+  var takeNote=q.n_taken===0?'<div class="item warn">📱 no real takes recorded yet — when you take a pitch, tell the tracker session "<b>&lt;TICKER&gt; found by scanner</b>" so the link gets stamped and this board starts measuring YOUR funnel</div>':'';
+  var rows=(q.recent||[]).map(function(e){
+    var st;
+    if(e.status==='closed')st='<span class="'+(e.pnl>0?'ok':'bad')+'">closed '+(e.pnl>0?'+':'')+'$'+Math.round(e.pnl||0)+(e.exit_reason?' ('+esc(e.exit_reason)+')':'')+'</span>';
+    else if(e.status==='not-logged')st='<span class="muted">not paper-logged</span>';
+    else st='<span class="muted">open · mark '+(e.pnl!=null?((e.pnl>0?'+':'')+'$'+Math.round(e.pnl)):'—')+'</span>';
+    return '<div class="item"><div class="row"><span>'+esc(String(e.date).slice(5))+' <span class="tk">'+esc(e.ticker)+'</span> · '+esc(e.strategy)+
+      (e.taken?'<span class="pill good">📱 TAKEN</span>':'')+'</span><span class="num">'+st+'</span></div></div>';
+  }).join('');
+  return '<div class="card"><h2>💼 The pitches — did they pay?<span class="tag">last '+q.window_days+' days · your funnel</span></h2>'+
+    head+takeNote+rows+
+    '<div class="item why" style="border:none;padding-top:10px">paper outcomes shown here — your real dollars live in the tracker; the 📱 stamp ties the two together</div></div>';
+}
 function traders(d){
   var tb=d.traders;if(!tb)return '';
   var agents=Object.keys(tb).sort();
@@ -292,7 +318,7 @@ function render(d){
   if(age_h>26){$('#stale').style.display='block';
     $('#stale').textContent='⚠️ data is '+Math.round(age_h)+'h old — the generator may be stuck; ask Claude to run triage'}
   else $('#stale').style.display='none';
-  $('#panels').innerHTML=needsYou(d)+signals(d)+ideaQuality(d)+traders(d)+goals(d)+milestones(d)+build(d)+reps(d);
+  $('#panels').innerHTML=needsYou(d)+signals(d)+pitchBoard(d)+ideaQuality(d)+traders(d)+goals(d)+milestones(d)+build(d)+reps(d);
 }
 
 function load(){
