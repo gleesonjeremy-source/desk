@@ -141,6 +141,7 @@ function needsYou(d){
   if(n.bench_decisions)items.push('<div class="item">🔨 '+n.bench_decisions+' Bench decision(s) need your call</div>');
   if(n.dreamer_open)items.push('<div class="item">💭 '+n.dreamer_open+' dreamer suggestion(s) pending your look</div>');
   if(n.suspect_open_marks)items.push('<div class="item warn">🫥 '+n.suspect_open_marks+' open paper mark(s) flagged suspect</div>');
+  (n.fill_proposals||[]).forEach(function(f){items.push('<div class="item">🌉 '+esc(f)+'<span class="why">real fill awaiting tracker import — say "option tracker" to Claude</span></div>')});
   var body=items.length?items.join(''):'<div class="item ok">✅ Nothing needs you — the machine is running clean</div>';
   return '<div class="card"><h2>🎯 Needs you</h2>'+body+'</div>';
 }
