@@ -60,6 +60,12 @@ trust", not account value — <b>your real numbers live in the
 <a href="https://gleesonjeremy-source.github.io/option-tracker/">option tracker</a></b>.</p>
 <p><b>🔍 Today's signals</b> — what the scanners found this morning (top of the
 ranked digest). The phone pitches are the curated subset; this is the fuller board.</p>
+<p><b>🏟️ The traders' book</b> — the tournament agents' open trades: exact
+contract, live P&amp;L, and their plan (thesis + target/stop). This is where you
+coach: spot a mistake or a better idea, text the bot <code>desk: tell vega the
+TLT put is fighting the Fed, size down</code> — it lands on the Pad and gets
+absorbed into their guidance next session. Their money is paper; your judgment
+is the edge they're missing.</p>
 <p><b>🗺️ The build</b> — now building (max a few), next up, and what actually
 shipped recently. If "now building" ever exceeds ~2 items, tell Claude to park one.</p>
 <p><b>📈 Trades closed per week</b> — the project's speedometer. Every strategy
@@ -192,6 +198,32 @@ function weekLabel(s){ /* "2026-W30" -> "Jul 20" (that week's Monday) */
   var mon=new Date(jan4);mon.setUTCDate(jan4.getUTCDate()-((jan4.getUTCDay()||7)-1)+(+m[2]-1)*7);
   return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][mon.getUTCMonth()]+' '+mon.getUTCDate();
 }
+function traders(d){
+  var tb=d.traders;if(!tb)return '';
+  var agents=Object.keys(tb).sort();
+  if(!agents.length)return '';
+  var html=agents.map(function(a){
+    var ts=tb[a],net=0,known=false;
+    ts.forEach(function(t){if(t.pnl!=null){net+=t.pnl;known=true}});
+    var rows=ts.map(function(t){
+      var plan=[];
+      if(t.target_pct!=null)plan.push('target +'+Math.round(t.target_pct*100)+'%');
+      if(t.stop_pct!=null)plan.push('stop −'+Math.round(t.stop_pct*100)+'%');
+      return '<div class="item" style="margin-left:8px">'+
+        '<div class="row"><span><span class="tk">'+esc(t.ticker)+'</span> · '+esc(t.strategy)+
+        (t.direction==='bearish'?' 🔴':' 🟢')+(t.lab?'<span class="pill">🧪 lab</span>':'')+'</span>'+
+        '<span class="num '+(t.pnl>0?'ok':(t.pnl<0?'bad':'muted'))+'">'+(t.pnl!=null?(t.pnl>0?'+':'')+'$'+Math.round(t.pnl):'—')+'</span></div>'+
+        '<div style="margin:2px 0">'+contractLine(t)+(t.cost!=null?' <span class="muted">@ $'+t.cost+'</span>':'')+'</div>'+
+        (plan.length?'<span class="why">plan: '+esc(plan.join(' · '))+' · exit per strategy rules</span>':'')+
+        (t.thesis?'<span class="why">💭 '+esc(t.thesis)+'</span>':'')+
+        '</div>';
+    }).join('');
+    return '<div class="item" style="border:none;padding-bottom:2px"><div class="row"><b>'+esc(a)+'</b>'+
+      '<span class="num '+(net>0?'ok':(net<0?'bad':'muted'))+'">'+ts.length+' open · '+(known?(net>0?'+':'')+'$'+Math.round(net):'—')+'</span></div></div>'+rows;
+  }).join('');
+  return '<div class="card"><h2>🏟️ The traders\' book<span class="tag">open trades + their plans</span></h2>'+html+
+    '<div class="item why" style="border:none;padding-top:10px">coach them: text "desk: tell &lt;name&gt; …" — it lands on the Pad and gets absorbed into their guidance</div></div>';
+}
 function reps(d){
   var r=d.reps;if(!r||!(r.weekly||[]).length)return '';
   var w=r.weekly.slice(-8),max=Math.max.apply(null,w.map(function(x){return x[1]}))||1;
@@ -213,7 +245,7 @@ function render(d){
   if(age_h>26){$('#stale').style.display='block';
     $('#stale').textContent='⚠️ data is '+Math.round(age_h)+'h old — the generator may be stuck; ask Claude to run triage'}
   else $('#stale').style.display='none';
-  $('#panels').innerHTML=needsYou(d)+goals(d)+signals(d)+build(d)+reps(d);
+  $('#panels').innerHTML=needsYou(d)+signals(d)+traders(d)+goals(d)+build(d)+reps(d);
 }
 
 function load(){
