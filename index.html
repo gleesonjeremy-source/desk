@@ -72,6 +72,12 @@ coach: spot a mistake or a better idea, text the bot <code>desk: tell vega the
 TLT put is fighting the Fed, size down</code> — it lands on the Pad and gets
 absorbed into their guidance next session. Their money is paper; your judgment
 is the edge they're missing.</p>
+<p><b>🗓️ The road to the goals</b> — the dated waypoints between here and an
+autonomous live account (each tagged with the goal it feeds). Countdown turns
+amber inside two weeks, red when overdue. Every build should feed a milestone —
+if something on "now building" doesn't, ask why. <b>You steer from your phone:</b>
+<code>desk: bump &lt;thing&gt;</code> reorders priorities; Claude does the legwork
+and the queue reshuffles by the next pass.</p>
 <p><b>🗺️ The build</b> — now building (max a few), next up, and what actually
 shipped recently. If "now building" ever exceeds ~2 items, tell Claude to park one.</p>
 <p><b>📈 Trades closed per week</b> — the project's speedometer. Every strategy
@@ -187,6 +193,16 @@ function signals(d){
     '<div class="item why" style="border:none;padding-top:10px">the phone pitches are the curated cut — this is the fuller board · always verify the live mid before entering (Massive is 15-min delayed)</div></div>';
 }
 
+function milestones(d){
+  var ms=d.milestones;if(!ms||!ms.length)return '';
+  var rows=ms.filter(function(m){return m.days_left==null||m.days_left>-30}).map(function(m,i){
+    var dl=m.days_left,when=dl==null?'':(dl<0?'<span class="bad">'+(-dl)+'d overdue</span>':(dl<=14?'<span class="warn">'+dl+'d</span>':'<span class="muted">'+dl+'d</span>'));
+    return '<div class="item'+(i===0?'':'')+'"><div class="row"><span>'+(i===0?'⏳ ':'')+'<b>'+esc(String(m.date).slice(5))+'</b> · '+esc(m.title)+
+      (m.feeds?'<span class="pill">'+esc(m.feeds)+'</span>':'')+'</span><span class="num">'+when+'</span></div></div>';
+  }).join('');
+  return '<div class="card"><h2>🗓️ The road to the goals<span class="tag">milestones · dates approved 07-24</span></h2>'+rows+
+    '<div class="item why" style="border:none;padding-top:10px">reorder any time: text "desk: bump &lt;thing&gt; — more important than &lt;other&gt;" · Claude does the legwork, you steer</div></div>';
+}
 function build(d){
   var b=d.build||{};
   var now=(b.now||[]).map(function(t){return '<div class="item">🔨 '+esc(t)+'</div>'}).join('');
@@ -271,7 +287,7 @@ function render(d){
   if(age_h>26){$('#stale').style.display='block';
     $('#stale').textContent='⚠️ data is '+Math.round(age_h)+'h old — the generator may be stuck; ask Claude to run triage'}
   else $('#stale').style.display='none';
-  $('#panels').innerHTML=needsYou(d)+signals(d)+ideaQuality(d)+traders(d)+goals(d)+build(d)+reps(d);
+  $('#panels').innerHTML=needsYou(d)+signals(d)+ideaQuality(d)+traders(d)+goals(d)+milestones(d)+build(d)+reps(d);
 }
 
 function load(){
