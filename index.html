@@ -62,8 +62,13 @@ trust", not account value — <b>your real numbers live in the
 ranked digest). The phone pitches are the curated subset; this is the fuller board.</p>
 <p><b>🗺️ The build</b> — now building (max a few), next up, and what actually
 shipped recently. If "now building" ever exceeds ~2 items, tell Claude to park one.</p>
-<p><b>📈 Reps per week</b> — evidence velocity: closed paper+tournament trades per
-week. More reps = faster verdicts = faster to proven strategies.</p>
+<p><b>📈 Trades closed per week</b> — the project's speedometer. Every strategy
+must finish ~20 practice (paper) trades before it's trusted with real money — so
+the faster trades close, the faster a strategy gets its verdict: proven (moves
+toward your real account) or killed (stops wasting time). Each bar = one week,
+labeled by that week's Monday; the number is how many practice trades finished
+that week. <b>Healthy bars = the machine is learning. Shrinking bars = it's
+idling — ask Claude why.</b></p>
 <p><b>Freshness:</b> data refreshes ~hourly on market days (evening passes daily);
 the stamp at the top tells you its age, and an amber banner appears if it's stale.
 Pull-to-refresh / reload any time; the page also re-fetches every 5 minutes.</p>
@@ -156,6 +161,12 @@ function build(d){
     (sh?'<div style="margin-top:6px"><span class="why">shipped recently:</span>'+sh+'</div>':'')+'</div>';
 }
 
+function weekLabel(s){ /* "2026-W30" -> "Jul 20" (that week's Monday) */
+  var m=/^(\d{4})-W(\d{2})$/.exec(String(s));if(!m)return s;
+  var jan4=new Date(Date.UTC(+m[1],0,4));
+  var mon=new Date(jan4);mon.setUTCDate(jan4.getUTCDate()-((jan4.getUTCDay()||7)-1)+(+m[2]-1)*7);
+  return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][mon.getUTCMonth()]+' '+mon.getUTCDate();
+}
 function reps(d){
   var r=d.reps;if(!r||!(r.weekly||[]).length)return '';
   var w=r.weekly.slice(-8),max=Math.max.apply(null,w.map(function(x){return x[1]}))||1;
@@ -164,11 +175,11 @@ function reps(d){
     var h=58*x[1]/max;
     return '<rect x="'+(i*bw+bw*0.15)+'" y="'+(70-h)+'" width="'+(bw*0.7)+'" height="'+h+'" rx="1.5" fill="#3fb950"/>'+
       '<text x="'+(i*bw+bw/2)+'" y="'+Math.max(7,66-h)+'" font-size="6" fill="#c9d1d9" text-anchor="middle">'+x[1]+'</text>'+
-      '<text x="'+(i*bw+bw/2)+'" y="78" font-size="5" fill="#8b949e" text-anchor="middle">'+esc(String(x[0]).slice(5))+'</text>';
+      '<text x="'+(i*bw+bw/2)+'" y="78" font-size="4.6" fill="#8b949e" text-anchor="middle">'+esc(weekLabel(x[0]))+'</text>';
   }).join('');
-  return '<div class="card"><h2>📈 Reps per week<span class="tag">evidence velocity</span></h2>'+
+  return '<div class="card"><h2>📈 Trades closed per week<span class="tag">how fast we\'re learning</span></h2>'+
     '<svg viewBox="0 0 100 82" preserveAspectRatio="xMidYMid meet">'+bars+'</svg>'+
-    '<div class="why" style="margin-top:4px">closed paper trades per week — more reps → faster verdicts → sooner on real money</div></div>';
+    '<div class="why" style="margin-top:4px">every strategy needs ~20 closed practice trades before we trust it with real money — these bars show how fast the proof is piling up (label = that week\'s Monday)</div></div>';
 }
 
 function render(d){
