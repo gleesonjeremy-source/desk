@@ -133,21 +133,46 @@ function goals(d){
     (lad?'<div style="margin-top:8px">'+lad+'</div>':'')+'</div>';
 }
 
+function legDesc(s){ /* "O:GIS261016C00032500:long" -> {act,strike,cp,date} */
+  var m=/^O:([A-Z.]+)(\d{6})([CP])(\d{8})(?::(long|short))?$/.exec(String(s).trim());
+  if(!m)return null;
+  var mo=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  return {act:m[5]==='short'?'sell':'buy',
+    strike:(+m[4])/1000,cp:m[3],
+    date:mo[+m[2].slice(2,4)-1]+' '+(+m[2].slice(4,6))};
+}
+function contractLine(c){
+  var legs=String(c.contracts||'').split(',').map(legDesc);
+  if(!legs.length||legs.some(function(l){return !l}))
+    return '<span class="bad">⚠️ no contract attached — not actionable, ask Claude why</span>';
+  var sameExp=legs.every(function(l){return l.date===legs[0].date});
+  var parts=legs.map(function(l){
+    return l.act+' $'+l.strike+l.cp+(sameExp?'':' '+l.date)});
+  return '<b>'+esc(parts.join(' / '))+(sameExp?' · '+esc(legs[0].date):'')+'</b>'+
+    (c.dte!=null?' <span class="muted">('+c.dte+'d)</span>':'');
+}
 function signals(d){
   var dg=d.digest;
   if(!dg)return '';
   var rows=(dg.top||[]).map(function(c){
-    var bits=[];
-    if(c.cost!=null)bits.push('$'+c.cost);
-    if(c.pop!=null)bits.push('POP '+c.pop);
-    if(c.rr!=null)bits.push('R:R '+c.rr);
     var conv=c.conviction==='HIGH'?'<span class="pill hi">HIGH</span>':'<span class="pill med">MED</span>';
-    return '<div class="item"><span class="tk">'+esc(c.ticker)+'</span> · '+esc(c.strategy)+conv+
-      (bits.length?'<span class="why">'+esc(bits.join(' · '))+'</span>':'')+'</div>';
+    var nums=[];
+    if(c.cost!=null)nums.push('cost $'+c.cost);
+    if(c.max_loss!=null)nums.push('max loss $'+c.max_loss);
+    if(c.max_gain!=null)nums.push('max gain $'+c.max_gain);
+    if(c.rr!=null)nums.push('R:R '+c.rr);
+    if(c.pop!=null)nums.push('POP '+c.pop);
+    if(c.breakeven!=null)nums.push('BE $'+c.breakeven);
+    return '<div class="item">'+
+      '<div><span class="tk">'+esc(c.ticker)+'</span> '+(c.dir?esc(c.dir)+' ':'')+'· '+esc(c.strategy)+conv+'</div>'+
+      '<div style="margin:3px 0">'+contractLine(c)+'</div>'+
+      (c.why?'<span class="why">'+esc(c.why)+'</span>':'')+
+      (nums.length?'<span class="why num">'+esc(nums.join(' · '))+'</span>':'')+
+      '</div>';
   }).join('');
   return '<div class="card"><h2>🔍 Today\'s signals<span class="tag">'+esc(dg.date||'')+' · '+(dg.n||0)+' found · '+(dg.n_high||0)+' high</span></h2>'+
     (rows||'<div class="item muted">no qualifying setups today</div>')+
-    '<div class="item why" style="border:none;padding-top:10px">the phone pitches are the curated cut — this is the fuller board</div></div>';
+    '<div class="item why" style="border:none;padding-top:10px">the phone pitches are the curated cut — this is the fuller board · always verify the live mid before entering (Massive is 15-min delayed)</div></div>';
 }
 
 function build(d){
