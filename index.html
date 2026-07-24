@@ -1,0 +1,195 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>🖥️ The Desk</title><style>
+/* The Desk — Screen v2 (2026-07-23). The HUMAN engine: 10-second answer to
+   "what needs me + where is the project". Obsidian = Claude's engine (depth);
+   the option tracker = the real-money numbers home (never duplicated here).
+   Data: /p_<key>/deskData on the locked Firebase, written by gen_hub every
+   pass (~hourly market days, evening daily). This page computes NO truth. */
+:root{color-scheme:dark}*{box-sizing:border-box}
+body{margin:0;background:#0d1117;color:#c9d1d9;font:15px/1.5 -apple-system,Segoe UI,Helvetica,Arial,sans-serif;padding:14px}
+.wrap{max-width:760px;margin:0 auto}
+h1{font-size:21px;margin:4px 0 0}.sub{color:#8b949e;font-size:12px;margin:2px 0 14px}
+.card{background:#161b22;border:1px solid #21262d;border-radius:12px;padding:14px;margin-bottom:14px}
+.card h2{font-size:15px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+.card h2 .tag{font-size:10px;font-weight:400;color:#8b949e;text-transform:uppercase;letter-spacing:.05em;margin-left:auto}
+.ok{color:#3fb950}.warn{color:#d29922}.bad{color:#f85149}.muted{color:#8b949e}
+.item{padding:7px 0;border-bottom:1px solid #21262d;font-size:14px}
+.item:last-child{border-bottom:none}
+.item .why{color:#8b949e;font-size:12px;display:block}
+.pill{display:inline-block;font-size:10px;border:1px solid #30363d;border-radius:999px;padding:0 8px;margin-left:6px;color:#8b949e;vertical-align:1px}
+.pill.hi{border-color:#f85149;color:#f85149}.pill.med{border-color:#d29922;color:#d29922}
+.bar{background:#21262d;border-radius:4px;height:7px;overflow:hidden;margin-top:4px}
+.bar>div{height:100%;background:#3fb950}
+.bar>div.part{background:#d29922}
+.row{display:flex;gap:8px;align-items:baseline;justify-content:space-between}
+.num{font-variant-numeric:tabular-nums}
+.tk{font-weight:700}
+svg{display:block;width:100%;height:auto}
+details{margin-top:4px}summary{cursor:pointer;color:#8b949e;font-size:14px;padding:6px 0}
+details[open] summary{color:#c9d1d9}
+.howto p{font-size:13px;color:#c9d1d9;margin:8px 0}.howto b{color:#fff}
+.howto code{background:#21262d;border-radius:4px;padding:1px 5px;font-size:12px}
+a{color:#58a6ff;text-decoration:none}
+footer{color:#6e7681;font-size:11px;margin:16px 0 8px;text-align:center}
+#stale{display:none;background:#3d2e00;border:1px solid #d29922;color:#d29922;border-radius:10px;padding:8px 12px;font-size:13px;margin-bottom:14px}
+#lock{position:fixed;inset:0;background:#0d1117;display:none;align-items:center;justify-content:center;z-index:9}
+#lock .box{max-width:340px;padding:24px;text-align:center}
+#lock input{width:100%;background:#21262d;border:1px solid #30363d;border-radius:8px;color:#c9d1d9;padding:10px;font-size:14px;margin:12px 0}
+#lock button{background:#238636;border:none;border-radius:8px;color:#fff;padding:10px 22px;font-size:14px;cursor:pointer}
+</style></head><body><div class="wrap">
+<h1>🖥️ The Desk</h1>
+<p class="sub">The project in 10 seconds · <span id="asof" class="muted">loading…</span></p>
+<div id="stale"></div>
+<div id="panels"></div>
+
+<div class="card howto"><details><summary>❓ How this works — read me once</summary>
+<p><b>What this page is:</b> the human window on the trading machine. It answers two
+questions: <b>what needs me?</b> and <b>where is the project?</b> Everything here is
+read-only and machine-written — nothing on this page is ever hand-edited.</p>
+<p><b>🎯 Needs you</b> — your action list. <b>P1 = something running wrong → repair
+first</b> (tell Claude tonight: "run the drill"). Pad items = ideas you dropped
+(<code>desk: idea</code> from Telegram) waiting to be absorbed in an evening session.
+Bench decisions + dreamer items = calls only you can make. Green line = machine's
+fine without you today.</p>
+<p><b>🏁 Goals & proving ground</b> — the ladder every strategy climbs before real
+money: 🌱 collecting → ✅ paper-proven → 🏦 TS-SIM → 💵 live-small. The bars show
+verified reps toward the 20-rep verdict bar. This is "is the machine earning
+trust", not account value — <b>your real numbers live in the
+<a href="https://gleesonjeremy-source.github.io/option-tracker/">option tracker</a></b>.</p>
+<p><b>🔍 Today's signals</b> — what the scanners found this morning (top of the
+ranked digest). The phone pitches are the curated subset; this is the fuller board.</p>
+<p><b>🗺️ The build</b> — now building (max a few), next up, and what actually
+shipped recently. If "now building" ever exceeds ~2 items, tell Claude to park one.</p>
+<p><b>📈 Reps per week</b> — evidence velocity: closed paper+tournament trades per
+week. More reps = faster verdicts = faster to proven strategies.</p>
+<p><b>Freshness:</b> data refreshes ~hourly on market days (evening passes daily);
+the stamp at the top tells you its age, and an amber banner appears if it's stale.
+Pull-to-refresh / reload any time; the page also re-fetches every 5 minutes.</p>
+<p><b>The key:</b> this page reads the same locked database as the tracker. One
+key per device, asked once, kept in the browser (Telegram bot command
+<code>help</code> if you forget everything else). Depth lives in Obsidian —
+this page is the surface.</p>
+</details></div>
+
+<footer>The Desk · data via gen_hub → locked Firebase · auto-refresh 5 min ·
+<a href="https://gleesonjeremy-source.github.io/option-tracker/">tracker</a></footer>
+</div>
+
+<div id="lock"><div class="box">
+<h2>🔒 The Desk is locked</h2>
+<p class="muted" style="font-size:13px">Paste your database key (same one as the
+tracker — FB_PATH_KEY in the option-tracker .env).</p>
+<input id="keyin" placeholder="database key" autocomplete="off">
+<button onclick="saveKey()">Unlock</button>
+</div></div>
+
+<script>
+var FB='https://option-tracker-a004d-default-rtdb.firebaseio.com';
+var KSTORE='ot_fbkey_v1';               /* same store as the tracker page — one paste per device covers both */
+var KEY=(localStorage.getItem(KSTORE)||'').trim();
+function $(s){return document.querySelector(s)}
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function saveKey(){var k=$('#keyin').value.trim();if(k){localStorage.setItem(KSTORE,k);location.reload()}}
+function showLock(){$('#lock').style.display='flex'}
+
+function fmtAge(ep){
+  var m=Math.round((Date.now()/1000-ep)/60);
+  if(m<2)return 'just now';if(m<90)return m+' min ago';
+  var h=Math.round(m/60);if(h<36)return h+'h ago';return Math.round(h/24)+'d ago';
+}
+
+function needsYou(d){
+  var n=d.needs_you||{},items=[];
+  (n.p1||[]).forEach(function(t){items.push('<div class="item bad">🚨 P1 — running wrong: '+esc(t)+'<span class="why">repair beats building — bring this to tonight\'s session first</span></div>')});
+  if(n.desk_inbox)items.push('<div class="item">📥 '+n.desk_inbox+' idea(s) on the Pad waiting to be absorbed<span class="why">drop more any time: text "desk: idea" to the bot</span></div>');
+  if(n.bench_decisions)items.push('<div class="item">🔨 '+n.bench_decisions+' Bench decision(s) need your call</div>');
+  if(n.dreamer_open)items.push('<div class="item">💭 '+n.dreamer_open+' dreamer suggestion(s) pending your look</div>');
+  if(n.suspect_open_marks)items.push('<div class="item warn">🫥 '+n.suspect_open_marks+' open paper mark(s) flagged suspect</div>');
+  var body=items.length?items.join(''):'<div class="item ok">✅ Nothing needs you — the machine is running clean</div>';
+  return '<div class="card"><h2>🎯 Needs you</h2>'+body+'</div>';
+}
+
+function goals(d){
+  var g=(d.goals||[]).map(function(x){return '<div class="item"><b>'+esc(x.id)+'</b> · '+esc(x.title)+'</div>'}).join('');
+  var ev=d.evidence||{},pv={};(d.proving||[]).forEach(function(r){pv[r.strategy]=r});
+  var keys=Object.keys(ev).sort(function(a,b){return (ev[b].trusted||0)-(ev[a].trusted||0)});
+  var lad=keys.slice(0,8).map(function(k){
+    var e=ev[k],p=pv[k],pct=Math.min(100,100*(e.trusted||0)/20);
+    var tag=p?' <span class="pill '+(String(p.verdict).indexOf('PROVEN')>-1?'hi':'')+'">'+esc(p.verdict)+(p.n?' n='+p.n:'')+'</span>':'';
+    return '<div class="item"><div class="row"><span class="tk">'+esc(k)+'</span>'+tag+
+      '<span class="num muted">'+(e.trusted||0)+'/20 verified</span></div>'+
+      '<div class="bar"><div class="'+(pct<100?'part':'')+'" style="width:'+pct+'%"></div></div></div>';
+  }).join('');
+  return '<div class="card"><h2>🏁 Goals & proving ground<span class="tag">20 reps → verdict</span></h2>'+g+
+    (lad?'<div style="margin-top:8px">'+lad+'</div>':'')+'</div>';
+}
+
+function signals(d){
+  var dg=d.digest;
+  if(!dg)return '';
+  var rows=(dg.top||[]).map(function(c){
+    var bits=[];
+    if(c.cost!=null)bits.push('$'+c.cost);
+    if(c.pop!=null)bits.push('POP '+c.pop);
+    if(c.rr!=null)bits.push('R:R '+c.rr);
+    var conv=c.conviction==='HIGH'?'<span class="pill hi">HIGH</span>':'<span class="pill med">MED</span>';
+    return '<div class="item"><span class="tk">'+esc(c.ticker)+'</span> · '+esc(c.strategy)+conv+
+      (bits.length?'<span class="why">'+esc(bits.join(' · '))+'</span>':'')+'</div>';
+  }).join('');
+  return '<div class="card"><h2>🔍 Today\'s signals<span class="tag">'+esc(dg.date||'')+' · '+(dg.n||0)+' found · '+(dg.n_high||0)+' high</span></h2>'+
+    (rows||'<div class="item muted">no qualifying setups today</div>')+
+    '<div class="item why" style="border:none;padding-top:10px">the phone pitches are the curated cut — this is the fuller board</div></div>';
+}
+
+function build(d){
+  var b=d.build||{};
+  var now=(b.now||[]).map(function(t){return '<div class="item">🔨 '+esc(t)+'</div>'}).join('');
+  var nxt=(b.next||[]).slice(0,4).map(function(t){return '<div class="item muted">🧭 '+esc(t)+'</div>'}).join('');
+  var sh=(b.shipped||[]).slice(0,3).map(function(t){return '<div class="item why" style="padding:4px 0">🚚 '+esc(t)+'</div>'}).join('');
+  var wip=(b.now||[]).length>2?'<div class="item warn">⚠️ more than 2 builds in flight — finishing beats starting</div>':'';
+  return '<div class="card"><h2>🗺️ The build</h2>'+wip+(now||'<div class="item muted">nothing actively building</div>')+
+    (nxt?'<div style="margin-top:6px">'+nxt+'</div>':'')+
+    (sh?'<div style="margin-top:6px"><span class="why">shipped recently:</span>'+sh+'</div>':'')+'</div>';
+}
+
+function reps(d){
+  var r=d.reps;if(!r||!(r.weekly||[]).length)return '';
+  var w=r.weekly.slice(-8),max=Math.max.apply(null,w.map(function(x){return x[1]}))||1;
+  var bw=100/w.length;
+  var bars=w.map(function(x,i){
+    var h=64*x[1]/max;
+    return '<rect x="'+(i*bw+bw*0.15)+'" y="'+(70-h)+'" width="'+(bw*0.7)+'" height="'+h+'" rx="1.5" fill="#3fb950"/>'+
+      '<text x="'+(i*bw+bw/2)+'" y="'+(66-h)+'" font-size="6" fill="#c9d1d9" text-anchor="middle">'+x[1]+'</text>'+
+      '<text x="'+(i*bw+bw/2)+'" y="78" font-size="5" fill="#8b949e" text-anchor="middle">'+esc(String(x[0]).slice(5))+'</text>';
+  }).join('');
+  return '<div class="card"><h2>📈 Reps per week<span class="tag">evidence velocity</span></h2>'+
+    '<svg viewBox="0 0 100 82" preserveAspectRatio="xMidYMid meet">'+bars+'</svg>'+
+    '<div class="why" style="margin-top:4px">closed paper trades per week — more reps → faster verdicts → sooner on real money</div></div>';
+}
+
+function render(d){
+  $('#asof').textContent='machine-written '+fmtAge(d.asof_epoch)+' ('+d.asof+')';
+  var age_h=(Date.now()/1000-d.asof_epoch)/3600;
+  if(age_h>26){$('#stale').style.display='block';
+    $('#stale').textContent='⚠️ data is '+Math.round(age_h)+'h old — the generator may be stuck; ask Claude to run triage'}
+  else $('#stale').style.display='none';
+  $('#panels').innerHTML=needsYou(d)+goals(d)+signals(d)+build(d)+reps(d);
+}
+
+function load(){
+  if(!KEY){showLock();return}
+  fetch(FB+'/p_'+KEY+'/deskData.json').then(function(r){
+    if(r.status===401||r.status===403)throw 'denied';
+    return r.json();
+  }).then(function(d){
+    if(d===null)throw 'denied';
+    render(d);
+  }).catch(function(e){
+    if(String(e).indexOf('denied')>-1){localStorage.removeItem(KSTORE);showLock()}
+    else $('#asof').textContent='fetch failed — offline? ('+e+')';
+  });
+}
+load(); setInterval(load,300000);
+</script>
+</body></html>
