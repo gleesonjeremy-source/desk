@@ -91,6 +91,13 @@ if something on "now building" doesn't, ask why. <b>You steer from your phone:</
 and the queue reshuffles by the next pass.</p>
 <p><b>🗺️ The build</b> — now building (max a few), next up, and what actually
 shipped recently. If "now building" ever exceeds ~2 items, tell Claude to park one.</p>
+<p><b>⏰ The clock</b> — every scheduled job the project runs: what fires when
+(Pacific) and what it does. The mini rows are read live from launchd on every
+pass, so this panel can't drift from what's actually installed — 🔴 means a job
+exists but isn't loaded (a repair). The "off the mini" rows are schedulers on
+other machines (like Claude-app tasks on the laptop), kept by hand. <b>If a job
+appears here you don't recognize, ask Claude — nothing should run that this
+panel doesn't explain.</b></p>
 <p><b>📈 Trades closed per week</b> — the project's speedometer. Every strategy
 must finish ~20 practice (paper) trades before it's trusted with real money — so
 the faster trades close, the faster a strategy gets its verdict: proven (moves
@@ -317,6 +324,23 @@ function traders(d){
   return '<div class="card"><h2>🏟️ The traders\' book<span class="tag">open trades + their plans</span></h2>'+html+
     '<div class="item why" style="border:none;padding-top:10px">coach them: text "desk: tell &lt;name&gt; …" — it lands on the Pad and gets absorbed into their guidance</div></div>';
 }
+function clock(d){
+  var s=d.schedule;if(!s)return '';
+  var rows=(s.mini||[]).map(function(j){
+    return '<div class="item"><div class="row"><span>'+(j.ok?'✅':'<span class="bad">🔴</span>')+' <b>'+esc(j.job)+'</b></span>'+
+      '<span class="num muted">'+esc(j.when)+'</span></div>'+
+      '<span class="why">'+esc(j.what)+'</span></div>';
+  }).join('');
+  var oth=(s.other||[]).map(function(j){
+    return '<div class="item"><div class="row"><span>🛰️ <b>'+esc(j.job)+'</b>'+(j.where?'<span class="pill">'+esc(j.where)+'</span>':'')+'</span>'+
+      '<span class="num muted">'+esc(j.when)+'</span></div>'+
+      '<span class="why">'+esc(j.what)+'</span></div>';
+  }).join('');
+  if(!rows&&!oth)return '';
+  return '<div class="card"><h2>⏰ The clock<span class="tag">all times Pacific · read live from launchd</span></h2>'+rows+
+    (oth?'<div style="margin-top:8px"><span class="why">off the mini (hand-kept list — not machine-verified):</span>'+oth+'</div>':'')+
+    '<div class="item why" style="border:none;padding-top:10px">🔴 = installed but NOT loaded — that\'s a repair, tell Claude to run triage</div></div>';
+}
 function reps(d){
   var r=d.reps;if(!r||!(r.weekly||[]).length)return '';
   var w=r.weekly.slice(-8),max=Math.max.apply(null,w.map(function(x){return x[1]}))||1;
@@ -338,7 +362,7 @@ function render(d){
   if(age_h>26){$('#stale').style.display='block';
     $('#stale').textContent='⚠️ data is '+Math.round(age_h)+'h old — the generator may be stuck; ask Claude to run triage'}
   else $('#stale').style.display='none';
-  $('#panels').innerHTML=needsYou(d)+signals(d)+pitchBoard(d)+ideaQuality(d)+traders(d)+goals(d)+milestones(d)+build(d)+reps(d);
+  $('#panels').innerHTML=needsYou(d)+signals(d)+pitchBoard(d)+ideaQuality(d)+traders(d)+goals(d)+milestones(d)+build(d)+clock(d)+reps(d);
 }
 
 function load(){
