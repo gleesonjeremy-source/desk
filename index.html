@@ -122,6 +122,8 @@ this page is the surface.</p>
 <h2>🔒 The Desk is locked</h2>
 <p class="muted" style="font-size:13px">Paste your database key (same one as the
 tracker — FB_PATH_KEY in the option-tracker .env).</p>
+<p id="lockerr" style="display:none;color:#e5534b;font-size:13px;font-weight:600">
+❌ that key was rejected — re-paste the exact FB_PATH_KEY (no spaces)</p>
 <input id="keyin" placeholder="database key" autocomplete="off">
 <button onclick="saveKey()">Unlock</button>
 </div></div>
@@ -374,7 +376,12 @@ function load(){
     if(d===null)throw 'denied';
     render(d);
   }).catch(function(e){
-    if(String(e).indexOf('denied')>-1){localStorage.removeItem(KSTORE);showLock()}
+    if(String(e).indexOf('denied')>-1){
+      // say WHY the lock came back (2026-07-29: silent re-lock read as
+      // "the page is empty" — a rejected key must announce itself)
+      var had=!!KEY;localStorage.removeItem(KSTORE);showLock();
+      if(had)$('#lockerr').style.display='block';
+    }
     else $('#asof').textContent='fetch failed — offline? ('+e+')';
   });
 }
