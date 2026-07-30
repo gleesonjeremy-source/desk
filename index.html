@@ -53,6 +53,12 @@ first</b> (tell Claude tonight: "run the drill"). Pad items = ideas you dropped
 (<code>desk: idea</code> from Telegram) waiting to be absorbed in an evening session.
 Bench decisions + dreamer items = calls only you can make. Green line = machine's
 fine without you today.</p>
+<p><b>🏦 TS-SIM — the broker truth</b> — the machine's trades run as REAL limit
+orders in the TradeStation simulator: real fills, real no-fills, zero dollars.
+The headline number is the <b>fill-truth gap</b>: what the broker actually paid
+vs what the paper book's mid-marks claimed on the same trades. Paper proves an
+edge exists; this rung proves we can collect it — no strategy touches real money
+without passing here first.</p>
 <p><b>🏁 Goals & proving ground</b> — the ladder every strategy climbs before real
 money: 🌱 collecting → ✅ paper-proven → 🏦 TS-SIM → 💵 live-small. <b>Version-aware:</b>
 strategies evolve through numbered rulesets (v1, v2, v3…) and the verdict grades the
@@ -153,15 +159,54 @@ function nyRow(cls,head,arr,hint){
     ' <span class="pill">tap ▾</span></summary>'+lis+h+'</details></div>';
 }
 function needsYou(d){
+  // row order = urgency (2026-07-30): running-wrong, then your REAL money,
+  // then decisions only you can make, then session work, then machine watch
   var n=d.needs_you||{},items=[];
   (n.p1||[]).forEach(function(t){items.push('<div class="item bad">🚨 P1 — running wrong: '+esc(t)+'<span class="why">repair beats building — bring this to tonight\'s session first</span></div>')});
-  if(n.desk_inbox)items.push(nyRow('','📥 '+n.desk_inbox+' idea(s) on the Pad waiting to be absorbed',n.desk_inbox_items,'drop more any time: text "desk: idea" to the bot'));
+  (n.fill_proposals||[]).forEach(function(f){items.push('<div class="item">🌉 '+esc(f)+'<span class="why">real fill awaiting tracker import — say "option tracker" to Claude</span></div>')});
   if(n.bench_decisions)items.push(nyRow('','🔨 '+n.bench_decisions+' Bench decision(s) need your call',n.bench_decision_items,''));
   if(n.dreamer_open)items.push(nyRow('','💭 '+n.dreamer_open+' dreamer suggestion(s) pending your look',n.dreamer_items,''));
-  if(n.suspect_open_marks)items.push(nyRow('warn','🫥 '+n.suspect_open_marks+' open paper mark(s) flagged suspect',n.suspect_items,'wide/one-sided quotes — the close pass keeps re-checking them'));
-  (n.fill_proposals||[]).forEach(function(f){items.push('<div class="item">🌉 '+esc(f)+'<span class="why">real fill awaiting tracker import — say "option tracker" to Claude</span></div>')});
+  if(n.desk_inbox)items.push(nyRow('','📥 '+n.desk_inbox+' drop(s) on the Pad waiting to be absorbed',n.desk_inbox_items,'these clear in your next session with Claude — absorbed into the registry + ✅-stamped · drop more any time: "desk: idea" to the bot'));
+  if(n.suspect_open_marks)items.push(nyRow('warn','🫥 '+n.suspect_open_marks+' open paper mark(s) flagged suspect',n.suspect_items,'wide/one-sided quotes — the close pass keeps re-checking them; nothing for you unless an exit is waiting on one'));
   var body=items.length?items.join(''):'<div class="item ok">✅ Nothing needs you — the machine is running clean</div>';
   return '<div class="card"><h2>🎯 Needs you</h2>'+body+'</div>';
+}
+
+function tsSim(d){
+  // 🏦 the broker-truth panel (2026-07-30, Jeremy: "that is the truth right
+  // there"): real TradeStation-sim fills vs the paper twins' mid-marks
+  var s=d.ts_sim;if(!s)return '';
+  function m(v){if(v==null)return '—';var r=Math.round(v);return (r>0?'+$':(r<0?'-$':'$'))+Math.abs(r)}
+  var gap=s.pairs?(s.real_paired-s.twin_paired):null;
+  var head='';
+  if(s.pairs){
+    head='<div class="item"><div class="row"><span><b>the fill-truth gap</b> · '+s.pairs+' closed pair(s)</span>'+
+      '<span class="num '+(gap>=0?'ok':'bad')+'">'+m(gap)+'</span></div>'+
+      '<span class="why">real broker fills '+m(s.real_paired)+' vs the same trades\' paper mids '+m(s.twin_paired)+' — this gap is what mid-marks hide; the rung\'s job is closing it before any strategy touches real money</span></div>';
+  }
+  var seats=(s.seats||[]).map(function(x){
+    var pill=x.ladder?'<span class="pill">🪜 ladder rung</span>':'<span class="pill">🔬 measuring fills</span>';
+    var bits=[];
+    if(x.closed)bits.push(x.wins+'/'+x.closed+' wins');
+    if(x.pairs)bits.push('paper twins '+m(x.twin_net));
+    if(x.no_fill)bits.push(x.no_fill+' no-fill'+(x.no_fill>1?'s':''));
+    if(x.open)bits.push(x.open+' open');
+    return '<div class="item"><div class="row"><span><b>'+esc(x.strategy)+'</b> '+pill+'</span>'+
+      '<span class="num '+(x.real_net>0?'ok':(x.real_net<0?'bad':'muted'))+'">'+(x.closed?m(x.real_net):'—')+'</span></div>'+
+      (bits.length?'<span class="why">'+bits.join(' · ')+'</span>':'')+'</div>';
+  }).join('');
+  var missed='';
+  if(s.missed_n)missed='<div class="item"><div class="row"><span>🫥 profit paper counted that never filled</span>'+
+    '<span class="num muted">'+m(s.missed_paper_net)+'</span></div>'+
+    '<span class="why">'+s.missed_n+' paper twin(s) closed while the real DAY limit died unfilled — the no-fill cost paper books never show</span></div>';
+  var open='';
+  if((s.open||[]).length){
+    var lis=s.open.map(function(t){return '<div class="item why" style="margin-left:10px;padding:3px 0;border:none">• '+esc(t.ticker)+' · '+esc(t.strategy)+' · '+(t.filled?'✅ filled, running':'⏳ working order')+(t.open_date?' · since '+esc(t.open_date):'')+'</div>'}).join('');
+    open='<div class="item"><details><summary style="cursor:pointer;list-style:none">📖 '+s.open.length+' live in the sim book <span class="pill">tap ▾</span></summary>'+lis+'</details></div>';
+  }
+  return '<div class="card"><h2>🏦 TS-SIM — the broker truth<span class="tag">real limit orders, real fills, zero dollars</span></h2>'+
+    head+seats+missed+open+
+    '<div class="item why" style="border:none;padding-top:10px">paper proves an edge exists; this rung proves we can COLLECT it — every strategy must pass here before real money (🪜 = on the proving-ground ladder now · 🔬 = building its fill-quality dataset early)</div></div>';
 }
 
 function goals(d){
@@ -267,12 +312,17 @@ function build(d){
   var wait=(b.waiting||[]).map(function(w){return '<div class="item muted">⏳ '+esc(w.title)+'<span class="why">waiting on: '+esc(w.on)+'</span></div>'}).join('');
   var nxt=(b.next||[]).slice(0,5).map(function(t,i){
     return '<div class="item'+(t.indexOf('🚨')===0?' bad':' muted')+'">'+(i+1)+'. '+esc(t)+'</div>'}).join('');
+  var dk=(b.dock||[]).map(function(s){
+    return '<div class="item">'+(s.state==='staged'?'📦 staged':'🔬 verifying')+' — '+esc(s.what)+
+      (s.on?'<span class="why">proves on: '+esc(s.on)+'</span>':'')+'</div>';
+  }).join('');
   var sh=(b.shipped||[]).slice(0,3).map(function(t){return '<div class="item why" style="padding:4px 0">🚚 '+esc(t)+'</div>'}).join('');
   var wip=(b.now||[]).length>2?'<div class="item warn">⚠️ more than 2 builds in flight — finishing beats starting</div>':'';
   return '<div class="card"><h2>🗺️ The build<span class="tag">now → queue → watching → shipped</span></h2>'+wip+
     (now||'<div class="item muted">nothing actively building</div>')+
     (nxt?'<div style="margin-top:8px"><span class="why">up next (P1s pinned — "desk: bump/demote" to reorder):</span>'+nxt+'</div>':'')+
     (wait?'<div style="margin-top:8px"><span class="why">progressing on their own (nobody\'s building these — they\'re accumulating evidence):</span>'+wait+'</div>':'')+
+    (dk?'<div style="margin-top:8px"><span class="why">🚚 the dock — builds in the deploy pipeline:</span>'+dk+'</div>':'')+
     (sh?'<div style="margin-top:8px"><span class="why">shipped recently:</span>'+sh+'</div>':'')+
     '<div class="item why" style="border:none;padding-top:10px">🗓️ build windows (the rhythm, agreed 07-29): '+
     '<b>Wed + Thu = heavy</b> · Tue after 13:30 · Mon + Fri light (verify + rituals) · weekend = research only · '+
@@ -398,7 +448,9 @@ function render(d){
   // today's trades, pitches, the traders — then the proving cluster
   // (goals+ladder+reps velocity TOGETHER), then reference (milestones,
   // build, clock folded)
-  $('#panels').innerHTML=needsYou(d)+signals(d)+pitchBoard(d)+traders(d)+ideaQuality(d)+goals(d)+reps(d)+milestones(d)+build(d)+clock(d);
+  // panel order (2026-07-30 reorg): action → broker truth → trade flow →
+  // proving story (goals+reps together) → grading → dates → build → engine
+  $('#panels').innerHTML=needsYou(d)+tsSim(d)+signals(d)+pitchBoard(d)+traders(d)+goals(d)+reps(d)+ideaQuality(d)+milestones(d)+build(d)+clock(d);
 }
 
 function load(){
