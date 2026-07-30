@@ -143,13 +143,22 @@ function fmtAge(ep){
   var h=Math.round(m/60);if(h<36)return h+'h ago';return Math.round(h/24)+'d ago';
 }
 
+function nyRow(cls,head,arr,hint){
+  // clickable needs-you row (2026-07-29): counts open into their items when
+  // the data ships them; plain row otherwise (older payloads still render)
+  var h=hint?'<span class="why">'+hint+'</span>':'';
+  if(!arr||!arr.length)return '<div class="item'+(cls?' '+cls:'')+'">'+head+h+'</div>';
+  var lis=arr.map(function(t){return '<div class="item why" style="margin-left:10px;padding:3px 0;border:none">• '+esc(t)+'</div>'}).join('');
+  return '<div class="item'+(cls?' '+cls:'')+'"><details><summary style="cursor:pointer;list-style:none">'+head+
+    ' <span class="pill">tap ▾</span></summary>'+lis+h+'</details></div>';
+}
 function needsYou(d){
   var n=d.needs_you||{},items=[];
   (n.p1||[]).forEach(function(t){items.push('<div class="item bad">🚨 P1 — running wrong: '+esc(t)+'<span class="why">repair beats building — bring this to tonight\'s session first</span></div>')});
-  if(n.desk_inbox)items.push('<div class="item">📥 '+n.desk_inbox+' idea(s) on the Pad waiting to be absorbed<span class="why">drop more any time: text "desk: idea" to the bot</span></div>');
-  if(n.bench_decisions)items.push('<div class="item">🔨 '+n.bench_decisions+' Bench decision(s) need your call</div>');
-  if(n.dreamer_open)items.push('<div class="item">💭 '+n.dreamer_open+' dreamer suggestion(s) pending your look</div>');
-  if(n.suspect_open_marks)items.push('<div class="item warn">🫥 '+n.suspect_open_marks+' open paper mark(s) flagged suspect</div>');
+  if(n.desk_inbox)items.push(nyRow('','📥 '+n.desk_inbox+' idea(s) on the Pad waiting to be absorbed',n.desk_inbox_items,'drop more any time: text "desk: idea" to the bot'));
+  if(n.bench_decisions)items.push(nyRow('','🔨 '+n.bench_decisions+' Bench decision(s) need your call',n.bench_decision_items,''));
+  if(n.dreamer_open)items.push(nyRow('','💭 '+n.dreamer_open+' dreamer suggestion(s) pending your look',n.dreamer_items,''));
+  if(n.suspect_open_marks)items.push(nyRow('warn','🫥 '+n.suspect_open_marks+' open paper mark(s) flagged suspect',n.suspect_items,'wide/one-sided quotes — the close pass keeps re-checking them'));
   (n.fill_proposals||[]).forEach(function(f){items.push('<div class="item">🌉 '+esc(f)+'<span class="why">real fill awaiting tracker import — say "option tracker" to Claude</span></div>')});
   var body=items.length?items.join(''):'<div class="item ok">✅ Nothing needs you — the machine is running clean</div>';
   return '<div class="card"><h2>🎯 Needs you</h2>'+body+'</div>';
