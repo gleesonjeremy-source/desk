@@ -179,9 +179,18 @@ function goals(d){
       '<span class="why">↳ '+p.lineage.map(function(l){
         return 'v'+l.version+': n='+l.n+' '+(l.total>0?'+':'')+'$'+l.total+' ('+esc(l.grade)+')';
       }).join(' · ')+'</span>':'';
+    // cohort stats line (2026-07-29 Jeremy: percentages in the proving ground)
+    var stats='';
+    if(p&&p.n){
+      var bits=[];
+      if(p.win_pct!=null)bits.push(p.win_pct+'% win');
+      if(typeof p.pf==='number')bits.push('PF '+p.pf.toFixed(2));
+      if(typeof p.total==='number')bits.push((p.total>0?'+':'')+'$'+Math.round(p.total)+' cohort');
+      if(bits.length)stats='<span class="why">'+bits.join(' · ')+'</span>';
+    }
     return '<div class="item"><div class="row"><span><span class="tk">'+esc(k)+'</span>'+ver+tag+'</span>'+
       '<span class="num muted">'+(e.trusted||0)+'/20 verified</span></div>'+
-      '<div class="bar"><div class="'+(pct<100?'part':'')+'" style="width:'+pct+'%"></div></div>'+lin+'</div>';
+      '<div class="bar"><div class="'+(pct<100?'part':'')+'" style="width:'+pct+'%"></div></div>'+stats+lin+'</div>';
   }).join('');
   return '<div class="card"><h2>🏁 Goals & proving ground<span class="tag">current ruleset · 20 reps → verdict</span></h2>'+g+
     (lad?'<div style="margin-top:8px">'+lad+'</div>':'')+'</div>';
@@ -252,7 +261,11 @@ function build(d){
     (now||'<div class="item muted">nothing actively building</div>')+
     (nxt?'<div style="margin-top:8px"><span class="why">up next (P1s pinned — "desk: bump/demote" to reorder):</span>'+nxt+'</div>':'')+
     (wait?'<div style="margin-top:8px"><span class="why">progressing on their own (nobody\'s building these — they\'re accumulating evidence):</span>'+wait+'</div>':'')+
-    (sh?'<div style="margin-top:8px"><span class="why">shipped recently:</span>'+sh+'</div>':'')+'</div>';
+    (sh?'<div style="margin-top:8px"><span class="why">shipped recently:</span>'+sh+'</div>':'')+
+    '<div class="item why" style="border:none;padding-top:10px">🗓️ build windows (the rhythm, agreed 07-29): '+
+    '<b>Wed + Thu = heavy</b> · Tue after 13:30 · Mon + Fri light (verify + rituals) · weekend = research only · '+
+    'deploys ride quiet windows (13:30–17:00 or 17:15–19:45 PT, never before a morning digest) · '+
+    'law: after a ship the mini FREEZES until its next live pass runs green — that\'s why some asks wait for tomorrow</div></div>';
 }
 
 function weekLabel(s){ /* "2026-W30" -> "Jul 20" (that week's Monday) */
@@ -351,14 +364,15 @@ function reps(d){
   var r=d.reps;if(!r||!(r.weekly||[]).length)return '';
   var w=r.weekly.slice(-8),max=Math.max.apply(null,w.map(function(x){return x[1]}))||1;
   var bw=100/w.length;
+  // compact chart (2026-07-29 Jeremy: "too big") — flat 100x34 strip
   var bars=w.map(function(x,i){
-    var h=58*x[1]/max;
-    return '<rect x="'+(i*bw+bw*0.15)+'" y="'+(70-h)+'" width="'+(bw*0.7)+'" height="'+h+'" rx="1.5" fill="#3fb950"/>'+
-      '<text x="'+(i*bw+bw/2)+'" y="'+Math.max(7,66-h)+'" font-size="6" fill="#c9d1d9" text-anchor="middle">'+x[1]+'</text>'+
-      '<text x="'+(i*bw+bw/2)+'" y="78" font-size="4.6" fill="#8b949e" text-anchor="middle">'+esc(weekLabel(x[0]))+'</text>';
+    var h=20*x[1]/max;
+    return '<rect x="'+(i*bw+bw*0.15)+'" y="'+(26-h)+'" width="'+(bw*0.7)+'" height="'+h+'" rx="1" fill="#3fb950"/>'+
+      '<text x="'+(i*bw+bw/2)+'" y="'+Math.max(4.5,24.5-h)+'" font-size="4.2" fill="#c9d1d9" text-anchor="middle">'+x[1]+'</text>'+
+      '<text x="'+(i*bw+bw/2)+'" y="32" font-size="3.6" fill="#8b949e" text-anchor="middle">'+esc(weekLabel(x[0]))+'</text>';
   }).join('');
   return '<div class="card"><h2>📈 Trades closed per week<span class="tag">how fast we\'re learning</span></h2>'+
-    '<svg viewBox="0 0 100 82" preserveAspectRatio="xMidYMid meet">'+bars+'</svg>'+
+    '<svg viewBox="0 0 100 34" preserveAspectRatio="xMidYMid meet">'+bars+'</svg>'+
     '<div class="why" style="margin-top:4px">every strategy needs ~20 closed practice trades before we trust it with real money — these bars show how fast the proof is piling up (label = that week\'s Monday)</div></div>';
 }
 
