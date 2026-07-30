@@ -188,8 +188,11 @@ function goals(d){
       if(typeof p.total==='number')bits.push((p.total>0?'+':'')+'$'+Math.round(p.total)+' cohort');
       if(bits.length)stats='<span class="why">'+bits.join(' · ')+'</span>';
     }
+    // label 2026-07-29: "95/20 verified" read backwards as 20/95 — past the
+    // bar the fraction form goes away
+    var vlab=(e.trusted||0)>=20?'✓ bar met · '+e.trusted+' verified':(e.trusted||0)+'/20 verified';
     return '<div class="item"><div class="row"><span><span class="tk">'+esc(k)+'</span>'+ver+tag+'</span>'+
-      '<span class="num muted">'+(e.trusted||0)+'/20 verified</span></div>'+
+      '<span class="num muted">'+vlab+'</span></div>'+
       '<div class="bar"><div class="'+(pct<100?'part':'')+'" style="width:'+pct+'%"></div></div>'+stats+lin+'</div>';
   }).join('');
   return '<div class="card"><h2>🏁 Goals & proving ground<span class="tag">current ruleset · 20 reps → verdict</span></h2>'+g+
