@@ -339,9 +339,13 @@ function clock(d){
       '<span class="why">'+esc(j.what)+'</span></div>';
   }).join('');
   if(!rows&&!oth)return '';
-  return '<div class="card"><h2>⏰ The clock<span class="tag">all times Pacific · read live from launchd</span></h2>'+rows+
+  // red job = broken engine — the clock UNFOLDS itself so it can't hide a repair
+  var red=(s.mini||[]).some(function(j){return !j.ok});
+  return '<div class="card"><details'+(red?' open':'')+'><summary style="cursor:pointer;list-style:none">'+
+    '<h2 style="margin:0">⏰ The clock<span class="tag">'+(red?'🔴 a job is down — open me':'tap to expand · all times Pacific')+'</span></h2></summary>'+
+    '<div style="margin-top:8px">'+rows+
     (oth?'<div style="margin-top:8px"><span class="why">off the mini (hand-kept list — not machine-verified):</span>'+oth+'</div>':'')+
-    '<div class="item why" style="border:none;padding-top:10px">🔴 = installed but NOT loaded — that\'s a repair, tell Claude to run triage</div></div>';
+    '<div class="item why" style="border:none;padding-top:10px">🔴 = installed but NOT loaded — that\'s a repair, tell Claude to run triage</div></div></details></div>';
 }
 function reps(d){
   var r=d.reps;if(!r||!(r.weekly||[]).length)return '';
@@ -364,7 +368,11 @@ function render(d){
   if(age_h>26){$('#stale').style.display='block';
     $('#stale').textContent='⚠️ data is '+Math.round(age_h)+'h old — the generator may be stuck; ask Claude to run triage'}
   else $('#stale').style.display='none';
-  $('#panels').innerHTML=needsYou(d)+signals(d)+pitchBoard(d)+ideaQuality(d)+traders(d)+goals(d)+milestones(d)+build(d)+clock(d)+reps(d);
+  // panel order 2026-07-29 (Jeremy's 17:08 note): juicy first — actions,
+  // today's trades, pitches, the traders — then the proving cluster
+  // (goals+ladder+reps velocity TOGETHER), then reference (milestones,
+  // build, clock folded)
+  $('#panels').innerHTML=needsYou(d)+signals(d)+pitchBoard(d)+traders(d)+ideaQuality(d)+goals(d)+reps(d)+milestones(d)+build(d)+clock(d);
 }
 
 function load(){
