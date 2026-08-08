@@ -37,6 +37,8 @@ details[open] summary{color:#c9d1d9}
 .howto p{font-size:13px;color:#c9d1d9;margin:8px 0}.howto b{color:#fff}
 .howto code{background:#21262d;border-radius:4px;padding:1px 5px;font-size:12px}
 a{color:#58a6ff;text-decoration:none}
+.cbtn{background:#21262d;border:1px solid #30363d;border-radius:6px;color:#58a6ff;font-size:11px;padding:2px 9px;cursor:pointer;margin:3px 0 0;font-family:inherit}
+.cbtn:active{background:#30363d}
 footer{color:#6e7681;font-size:11px;margin:16px 0 8px;text-align:center}
 #stale{display:none;background:#3d2e00;border:1px solid #d29922;color:#d29922;border-radius:10px;padding:8px 12px;font-size:13px;margin-bottom:14px}
 #lock{position:fixed;inset:0;background:#0d1117;display:none;align-items:center;justify-content:center;z-index:9}
@@ -240,7 +242,8 @@ function tsSim(d){
         '<div style="margin:2px 0">'+contractLine(t)+'</div>'+
         (t.why?'<span class="why">💭 '+esc(t.why)+'</span>':'')+
         (plan.length?'<span class="why">🚪 '+plan.join(' · ')+'</span>':'')+
-        (bits.length?'<span class="why">'+bits.join(' · ')+'</span>':'')+'</div>';
+        (bits.length?'<span class="why">'+bits.join(' · ')+'</span>':'')+
+        tbtn(t,'sim book — already running as a real sim order')+'</div>';
     }).join('');
     open='<div class="item why" style="border:none;padding-bottom:0">📖 the live sim book — '+s.open.length+' position(s), real orders, zero dollars:</div>'+rows+
       '<div class="item why" style="border:none">how exits fire: resting GTC targets sit AT THE BROKER · everything else is twin-follow — the paper twin runs the strategy\'s exit rules on the hourly pass and the sim closes when they fire · 🪜 bull put trades its own OCO exits (the ladder rung)</div>';
@@ -291,6 +294,52 @@ function contractLine(c){
   return '<b>'+esc(parts.join(' / '))+(sameExp?' · '+esc(legs[0].date):'')+'</b>'+
     (c.dte!=null?' <span class="muted">('+c.dte+'d)</span>':'');
 }
+/* 📋 ONE-TAP TICKETS (Jeremy 2026-08-08 night: "i need it to be easier for
+   me to copy trades" — his flow: Desk/Telegram idea → paste into Claude
+   phone on the TS MCP). Every trade gets a copy button that puts a complete
+   phone-ready ticket on the clipboard: legs + OCC + numbers + why + exit
+   plan + the house execution laws. Same format ships to Telegram Elite p1. */
+var TICKETS={},TID=0;
+function ticketText(c,kind){
+  var L=[];
+  L.push('Trade idea from my scanner ('+kind+') — help me work this on TradeStation. Verify everything live first; read-only until I confirm.');
+  L.push('');
+  L.push(String(c.ticker||'')+' · '+String(c.strategy||'')+(c.direction||c.dir?' · '+(c.direction||c.dir):''));
+  var legs=String(c.contracts||'').split(',').map(legDesc);
+  if(legs.length&&legs.every(function(l){return l}))
+    L.push('Legs: '+legs.map(function(l){return l.act+' $'+l.strike+l.cp+' '+l.date}).join(' / ')+(c.qty?' · qty '+c.qty:'')+(c.dte!=null?' · '+c.dte+' DTE':''));
+  if(c.contracts)L.push('OCC: '+c.contracts);
+  var n=[];
+  if(c.cost!=null)n.push('cost $'+c.cost);
+  if(c.max_loss!=null)n.push('max loss $'+c.max_loss);
+  if(c.max_gain!=null)n.push('max gain $'+c.max_gain);
+  if(c.rr!=null)n.push('R:R '+c.rr);
+  if(c.pop!=null)n.push('POP '+c.pop);
+  if(c.breakeven!=null)n.push('breakeven $'+c.breakeven);
+  if(c.target!=null)n.push('target '+c.target);
+  if(c.stop!=null)n.push('stop '+c.stop);
+  if(c.target_price!=null)n.push('target $'+c.target_price+(c.target_resting?' (resting GTC in sim)':''));
+  if(n.length)L.push('Scan-time numbers: '+n.join(' · '));
+  if(c.why)L.push('Why: '+c.why);
+  if(c.plan)L.push('Exit plan: '+c.plan);
+  L.push('');
+  L.push('House rules: quote the PACKAGE, never the legs · start at net mid, walk toward natural · LIMIT orders only, never market · check the earnings date vs my planned exit (no long premium through a print) · $500 max-loss rail · scan prices are stale — reprice live before anything.');
+  return L.join('\n');
+}
+function tbtn(c,kind){
+  var id='t'+(++TID);TICKETS[id]=ticketText(c,kind);
+  return '<div><button class="cbtn" data-tid="'+id+'">📋 copy for Claude</button></div>';
+}
+document.addEventListener('click',function(e){
+  var b=e.target&&e.target.closest?e.target.closest('[data-tid]'):null;
+  if(!b)return;
+  e.preventDefault();e.stopPropagation();
+  var t=TICKETS[b.getAttribute('data-tid')];if(!t)return;
+  function done(){b.textContent='✅ copied — paste into Claude';setTimeout(function(){b.textContent='📋 copy for Claude'},2000)}
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(t).then(done,function(){prompt('copy this:',t)});
+  else prompt('copy this:',t);
+});
 function signals(d){
   var dg=d.digest;
   if(!dg)return '';
@@ -308,6 +357,7 @@ function signals(d){
       '<div style="margin:3px 0">'+contractLine(c)+'</div>'+
       (c.why?'<span class="why">'+esc(c.why)+'</span>':'')+
       (nums.length?'<span class="why num">'+esc(nums.join(' · '))+'</span>':'')+
+      tbtn(c,"today's board")+
       '</div>';
   }).join('');
   return '<div class="card"><h2>💡 Best trades today<span class="tag">'+esc(dg.date||'')+' · '+(dg.n||0)+' found · '+(dg.n_high||0)+' high</span></h2>'+
@@ -606,6 +656,7 @@ function clock(d){
 }
 
 function render(d){
+  TICKETS={};TID=0;   // fresh ticket registry each render (5-min refresh)
   $('#asof').textContent='machine-written '+fmtAge(d.asof_epoch)+' ('+d.asof+')';
   var age_h=(Date.now()/1000-d.asof_epoch)/3600;
   if(age_h>26){$('#stale').style.display='block';
