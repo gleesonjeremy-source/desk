@@ -505,9 +505,10 @@ function weekCal(d){
     wk2='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">next week — '+q.next_week.length+' scheduled <span class="pill">tap ▾</span></summary>'+q.next_week.map(row).join('')+'</details></div>';
   }
   if(!slips&&!wk1&&!wk2)return '';
-  return '<div class="card"><h2>📅 The week<span class="tag">scheduled builds · from roadmap dates</span></h2>'+
-    slips+(wk1||'<div class="item muted">nothing dated this week</div>')+wk2+
-    '<div class="item why" style="border:none;padding-top:10px">the schedule leg of organize · prioritize · schedule — reorder from the phone: "desk: bump &lt;thing&gt;"</div></div>';
+  var line=q.in_line?'<div class="item muted">🧾 '+q.in_line+' waiting in line — undated by law, promoted into the window as slots free</div>':'';
+  return '<div class="card"><h2>📅 The week<span class="tag">two-week window · from roadmap dates</span></h2>'+
+    slips+(wk1||'<div class="item muted">nothing dated this week</div>')+wk2+line+
+    '<div class="item why" style="border:none;padding-top:10px">the scheduling law (ratified at M1): only the next two weeks carry dates — everything else waits in line, ordered by the priority test · reorder from the phone: "desk: bump &lt;thing&gt;"</div></div>';
 }
 
 function milestones(d){
