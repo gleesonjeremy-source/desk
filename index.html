@@ -200,16 +200,54 @@ function needsYou(d){
   return '<div class="card"><h2>🎯 Needs you</h2>'+body+'</div>';
 }
 
+function foldCard(title,tag,body,open){
+  // v3.1 cleanup pattern (Jeremy M1 evening: "too much going on"): reference
+  // panels collapse to one-line cards; the summary line carries the pulse
+  if(!body)return '';
+  return '<div class="card"><details'+(open?' open':'')+'><summary style="cursor:pointer;list-style:none"><h2 style="margin:0">'+title+'<span class="tag">'+tag+'</span></h2></summary><div style="margin-top:8px">'+body+'</div></details></div>';
+}
 function tsSim(d){
-  // 🏦 the broker-truth panel (2026-07-30, Jeremy: "that is the truth right
-  // there"): real TradeStation-sim fills vs the paper twins' mid-marks
+  // 🏦 the broker-truth panel — v3.1: the LIVE SIM BOOK is the headline
+  // (Jeremy M1 evening: "the most important trades from ts sim are not
+  // there") — full contracts, entry, risk, pending exits; recent closes with
+  // real P&L; the per-seat aggregates fold underneath
   var s=d.ts_sim;if(!s)return '';
   var gap=s.pairs?(s.real_paired-s.twin_paired):null;
   var head='';
   if(s.pairs){
     head='<div class="item"><div class="row"><span><b>the fill-truth gap</b> · '+s.pairs+' closed pair(s)</span>'+
       '<span class="num '+(gap>=0?'ok':'bad')+'">'+money(gap)+'</span></div>'+
-      '<span class="why">real broker fills '+money(s.real_paired)+' vs the same trades\' paper mids '+money(s.twin_paired)+' — this gap is what mid-marks hide; the rung\'s job is closing it before any strategy touches real money</span></div>';
+      '<span class="why">real broker fills '+money(s.real_paired)+' vs the same trades\' paper mids '+money(s.twin_paired)+' — the gap mid-marks hide</span></div>';
+  }
+  var open='';
+  if((s.open||[]).length){
+    var rows=s.open.map(function(t){
+      var right=t.mark_pnl!=null
+        ?'<span class="num '+(t.mark_pnl>0?'ok':(t.mark_pnl<0?'bad':'muted'))+'">'+(t.mark_pnl>0?'+':'')+'$'+Math.round(t.mark_pnl)+'</span>'
+        :'<span class="num muted">'+(t.cost!=null?'$'+Math.round(t.cost)+' in':'—')+'</span>';
+      var bits=[];
+      if(t.qty)bits.push(t.qty+'x');
+      if(t.cost!=null)bits.push('entry $'+Math.round(t.cost));
+      if(t.max_loss!=null)bits.push('max loss $'+Math.round(t.max_loss));
+      if(t.open_date)bits.push('since '+esc(String(t.open_date).slice(5)));
+      if(t.exit_pending)bits.push('⏳ exit working: '+esc(t.exit_pending));
+      return '<div class="item">'+
+        '<div class="row"><span><span class="tk">'+esc(t.ticker)+'</span>'+(t.direction==='bearish'?' 🔴':' 🟢')+' · '+esc(t.strategy)+
+        (t.filled?'<span class="pill good">✅ filled</span>':'<span class="pill med">⏳ working order</span>')+'</span>'+right+'</div>'+
+        '<div style="margin:2px 0">'+contractLine(t)+'</div>'+
+        (bits.length?'<span class="why">'+bits.join(' · ')+'</span>':'')+'</div>';
+    }).join('');
+    open='<div class="item why" style="border:none;padding-bottom:0">📖 the live sim book — '+s.open.length+' position(s), real orders, zero dollars:</div>'+rows;
+  }
+  var rec='';
+  if((s.recent||[]).length){
+    var rr=s.recent.map(function(c){
+      var tw=c.twin_pnl!=null?' · paper twin '+(c.twin_pnl>0?'+':'')+'$'+Math.round(c.twin_pnl):'';
+      return '<div class="item"><div class="row"><span>'+esc(String(c.close_date||'').slice(5))+' <span class="tk">'+esc(c.ticker)+'</span> · '+esc(c.strategy)+'</span>'+
+        '<span class="num '+(c.pnl>0?'ok':(c.pnl<0?'bad':'muted'))+'">'+(c.pnl>0?'+':'')+'$'+Math.round(c.pnl)+'</span></div>'+
+        '<span class="why">'+esc(c.reason||'')+(c.days!=null?' · '+c.days+'d held':'')+tw+'</span></div>';
+    }).join('');
+    rec='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">🏁 recent closes — real fills, real verdicts <span class="pill">tap ▾</span></summary>'+rr+'</details></div>';
   }
   var seats=(s.seats||[]).map(function(x){
     var pill=x.ladder?'<span class="pill">🪜 ladder rung</span>':'<span class="pill">🔬 measuring fills</span>';
@@ -223,17 +261,10 @@ function tsSim(d){
       (bits.length?'<span class="why">'+bits.join(' · ')+'</span>':'')+'</div>';
   }).join('');
   var missed='';
-  if(s.missed_n)missed='<div class="item"><div class="row"><span>🫥 profit paper counted that never filled</span>'+
-    '<span class="num muted">'+money(s.missed_paper_net)+'</span></div>'+
-    '<span class="why">'+s.missed_n+' paper twin(s) closed while the real DAY limit died unfilled — the no-fill cost paper books never show</span></div>';
-  var open='';
-  if((s.open||[]).length){
-    var lis=s.open.map(function(t){return '<div class="item why" style="margin-left:10px;padding:3px 0;border:none">• '+esc(t.ticker)+' · '+esc(t.strategy)+' · '+(t.filled?'✅ filled, running':'⏳ working order')+(t.open_date?' · since '+esc(t.open_date):'')+'</div>'}).join('');
-    open='<div class="item"><details><summary style="cursor:pointer;list-style:none">📖 '+s.open.length+' live in the sim book <span class="pill">tap ▾</span></summary>'+lis+'</details></div>';
-  }
+  if(s.missed_n)missed='<div class="item why" style="border:none">🫥 '+money(s.missed_paper_net)+' of paper profit never actually filled ('+s.missed_n+' dead limits)</div>';
+  var sf=seats?'<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">🪜 per-seat fill-truth detail <span class="pill">tap ▾</span></summary>'+seats+missed+'</details></div>':'';
   return '<div class="card"><h2>🏦 TS-SIM — the broker truth<span class="tag">real limit orders, real fills, zero dollars</span></h2>'+
-    head+seats+missed+open+
-    '<div class="item why" style="border:none;padding-top:10px">paper proves an edge exists; this rung proves we can COLLECT it — every strategy must pass here before real money (🪜 = on the proving-ground ladder now · 🔬 = building its fill-quality dataset early)</div></div>';
+    head+open+rec+sf+'</div>';
 }
 
 function legDesc(s){ /* "O:GIS261016C00032500:long" -> {act,strike,cp,date} */
@@ -427,7 +458,8 @@ function working(d){
   function fold(title,body){
     return body?'<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">'+title+' <span class="pill">tap ▾</span></summary>'+body+'</details></div>':'';
   }
-  return '<div class="card"><h2>✅ What\'s working<span class="tag">the proving ground · 20 reps → verdict</span></h2>'+g+
+  var gf=g?'<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">🎯 the goals <span class="pill">tap ▾</span></summary>'+g+'</details></div>':'';
+  return '<div class="card"><h2>✅ What\'s working<span class="tag">the proving ground · 20 reps → verdict</span></h2>'+gf+
     (lad?'<div style="margin-top:8px">'+lad+'</div>':'')+
     (reps?'<div style="margin-top:8px"><span class="why">📈 trades closed per week — how fast the proof piles up:</span>'+reps+'</div>':'')+
     fold('🎯 are the ideas good? — picks graded by outcome (21d)',iq)+
@@ -454,9 +486,9 @@ function dreamerPanel(d){
     var lis2=dr.handled.map(function(i){return '<div class="item why" style="margin-left:10px;padding:3px 0;border:none">• '+esc(i.text)+(i.resolution?'<br>&nbsp;&nbsp;✅ '+esc(i.resolution):'')+'</div>'}).join('');
     done='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">✅ recently handled — proof of care <span class="pill">tap ▾</span></summary>'+lis2+'</details></div>';
   }
-  return '<div class="card"><h2>🔮 The dreamer<span class="tag">overnight suggestions · cared for?</span></h2>'+
+  return foldCard('🔮 The dreamer',(dr.open?dr.open+' pending · ':'')+'tap to open',
     head+pend+done+
-    '<div class="item why" style="border:none;padding-top:10px">the dreamer proposes overnight; pending items clear when a session absorbs them — say "absorb dreamer" · if pending climbs while handled doesn\'t, it\'s being ignored: that\'s the alarm this panel exists for</div></div>';
+    '<div class="item why" style="border:none;padding-top:10px">the dreamer proposes overnight; pending items clear when a session absorbs them — say "absorb dreamer" · if pending climbs while handled doesn\'t, it\'s being ignored: that\'s the alarm this panel exists for</div>');
 }
 
 /* 🔬 v3 (M1 ruling: "a place to do research / backtest stuff") */
@@ -475,10 +507,10 @@ function research(d){
     var lis=r.shelf.map(function(s){return '<div class="item why" style="margin-left:10px;padding:3px 0;border:none">• <b>'+esc(s.strategy)+'</b> — '+esc(s.note)+'</div>'}).join('');
     shelf='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">📏 the validation shelf — what\'s been measured <span class="pill">tap ▾</span></summary>'+lis+'</details></div>';
   }
-  return '<div class="card"><h2>🔬 The bench<span class="tag">foundry · research · backtests</span></h2>'+
+  return foldCard('🔬 The bench','foundry · research · tap to open',
     (cands||'<div class="item muted">no foundry candidates</div>')+shelf+
     '<div class="item why" style="border:none;padding-top:10px">candidates earn a registry entry by passing their gate — or die here with the verdict recorded · request a study any time: text "desk: backtest &lt;idea&gt;" · depth: '+
-    '<a href="obsidian://open?file=Garage">🧰 Garage</a> · <a href="obsidian://open?file=proving-ground">🏛️ proving ground</a> · <a href="obsidian://open?file=Home">🏠 Home</a></div></div>';
+    '<a href="obsidian://open?file=Garage">🧰 Garage</a> · <a href="obsidian://open?file=proving-ground">🏛️ proving ground</a> · <a href="obsidian://open?file=Home">🏠 Home</a></div>');
 }
 
 /* 📅 v3: the smart-calendar v1 — the week_queue feed rendered (design @ M1;
@@ -518,8 +550,8 @@ function milestones(d){
     return '<div class="item'+(i===0?'':'')+'"><div class="row"><span>'+(i===0?'⏳ ':'')+'<b>'+esc(String(m.date).slice(5))+'</b> · '+esc(m.title)+
       (m.feeds?'<span class="pill">'+esc(m.feeds)+'</span>':'')+'</span><span class="num">'+when+'</span></div></div>';
   }).join('');
-  return '<div class="card"><h2>🗓️ The road to the goals<span class="tag">milestones · dates approved 07-24</span></h2>'+rows+
-    '<div class="item why" style="border:none;padding-top:10px">reorder any time: text "desk: bump &lt;thing&gt; — more important than &lt;other&gt;" · Claude does the legwork, you steer</div></div>';
+  return foldCard('🗓️ The road','the strip shows the next · tap for all',rows+
+    '<div class="item why" style="border:none;padding-top:10px">reorder any time: text "desk: bump &lt;thing&gt; — more important than &lt;other&gt;" · Claude does the legwork, you steer</div>');
 }
 function build(d){
   var b=d.build||{};
@@ -534,7 +566,7 @@ function build(d){
   }).join('');
   var sh=(b.shipped||[]).slice(0,3).map(function(t){return '<div class="item why" style="padding:4px 0">🚚 '+esc(t)+'</div>'}).join('');
   var wip=(b.now||[]).length>2?'<div class="item warn">⚠️ more than 2 builds in flight — finishing beats starting</div>':'';
-  return '<div class="card"><h2>🗺️ The build<span class="tag">now → queue → watching → shipped</span></h2>'+wip+
+  return foldCard('🗺️ The build',((b.now||[]).length||'0')+' building · '+((b.dock||[]).length||'0')+' in the dock · tap',wip+
     (now||'<div class="item muted">nothing actively building</div>')+
     (nxt?'<div style="margin-top:8px"><span class="why">up next (P1s pinned — "desk: bump/demote" to reorder):</span>'+nxt+'</div>':'')+
     (wait?'<div style="margin-top:8px"><span class="why">progressing on their own (nobody\'s building these — they\'re accumulating evidence):</span>'+wait+'</div>':'')+
@@ -543,7 +575,7 @@ function build(d){
     '<div class="item why" style="border:none;padding-top:10px">🗓️ build windows (the rhythm, agreed 07-29): '+
     '<b>Wed + Thu = heavy</b> · Tue after 13:30 · Mon + Fri light (verify + rituals) · weekend = research only · '+
     'deploys ride quiet windows (13:30–17:00 or 17:15–19:45 PT, never before a morning digest) · '+
-    'law: after a ship the mini FREEZES until its next live pass runs green — that\'s why some asks wait for tomorrow</div></div>';
+    'law: after a ship the mini FREEZES until its next live pass runs green — that\'s why some asks wait for tomorrow</div>');
 }
 function clock(d){
   var s=d.schedule;if(!s)return '';
@@ -573,12 +605,13 @@ function render(d){
   if(age_h>26){$('#stale').style.display='block';
     $('#stale').textContent='⚠️ data is '+Math.round(age_h)+'h old — the generator may be stuck; ask Claude to run triage'}
   else $('#stale').style.display='none';
-  // panel order v3 (M1 evolution review, Jeremy 2026-08-08): pace strip →
-  // what needs me → best trades → broker truth → tournament → what's working
-  // (goals+ladder+reps+grading+pitches MERGED) → dreamer care → research
-  // bench → the week → the road → build → engine. Every panel must request a
-  // decision, show pace against a date, or grade an idea — or it gets merged.
-  $('#panels').innerHTML=strip(d)+needsYou(d)+signals(d)+tsSim(d)+tournament(d)+working(d)+dreamerPanel(d)+research(d)+weekCal(d)+milestones(d)+build(d)+clock(d);
+  // panel order v3.1 (M1 evening cleanup, Jeremy: "too much going on" + the
+  // sim book missing): strip → needs me → BROKER TRUTH (live sim book, the
+  // most important trades) → best trades → tournament → what's working → the
+  // week — then everything else FOLDED to one-line cards (dreamer, bench,
+  // road, build, clock). Every panel must request a decision, show pace
+  // against a date, or grade an idea — or it gets merged.
+  $('#panels').innerHTML=strip(d)+needsYou(d)+tsSim(d)+signals(d)+tournament(d)+working(d)+weekCal(d)+dreamerPanel(d)+research(d)+milestones(d)+build(d)+clock(d);
 }
 
 function load(){
