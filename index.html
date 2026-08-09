@@ -1,11 +1,15 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>🖥️ The Desk</title><style>
-/* The Desk — Screen v3 (2026-08-08, the M1 evolution review, ruled by Jeremy):
-   the COMMAND CENTER. One page that answers: what needs me · best trades ·
-   what's working · dreamer cared for · research state · tournament · are we
-   on pace to the goals. Obsidian = Claude's engine room (depth); the option
-   tracker = the real-money numbers home (never duplicated here).
+/* The Desk — Screen v4 (2026-08-09, Jeremy's M1-followup rulings): the strip
+   becomes THE FRONT PAGE (📰 news engine + 🔨 next build + 📈 proof line;
+   milestones carry done-state + event-driven conditions with pace ETAs) and
+   the tournament ranks on MERIT with the ⚡ worth-watching feed (personas,
+   fire/defense/closes/experiments). v3 (2026-08-08, M1): the COMMAND CENTER.
+   One page that answers: what needs me · best trades · what's working ·
+   dreamer cared for · research state · tournament · are we on pace to the
+   goals. Obsidian = Claude's engine room (depth); the option tracker = the
+   real-money numbers home (never duplicated here).
    Data: /p_<key>/deskData on the locked Firebase, written by gen_hub every
    pass (~hourly market days, evening daily). This page computes NO truth —
    presentation arithmetic over shipped numbers only. */
@@ -56,10 +60,14 @@ footer{color:#6e7681;font-size:11px;margin:16px 0 8px;text-align:center}
 project in one scroll. Everything here is read-only and machine-written; nothing
 is ever hand-edited. Depth lives in Obsidian; real dollars live in the
 <a href="https://gleesonjeremy-source.github.io/option-tracker/">tracker</a>.</p>
-<p><b>⏳ The strip</b> (top) — the pace line: the next milestones with countdowns
-(amber inside two weeks, red overdue), the M2 sim-fill pace, and the one-line
-machine health check (🧹 vault · ⏰ jobs · 🚚 deploys verifying · 💭 dreamer ·
-📥 Pad). If the strip is green and quiet, the machine is fine.</p>
+<p><b>⏳ The strip</b> (top) — the front page: <b>📰 top of the news</b> (the
+machine watches the whole project and reports the day's biggest story — ships,
+verdicts, hot traders, hot tickers, milestone hits; "more news" fold underneath),
+<b>🔨 next build</b>, <b>📈 the proof line</b> (the strongest current evidence
+we're getting closer to the goals), milestone chips (event-driven milestones
+show "x of N closes · pace ETA" — they fire on their condition, dates are only
+review checkpoints), and the one-line machine health check (🧹 vault · ⏰ jobs ·
+🚚 deploys verifying · 💭 dreamer · 📥 Pad).</p>
 <p><b>🎯 Needs you</b> — your action list. <b>P1 = something running wrong → repair
 first</b>. Pad items = ideas you dropped (<code>desk: idea</code> from Telegram)
 waiting to be absorbed. Bench decisions + dreamer items = calls only you can make.
@@ -72,11 +80,15 @@ verify the live mid before entering.</p>
 orders in the TradeStation simulator: real fills, real no-fills, zero dollars.
 The headline is the <b>fill-truth gap</b>: what the broker actually paid vs what
 paper mid-marks claimed. No strategy touches real money without passing here.</p>
-<p><b>🏟️ The tournament</b> — the five-agent paper league: standings (equity +
-week move), open bounties, the season clock, and each agent's open book with
-their plans. Coach them: text <code>desk: tell vega …</code> — it lands on the
-Pad and shapes their next session. Their money is paper; your judgment is the
-edge they're missing.</p>
+<p><b>🏟️ The tournament</b> — the five-agent paper league, built to teach how to
+trade. The headline is the true 👑 (ranked on <b>merit</b> — the engine's own
+basis: equity minus relegation tax, suspect marks excluded — so tax recycling
+can't fake first place) plus the relegation drama. <b>⚡ Worth watching</b> is
+the radar: a trader on fire (with their newest trade, copyable, flagged if still
+enterable), first defenses, fresh opens/closes with the why, experiments,
+confluence. Full standings and every agent's open book fold underneath. Coach
+them: text <code>desk: tell vega …</code> — it lands on the Pad and shapes their
+next session.</p>
 <p><b>✅ What's working</b> — the whole evidence story in one card: the goals, the
 proving-ground ladder every strategy climbs (🌱 collecting → ✅ paper-proven →
 🏦 TS-SIM → 💵 live-small, version-aware — a redesigned strategy starts a fresh
@@ -112,7 +124,7 @@ key per device, asked once, kept in the browser (Telegram bot command
 <code>help</code> if you forget everything else).</p>
 </details></div>
 
-<footer>The Desk v3 · data via gen_hub → locked Firebase · auto-refresh 5 min ·
+<footer>The Desk v4 · data via gen_hub → locked Firebase · auto-refresh 5 min ·
 <a href="https://gleesonjeremy-source.github.io/option-tracker/">tracker</a></footer>
 </div>
 
@@ -142,31 +154,36 @@ function fmtAge(ep){
 }
 function money(v){if(v==null)return '—';var r=Math.round(v);return (r>0?'+$':(r<0?'-$':'$'))+Math.abs(r)}
 
-/* ⏳ THE STRIP (v3, M1 ruling): milestones-with-countdown + M2 pace + the
-   one-line health check. Pace/health are presentation math over shipped
-   numbers — the strip is why the page answers "are we on track" in 3 seconds */
+/* ⏳ THE STRIP (v4, 2026-08-09 Jeremy: "what is head lining the project that
+   week, whats the next important build and whats been working"): 📰 top of
+   the news (the news engine's freshest big story, deduped server-side) +
+   🔨 next build (from the week queue) + 📈 the proof line (strongest
+   goal-tied evidence) + milestone chips. Condition milestones render
+   "x of N closes · ~ETA" — never a date-lookalike ("8/20" read as Aug 20,
+   the bug that started v4). Every line carries a number or a date. */
 function strip(d){
-  var ms=(d.milestones||[]).filter(function(m){return m.days_left!=null&&m.days_left>=-7});
-  if(!ms.length&&!d.vault_health&&!d.schedule)return '';
-  var next=ms[0],rest=ms.slice(1,4);
-  var head='';
-  if(next){
-    var cls=next.days_left<0?'bad':(next.days_left<=14?'warn':'muted');
-    var t=String(next.title||'').split('(')[0].split('—')[0].slice(0,64);
-    head='<div class="row"><span>⏳ next: <b>'+esc(next.id)+'</b> '+esc(t)+'</span>'+
-      '<span class="num '+cls+'">'+(next.days_left<0?(-next.days_left)+'d over':next.days_left+'d')+'</span></div>';
+  var n=d.news||{},rows='';
+  if(n.top)rows+='<div class="row"><span>📰 '+esc(n.top.line)+'</span></div>';
+  else if(n.last)rows+='<div class="row"><span class="muted">📰 quiet — last story: '+esc(n.last.line)+'</span></div>';
+  var q=d.week_queue||{},today=String(d.asof||'').slice(0,10);
+  var up=[].concat(q.this_week||[],q.next_week||[]).filter(function(i){return String(i.date)>=today});
+  if(up.length){
+    var b=up[0];
+    rows+='<div class="row"><span>🔨 next build: '+esc(String(b.title).slice(0,80))+'</span><span class="num muted">'+esc(b.day==='wk'?'this wk':b.day)+' '+esc(String(b.date).slice(5))+'</span></div>';
   }
-  var chips=rest.map(function(m){
+  if((d.proof||{}).line)rows+='<div class="row"><span>📈 '+esc(d.proof.line)+'</span></div>';
+  var more='';
+  if((n.recent||[]).length>1){
+    more='<div class="item" style="border:none;padding:2px 0 0"><details><summary style="cursor:pointer;list-style:none;padding:2px 0" class="why">📰 more news <span class="pill">tap ▾</span></summary>'+
+      n.recent.slice(1).map(function(s){return '<div class="item why" style="padding:3px 0;border:none">• '+esc(s.line)+'</div>'}).join('')+'</details></div>';
+  }
+  var chips=(d.milestones||[]).filter(function(m){return !m.done&&m.days_left!=null&&m.days_left>=-60}).slice(0,3).map(function(m){
+    var p=m.progress;
+    if(p&&p.met)return '<span class="chip"><b>'+esc(m.id)+'</b> <span class="ok">condition met ✓ — verdict fires</span></span>';
+    if(p)return '<span class="chip"><b>'+esc(m.id)+'</b> <span class="'+(p.left<=3?'warn':'muted')+'">'+p.have+' of '+p.bar+' closes'+(p.eta?' · pace says ~'+esc(String(p.eta).slice(5)):'')+'</span></span>';
     var cls=m.days_left<0?'bad':(m.days_left<=14?'warn':'muted');
     return '<span class="chip"><b>'+esc(m.id)+'</b> <span class="'+cls+'">'+(m.days_left<0?(-m.days_left)+'d over':m.days_left+'d')+'</span></span>';
   });
-  // M2 pace: bull-put sim closes toward the 20 bar (done_when of M2)
-  var bp=((d.ts_sim||{}).seats||[]).filter(function(s){return s.strategy==='bull_put_spread'})[0];
-  var m2=ms.filter(function(m){return m.id==='M2'})[0];
-  if(bp&&m2){
-    var n=bp.closed||0;
-    chips.unshift('<span class="chip">🪜 M2 pace <span class="'+(n>=20?'ok':(m2.days_left<=7?'warn':'muted'))+'">'+n+'/20 sim closes</span></span>');
-  }
   var h=[];
   var vh=d.vault_health;
   if(vh&&vh.dot)h.push('🧹 '+esc(vh.dot)+(vh.issues?' '+vh.issues:''));
@@ -176,7 +193,8 @@ function strip(d){
   var dock=((d.build||{}).dock||[]).length;if(dock)h.push('🚚 '+dock+' verifying');
   var dro=(d.dreamer||{}).open;if(dro)h.push('💭 '+dro+' pending');
   var pad=(d.needs_you||{}).desk_inbox;if(pad)h.push('📥 '+pad+' on the Pad');
-  return '<div class="card" style="padding:10px 14px">'+head+
+  if(!rows&&!chips.length&&!h.length)return '';
+  return '<div class="card" style="padding:10px 14px">'+rows+more+
     (chips.length?'<div class="chips">'+chips.join('')+'</div>':'')+
     (h.length?'<div class="why" style="margin-top:2px">'+h.join(' · ')+'</div>':'')+'</div>';
 }
@@ -365,9 +383,14 @@ function signals(d){
     '<div class="item why" style="border:none;padding-top:10px">the phone pitches are the curated cut — this is the fuller board · prices are as-of scan time — always verify the live mid before entering</div></div>';
 }
 
-/* 🏟️ v3: standings + season + bounties on top, the open book folded below */
+/* 🏟️ v4 (2026-08-09 Jeremy rulings): personas everywhere · standings rank on
+   MERIT (the engine's own judgment basis — raw capital crowned the tax-fattest
+   seat, the exact bug the 07-19 fight-card fix solved) · ⚡ worth-watching
+   feed = the teach-me radar (fire/defense/closes/opens/experiments/
+   confluence/movers) · rules trivia removed, the coach line stays. */
 function tradersBody(d){
   var tb=d.traders||{};
+  var CS={};((d.tournament||{}).seats||[]).forEach(function(s){CS[s.agent]=s.callsign||s.agent});
   var agents=Object.keys(tb).sort();
   if(!agents.length)return '';
   return agents.map(function(a){
@@ -386,7 +409,7 @@ function tradersBody(d){
         (t.thesis?'<span class="why">💭 '+esc(t.thesis)+'</span>':'')+
         '</div>';
     }).join('');
-    return '<div class="item" style="border:none;padding-bottom:2px"><div class="row"><b>'+esc(a)+'</b>'+
+    return '<div class="item" style="border:none;padding-bottom:2px"><div class="row"><b>'+esc(CS[a]||a)+'</b>'+
       '<span class="num '+(net>0?'ok':(net<0?'bad':'muted'))+'">'+ts.length+' open · '+(known?(net>0?'+':'')+'$'+Math.round(net):'—')+'</span></div></div>'+rows;
   }).join('');
 }
@@ -395,23 +418,48 @@ function tournament(d){
   if(!t&&!book)return '';
   var body='';
   if(t){
-    body+=(t.seats||[]).map(function(s,i){
+    var top=(t.seats||[])[0];
+    if(top)body+='<div class="item"><div class="row"><span>👑 <b>'+esc(top.callsign||top.agent)+'</b> leads on merit'+(top.streak?' · 🔥W'+top.streak:'')+'</span>'+
+      '<span class="num">$'+(top.merit!=null?top.merit.toLocaleString():'—')+
+      (top.trading!=null?' · trading <span class="'+(top.trading>0?'ok':(top.trading<0?'bad':'muted'))+'">'+money(top.trading)+'</span>':'')+'</span></div></div>';
+    if(t.drama)body+='<div class="item">📉 <b>'+esc(t.drama.payer)+'</b> pays $'+t.drama.amount.toLocaleString()+' to '+esc(t.drama.payee)+' if the week ends now</div>';
+    var ic={fire:'🔥',defense:'🛟',closed:'✅',opened:'🆕',lab:'🧪',confluence:'⚡',mover:'💰'};
+    var wl=(t.watch||[]).map(function(w){
+      var tr=w.trade;
+      return '<div class="item">'+(ic[w.kind]||'•')+' '+esc(w.line)+
+        (w.why?'<span class="why">💭 '+esc(w.why)+'</span>':'')+
+        (tr?'<div style="margin:2px 0">'+contractLine(tr)+(tr.cost!=null?' <span class="muted">@ $'+tr.cost+'</span>':'')+
+          (tr.enterable?'<span class="pill good">still enterable — near their price</span>':'<span class="pill">moved &gt;10% — watch only</span>')+
+          tbtn(tr,'tournament — '+w.line)+'</div>':'')+
+        '</div>';
+    }).join('');
+    if(wl){
+      body+='<div class="item why" style="border:none;padding-bottom:0">⚡ worth watching:</div>'+wl;
+      if(t.watch_more)body+='<div class="item why" style="border:none">+'+t.watch_more+' more in the folds below</div>';
+    }else body+='<div class="item muted">nothing worth watching this pass — no fresh opens or closes, streaks, defenses, or experiments</div>';
+  }
+  var st='';
+  if(t&&(t.seats||[]).length){
+    st=(t.seats||[]).map(function(s,i){
       var wd=s.week_delta;
-      return '<div class="item"><div class="row"><span>'+(i===0?'👑 ':(i===(t.seats.length-1)&&t.seats.length>2?'🪦 ':''))+'<b>'+esc(s.agent)+'</b></span>'+
-        '<span class="num">$'+(s.equity!=null?s.equity.toLocaleString():'—')+
-        (wd!=null?' · wk <span class="'+(wd>0?'ok':(wd<0?'bad':'muted'))+'">'+(wd>0?'+':'')+'$'+wd.toLocaleString()+'</span>':'')+'</span></div></div>';
+      return '<div class="item"><div class="row"><span>'+(i===0?'👑 ':(i===(t.seats.length-1)&&t.seats.length>2?'📉 ':''))+'<b>'+esc(s.callsign||s.agent)+'</b><span class="pill">'+esc(s.agent)+'</span>'+(s.streak?' 🔥W'+s.streak:'')+'</span>'+
+        '<span class="num">merit $'+(s.merit!=null?s.merit.toLocaleString():'—')+
+        ' · trading <span class="'+(s.trading>0?'ok':(s.trading<0?'bad':'muted'))+'">'+money(s.trading)+'</span>'+
+        (wd!=null?' · wk '+money(wd):'')+'</span></div>'+
+        (s.record8&&s.record8[1]?'<span class="why">last '+s.record8[1]+' closes: '+s.record8[0]+'-'+(s.record8[1]-s.record8[0])+' · '+s.open_n+' open</span>':'')+'</div>';
     }).join('');
     var bits=[];
-    if(t.week!=null)bits.push('week '+t.week);
-    if(t.season_break)bits.push('season breaks '+esc(String(t.season_break).slice(5))+' ('+t.season_days+'d)');
     if((t.bounties||[]).length)bits.push('🎯 bounties: '+t.bounties.map(function(b){return esc(b.strategy)+' $'+Math.round(b.reward/1000)+'k'}).join(', '));
     if((t.graduates||[]).length)bits.push('🏆 graduated: '+t.graduates.map(esc).join(', '));
-    if(bits.length)body+='<div class="item why" style="border:none">'+bits.join(' · ')+'</div>';
+    if(bits.length)st+='<div class="item why" style="border:none">'+bits.join(' · ')+'</div>';
+    st='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">🏆 full merit standings <span class="pill">tap ▾</span></summary>'+st+
+      '<div class="item why" style="border:none">⚖️ merit = equity − relegation tax, suspect marks excluded, lab losses shielded — the ranking the crown, the axe, and the champion all use; tax recycling can\'t buy the top seat · 📉 = pays the tax if the week ends now</div></details></div>';
   }
   var bookFold=book?'<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">📖 the open book — every agent\'s trades + plans <span class="pill">tap ▾</span></summary>'+book+'</details></div>':'';
-  return '<div class="card"><h2>🏟️ The tournament<span class="tag">$50k paper seats · bottom pays the top</span></h2>'+
-    (body||'<div class="item muted">standings unavailable this pass</div>')+bookFold+
-    '<div class="item why" style="border:none;padding-top:10px">👑 = top seat · 🪦 = paying the relegation tax · coach any agent: text "desk: tell &lt;name&gt; …" — it lands on the Pad and shapes their next turn</div></div>';
+  var tag=(t&&t.week!=null?'wk '+t.week:'')+(t&&t.season_break?' · season breaks '+esc(String(t.season_break).slice(5)):'');
+  return '<div class="card"><h2>🏟️ The tournament<span class="tag">'+(tag||'paper league')+'</span></h2>'+
+    (body||'<div class="item muted">standings unavailable this pass</div>')+st+bookFold+
+    '<div class="item why" style="border:none;padding-top:10px">coach any agent: text "desk: tell &lt;name&gt; …" — it lands on the Pad and shapes their next turn</div></div>';
 }
 
 /* ✅ v3: the merged evidence story — goals + ladder visible, the grading
@@ -601,10 +649,15 @@ function weekCal(d){
 
 function milestones(d){
   var ms=d.milestones;if(!ms||!ms.length)return '';
-  var rows=ms.filter(function(m){return m.days_left==null||m.days_left>-30}).map(function(m,i){
-    var dl=m.days_left,when=dl==null?'':(dl<0?'<span class="bad">'+(-dl)+'d overdue</span>':(dl<=14?'<span class="warn">'+dl+'d</span>':'<span class="muted">'+dl+'d</span>'));
-    return '<div class="item'+(i===0?'':'')+'"><div class="row"><span>'+(i===0?'⏳ ':'')+'<b>'+esc(String(m.date).slice(5))+'</b> · '+esc(m.title)+
-      (m.feeds?'<span class="pill">'+esc(m.feeds)+'</span>':'')+'</span><span class="num">'+when+'</span></div></div>';
+  var rows=ms.filter(function(m){return m.days_left==null||m.days_left>-30}).map(function(m){
+    var dl=m.days_left;
+    var when=m.done?'<span class="ok">✅ done'+(m.done_date?' '+esc(String(m.done_date).slice(5)):'')+'</span>'
+      :(dl==null?'':(dl<0?'<span class="bad">'+(-dl)+'d overdue</span>':(dl<=14?'<span class="warn">'+dl+'d</span>':'<span class="muted">'+dl+'d</span>')));
+    var p=m.progress;
+    var pace=p?'<span class="why">🪜 '+p.have+' of '+p.bar+' '+esc(p.label)+' closes'+(p.eta?' · pace says ~'+esc(p.eta):'')+' · fires on the condition, not the date</span>':'';
+    return '<div class="item"><div class="row"><span><b>'+esc(String(m.date).slice(5))+'</b> · '+esc(m.title)+
+      (m.feeds?'<span class="pill">'+esc(m.feeds)+'</span>':'')+'</span><span class="num">'+when+'</span></div>'+
+      (m.done&&m.outcome?'<span class="why">'+esc(m.outcome)+'</span>':'')+pace+'</div>';
   }).join('');
   return foldCard('🗓️ The road','the strip shows the next · tap for all',rows+
     '<div class="item why" style="border:none;padding-top:10px">reorder any time: text "desk: bump &lt;thing&gt; — more important than &lt;other&gt;" · Claude does the legwork, you steer</div>');
