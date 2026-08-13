@@ -708,6 +708,29 @@ function clock(d){
     '<div class="item why" style="border:none;padding-top:10px">🔴 = installed but NOT loaded — that\'s a repair, tell Claude to run triage</div></div></details></div>';
 }
 
+function playbook(d){
+  // 📖 THE HUMAN PLAYBOOK (Jeremy ruled 2026-08-12: "so i can really leverage
+  // the machine to its max capabilities from my phone"). Renders playbook.yaml
+  // mechanically via desk_data — never hand-written here. Folded reference
+  // card (Jeremy-ruled exception to the decision-panel law). Entries added in
+  // the last 7 days wear a NEW pill so the panel visibly gets smarter.
+  var p=d.playbook; if(!p||!p.sections||!p.sections.length)return '';
+  var now=Date.now();
+  var body=p.sections.map(function(s){
+    var rows=(s.entries||[]).map(function(e){
+      var isNew=e.added&&(now-new Date(e.added+'T12:00:00').getTime())<7*864e5;
+      return '<div class="item"><b>'+esc(e.icon)+' '+esc(e.title)+'</b>'+
+        (isNew?' <span class="pill">NEW</span>':'')+
+        '<span class="why">'+esc(e['do'])+'</span></div>';
+    }).join('');
+    return '<div style="margin-top:12px"><div style="font-size:12px;font-weight:600;color:#8b949e;text-transform:uppercase;letter-spacing:.05em">'+esc(s.title)+'</div>'+rows+'</div>';
+  }).join('');
+  return '<div class="card"><details><summary style="cursor:pointer;list-style:none">'+
+    '<h2 style="margin:0">📖 How to drive me<span class="tag">v'+esc(p.version)+' · '+esc(p.updated)+' · every new surface must update this</span></h2></summary>'+
+    body+
+    '<div class="item why" style="border:none;padding-top:10px">⚖️ law-backed: a ping without a playbook entry is a BUG — tell Claude. Grows with every build.</div></details></div>';
+}
+
 function render(d){
   TICKETS={};TID=0;   // fresh ticket registry each render (5-min refresh)
   $('#asof').textContent='machine-written '+fmtAge(d.asof_epoch)+' ('+d.asof+')';
@@ -721,7 +744,7 @@ function render(d){
   // week — then everything else FOLDED to one-line cards (dreamer, bench,
   // road, build, clock). Every panel must request a decision, show pace
   // against a date, or grade an idea — or it gets merged.
-  $('#panels').innerHTML=strip(d)+needsYou(d)+tsSim(d)+signals(d)+tournament(d)+working(d)+weekCal(d)+dreamerPanel(d)+research(d)+milestones(d)+build(d)+clock(d);
+  $('#panels').innerHTML=strip(d)+needsYou(d)+tsSim(d)+signals(d)+tournament(d)+working(d)+weekCal(d)+dreamerPanel(d)+research(d)+milestones(d)+build(d)+clock(d)+playbook(d);
 }
 
 function load(){
