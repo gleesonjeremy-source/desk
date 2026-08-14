@@ -216,11 +216,13 @@ function todayPanel(d){
   // staleness-banner precedent (the list is machine truth; the clock read
   // is display).
   var t=d.today||{},items=t.items||[];
-  if(!items.length)return '<div class="card" style="padding:8px 14px"><span class="ok">🫵 nothing needs you today ✓</span><span class="why"> — day asks, watches and didn\'t-happen checks land here first</span></div>';
+  function fmtDay(s){try{return new Date(s+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}catch(x){return s||''}}
+  var dayLabel=t.today_date?esc(fmtDay(t.today_date)):'today';
+  if(!items.length)return '<div class="card" style="padding:8px 14px"><span class="ok">🫵 nothing needs you '+dayLabel+' ✓</span><span class="why"> — day asks, watches and didn\'t-happen checks land here first</span></div>';
   var now=new Date(),seenPrev=false;
   var rows=items.map(function(e){
     var cls='',pill='',pre='';
-    if(e.preview&&!seenPrev){seenPrev=true;pre='<div class="item why" style="border:none;padding:6px 0 2px">on deck tomorrow ↓</div>';}
+    if(e.preview&&!seenPrev){seenPrev=true;pre='<div class="item why" style="border:none;padding:6px 0 2px">on deck '+esc(fmtDay(e.date))+' ↓</div>';}
     if(e.kind==='deadman'&&!e.preview){
       var od=!!e.escalated;
       if(!od&&e.date&&e.due){try{od=now>new Date(e.date+'T'+e.due+':00')}catch(x){}}
@@ -229,7 +231,7 @@ function todayPanel(d){
     }else if(e.due){pill='<span class="pill">'+esc(e.due)+' PT</span> ';}
     return pre+'<div class="item'+(e.preview?' why':'')+(cls?' '+cls:'')+'" style="'+(e.preview?'border:none;padding:3px 0':'')+'">'+pill+esc(e.text)+'</div>';
   }).join('');
-  return '<div class="card"><h2>🫵 Needs me — today</h2>'+rows+'</div>';
+  return '<div class="card"><h2>🫵 Needs me — '+dayLabel+'</h2>'+rows+'</div>';
 }
 function needsYou(d){
   // row order = urgency (2026-07-30): running-wrong, then your REAL money,
