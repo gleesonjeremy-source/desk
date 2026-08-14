@@ -206,6 +206,31 @@ function nyRow(cls,head,arr,hint){
   return '<div class="item'+(cls?' '+cls:'')+'"><details><summary style="cursor:pointer;list-style:none">'+head+
     ' <span class="pill">tap ▾</span></summary>'+lis+h+'</details></div>';
 }
+function todayPanel(d){
+  // 🫵 NEEDS ME — TODAY (Jeremy ruled 2026-08-13: "stuff that needs me that
+  // day needs to be the first thing i see" — including things that DIDN'T
+  // happen). Renders ABOVE the strip when it has items; collapses to one
+  // thin ✓ line when empty so quiet days keep the front page — both the
+  // 08-09 strip ruling and tonight's ruling honored. Deadman entries carry
+  // a due time (PT): past due on your clock = OVERDUE red, exactly the
+  // staleness-banner precedent (the list is machine truth; the clock read
+  // is display).
+  var t=d.today||{},items=t.items||[];
+  if(!items.length)return '<div class="card" style="padding:8px 14px"><span class="ok">🫵 nothing needs you today ✓</span><span class="why"> — day asks, watches and didn\'t-happen checks land here first</span></div>';
+  var now=new Date(),seenPrev=false;
+  var rows=items.map(function(e){
+    var cls='',pill='',pre='';
+    if(e.preview&&!seenPrev){seenPrev=true;pre='<div class="item why" style="border:none;padding:6px 0 2px">on deck tomorrow ↓</div>';}
+    if(e.kind==='deadman'&&!e.preview){
+      var od=!!e.escalated;
+      if(!od&&e.date&&e.due){try{od=now>new Date(e.date+'T'+e.due+':00')}catch(x){}}
+      if(od){cls='bad';pill='<span class="pill">⏰ OVERDUE</span> ';}
+      else if(e.due){pill='<span class="pill">by '+esc(e.due)+' PT</span> ';}
+    }else if(e.due){pill='<span class="pill">'+esc(e.due)+' PT</span> ';}
+    return pre+'<div class="item'+(e.preview?' why':'')+(cls?' '+cls:'')+'" style="'+(e.preview?'border:none;padding:3px 0':'')+'">'+pill+esc(e.text)+'</div>';
+  }).join('');
+  return '<div class="card"><h2>🫵 Needs me — today</h2>'+rows+'</div>';
+}
 function needsYou(d){
   // row order = urgency (2026-07-30): running-wrong, then your REAL money,
   // then decisions only you can make, then session work, then machine watch
@@ -738,13 +763,14 @@ function render(d){
   if(age_h>26){$('#stale').style.display='block';
     $('#stale').textContent='⚠️ data is '+Math.round(age_h)+'h old — the generator may be stuck; ask Claude to run triage'}
   else $('#stale').style.display='none';
-  // panel order v3.1 (M1 evening cleanup, Jeremy: "too much going on" + the
-  // sim book missing): strip → needs me → BROKER TRUTH (live sim book, the
-  // most important trades) → best trades → tournament → what's working → the
-  // week — then everything else FOLDED to one-line cards (dreamer, bench,
-  // road, build, clock). Every panel must request a decision, show pace
-  // against a date, or grade an idea — or it gets merged.
-  $('#panels').innerHTML=strip(d)+needsYou(d)+tsSim(d)+signals(d)+tournament(d)+working(d)+weekCal(d)+dreamerPanel(d)+research(d)+milestones(d)+build(d)+clock(d)+playbook(d);
+  // panel order v3.2 (2026-08-13, Jeremy: "stuff that needs me that day
+  // needs to be the first thing i see"): 🫵 TODAY above everything (thin ✓
+  // line when empty so the strip keeps the front page on quiet days) →
+  // strip → needs me (the standing piles) → BROKER TRUTH (live sim book) →
+  // best trades → tournament → what's working → the week — then everything
+  // else FOLDED to one-line cards. Every panel must request a decision,
+  // show pace against a date, or grade an idea — or it gets merged.
+  $('#panels').innerHTML=todayPanel(d)+strip(d)+needsYou(d)+tsSim(d)+signals(d)+tournament(d)+working(d)+weekCal(d)+dreamerPanel(d)+research(d)+milestones(d)+build(d)+clock(d)+playbook(d);
 }
 
 function load(){
