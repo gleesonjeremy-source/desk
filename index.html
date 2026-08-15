@@ -116,9 +116,10 @@ If "now building" exceeds ~2 items, tell Claude to park one.</p>
 <p><b>⏰ The clock</b> — every scheduled job: what fires when (Pacific), read live
 from launchd so it can't drift. 🔴 = installed but not loaded — a repair. <b>If a
 job appears here you don't recognize, ask Claude.</b></p>
-<p><b>Freshness:</b> data refreshes ~hourly on market days (evening passes daily);
-the stamp at the top tells you its age, and an amber banner appears if it's
-stale. The page re-fetches every 5 minutes.</p>
+<p><b>Freshness:</b> data refreshes ~hourly on market days, and every morning at
+7:00 + evenings even on weekends/holidays (the 08-15 repair — Saturday shows
+Saturday); the stamp at the top tells you its age, and an amber banner appears
+past ~14h. The page re-fetches every 5 minutes.</p>
 <p><b>The key:</b> this page reads the same locked database as the tracker. One
 key per device, asked once, kept in the browser (Telegram bot command
 <code>help</code> if you forget everything else).</p>
@@ -152,6 +153,11 @@ function fmtAge(ep){
   if(m<2)return 'just now';if(m<90)return m+' min ago';
   var h=Math.round(m/60);if(h<36)return h+'h ago';return Math.round(h/24)+'d ago';
 }
+/* Viewer-clock date/time in PT (the 08-15 stale-Saturday repair): the panel's
+   dates are project-time (Pacific), so "today" must come from the VIEWER's
+   clock rendered in PT — never from the payload's generation date. */
+function ptToday(){try{return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles'}).format(new Date())}catch(x){return new Date().toISOString().slice(0,10)}}
+function ptHM(){try{return new Intl.DateTimeFormat('en-GB',{timeZone:'America/Los_Angeles',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date())}catch(x){var d=new Date();return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)}}
 function money(v){if(v==null)return '—';var r=Math.round(v);return (r>0?'+$':(r<0?'-$':'$'))+Math.abs(r)}
 
 /* ⏳ THE STRIP (v4, 2026-08-09 Jeremy: "what is head lining the project that
@@ -165,7 +171,7 @@ function strip(d){
   var n=d.news||{},rows='';
   if(n.top)rows+='<div class="row"><span>📰 '+esc(n.top.line)+'</span></div>';
   else if(n.last)rows+='<div class="row"><span class="muted">📰 quiet — last story: '+esc(n.last.line)+'</span></div>';
-  var q=d.week_queue||{},today=String(d.asof||'').slice(0,10);
+  var q=d.week_queue||{},today=ptToday();
   var up=[].concat(q.this_week||[],q.next_week||[]).filter(function(i){return String(i.date)>=today});
   if(up.length){
     var b=up[0];
@@ -210,28 +216,46 @@ function todayPanel(d){
   // 🫵 NEEDS ME — TODAY (Jeremy ruled 2026-08-13: "stuff that needs me that
   // day needs to be the first thing i see" — including things that DIDN'T
   // happen). Renders ABOVE the strip when it has items; collapses to one
-  // thin ✓ line when empty so quiet days keep the front page — both the
-  // 08-09 strip ruling and tonight's ruling honored. Deadman entries carry
-  // a due time (PT): past due on your clock = OVERDUE red, exactly the
-  // staleness-banner precedent (the list is machine truth; the clock read
-  // is display).
+  // thin ✓ line when empty so quiet days keep the front page.
+  // 08-15 repair: "today" is the VIEWER's date (PT), never the payload's —
+  // a Saturday look at Friday-evening data promotes Saturday's rows, keeps
+  // unanswered deadman/input/rider rows ACTIVE and escalated (carried · Nd,
+  // red at 3d — unanswered must follow, answered must clear), and folds only
+  // stale plan/watch rows. Deadman due times compare in PT (ptHM), killing
+  // the old browser-local Date bug.
   var t=d.today||{},items=t.items||[];
   function fmtDay(s){try{return new Date(s+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}catch(x){return s||''}}
-  var dayLabel=t.today_date?esc(fmtDay(t.today_date)):'today';
-  if(!items.length)return '<div class="card" style="padding:8px 14px"><span class="ok">🫵 nothing needs you '+dayLabel+' ✓</span><span class="why"> — day asks, watches and didn\'t-happen checks land here first</span></div>';
-  var now=new Date(),seenPrev=false;
-  var rows=items.map(function(e){
-    var cls='',pill='',pre='';
-    if(e.preview&&!seenPrev){seenPrev=true;pre='<div class="item why" style="border:none;padding:6px 0 2px">on deck '+esc(fmtDay(e.date))+' ↓</div>';}
-    if(e.kind==='deadman'&&!e.preview){
-      var od=!!e.escalated;
-      if(!od&&e.date&&e.due){try{od=now>new Date(e.date+'T'+e.due+':00')}catch(x){}}
+  var vt=ptToday(),dayLabel=esc(fmtDay(vt));
+  var staleTag=(t.today_date&&t.today_date!==vt)?'<span class="tag">data from '+esc(String(t.today_date).slice(5))+'</span>':'';
+  var act=[],deck=[],fold=[];
+  items.forEach(function(e){
+    var dt=String(e.date||'');
+    if(dt>vt)deck.push(e);
+    else if(dt===vt)act.push(e);
+    else if(e.kind==='deadman'||e.kind==='input'||e.kind==='rider')act.push(e);
+    else fold.push(e);
+  });
+  if(!act.length&&!deck.length&&!fold.length)return '<div class="card" style="padding:8px 14px"><span class="ok">🫵 nothing needs you '+dayLabel+' ✓</span><span class="why"> — day asks, watches and didn\'t-happen checks land here first</span>'+staleTag+'</div>';
+  function row(e,deckMode){
+    var cls='',pill='',dt=String(e.date||'');
+    var carried=!deckMode&&dt&&dt<vt;
+    if(e.kind==='deadman'&&!deckMode){
+      var od=!!e.escalated||carried;
+      if(!od&&dt===vt&&e.due){od=ptHM()>e.due}
       if(od){cls='bad';pill='<span class="pill">⏰ OVERDUE</span> ';}
       else if(e.due){pill='<span class="pill">by '+esc(e.due)+' PT</span> ';}
+    }else if(carried){
+      var aged=(e.age_d!=null)?e.age_d:1;
+      cls=(e.escalated||aged>=3)?'bad':'warn';
+      pill='<span class="pill">carried from '+esc(fmtDay(dt))+' · '+aged+'d</span> ';
     }else if(e.due){pill='<span class="pill">'+esc(e.due)+' PT</span> ';}
-    return pre+'<div class="item'+(e.preview?' why':'')+(cls?' '+cls:'')+'" style="'+(e.preview?'border:none;padding:3px 0':'')+'">'+pill+esc(e.text)+'</div>';
-  }).join('');
-  return '<div class="card"><h2>🫵 Needs me — '+dayLabel+'</h2>'+rows+'</div>';
+    return '<div class="item'+(deckMode?' why':'')+(cls?' '+cls:'')+'" style="'+(deckMode?'border:none;padding:3px 0':'')+'">'+pill+esc(e.text)+'</div>';
+  }
+  var rows=act.map(function(e){return row(e,false)}).join('');
+  if(!act.length)rows='<div class="item ok" style="border:none">✓ nothing needs you yet '+dayLabel+'</div>';
+  if(deck.length)rows+='<div class="item why" style="border:none;padding:6px 0 2px">on deck '+esc(fmtDay(deck[0].date))+' ↓</div>'+deck.map(function(e){return row(e,true)}).join('');
+  if(fold.length)rows+='<div class="item" style="border:none;padding:2px 0 0"><details><summary style="cursor:pointer;list-style:none;padding:2px 0" class="why">🌒 from '+esc(fmtDay(fold[0].date))+' — data hasn\'t rebuilt yet <span class="pill">tap ▾</span></summary>'+fold.map(function(e){return '<div class="item why" style="padding:3px 0;border:none">• '+esc(e.text)+'</div>'}).join('')+'</details></div>';
+  return '<div class="card"><h2>🫵 Needs me — '+dayLabel+staleTag+'</h2>'+rows+'</div>';
 }
 function needsYou(d){
   // row order = urgency (2026-07-30): running-wrong, then your REAL money,
@@ -762,7 +786,10 @@ function render(d){
   TICKETS={};TID=0;   // fresh ticket registry each render (5-min refresh)
   $('#asof').textContent='machine-written '+fmtAge(d.asof_epoch)+' ('+d.asof+')';
   var age_h=(Date.now()/1000-d.asof_epoch)/3600;
-  if(age_h>26){$('#stale').style.display='block';
+  /* 14h banner (was 26h, 08-15): worst NORMAL gap is now Fri 20:00 → Sat 7:00
+     = 11h — a missed morning-gen alarms the same morning instead of never.
+     If morning-gen is ever retired, revert this to 26h+. */
+  if(age_h>14){$('#stale').style.display='block';
     $('#stale').textContent='⚠️ data is '+Math.round(age_h)+'h old — the generator may be stuck; ask Claude to run triage'}
   else $('#stale').style.display='none';
   // panel order v3.2 (2026-08-13, Jeremy: "stuff that needs me that day
