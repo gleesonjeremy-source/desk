@@ -159,6 +159,13 @@ function fmtAge(ep){
 function ptToday(){try{return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles'}).format(new Date())}catch(x){return new Date().toISOString().slice(0,10)}}
 function ptHM(){try{return new Intl.DateTimeFormat('en-GB',{timeZone:'America/Los_Angeles',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date())}catch(x){var d=new Date();return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)}}
 function money(v){if(v==null)return '—';var r=Math.round(v);return (r>0?'+$':(r<0?'-$':'$'))+Math.abs(r)}
+/* 👆 tap-to-expand (2026-08-16 — Jeremy 08-14: "sometimes I want or need to
+   see the whole thing"): server clips ship a `full` twin whenever they cut;
+   wrap the clipped html in the house <details>/tap ▾ fold. No full = no fold. */
+function expandable(shortHtml,full){
+  if(!full)return shortHtml;
+  return '<details style="display:inline"><summary style="cursor:pointer;list-style:none;display:inline;padding:0">'+shortHtml+' <span class="pill">tap ▾</span></summary><div class="why" style="padding:4px 0 2px 10px">'+esc(full)+'</div></details>';
+}
 
 /* ⏳ THE STRIP (v4, 2026-08-09 Jeremy: "what is head lining the project that
    week, whats the next important build and whats been working"): 📰 top of
@@ -175,7 +182,8 @@ function strip(d){
   var up=[].concat(q.this_week||[],q.next_week||[]).filter(function(i){return String(i.date)>=today});
   if(up.length){
     var b=up[0];
-    rows+='<div class="row"><span>🔨 next build: '+esc(String(b.title).slice(0,80))+'</span><span class="num muted">'+esc(b.day==='wk'?'this wk':b.day)+' '+esc(String(b.date).slice(5))+'</span></div>';
+    var bt=String(b.title);
+    rows+='<div class="row"><span>🔨 next build: '+(bt.length>80?esc(bt.slice(0,79))+'…':esc(bt))+'</span><span class="num muted">'+esc(b.day==='wk'?'this wk':b.day)+' '+esc(String(b.date).slice(5))+'</span></div>';
   }
   if((d.proof||{}).line)rows+='<div class="row"><span>📈 '+esc(d.proof.line)+'</span></div>';
   var more='';
@@ -208,7 +216,7 @@ function strip(d){
 function nyRow(cls,head,arr,hint){
   var h=hint?'<span class="why">'+hint+'</span>':'';
   if(!arr||!arr.length)return '<div class="item'+(cls?' '+cls:'')+'">'+head+h+'</div>';
-  var lis=arr.map(function(t){return '<div class="item why" style="margin-left:10px;padding:3px 0;border:none">• '+esc(t)+'</div>'}).join('');
+  var lis=arr.map(function(t){var tx=(typeof t==='string')?t:((t&&t.text)||'');var fl=t&&t.full;return '<div class="item why" style="margin-left:10px;padding:3px 0;border:none">• '+expandable(esc(tx),fl)+'</div>'}).join('');
   return '<div class="item'+(cls?' '+cls:'')+'"><details><summary style="cursor:pointer;list-style:none">'+head+
     ' <span class="pill">tap ▾</span></summary>'+lis+h+'</details></div>';
 }
@@ -249,7 +257,7 @@ function todayPanel(d){
       cls=(e.escalated||aged>=3)?'bad':'warn';
       pill='<span class="pill">carried from '+esc(fmtDay(dt))+' · '+aged+'d</span> ';
     }else if(e.due){pill='<span class="pill">'+esc(e.due)+' PT</span> ';}
-    return '<div class="item'+(deckMode?' why':'')+(cls?' '+cls:'')+'" style="'+(deckMode?'border:none;padding:3px 0':'')+'">'+pill+esc(e.text)+'</div>';
+    return '<div class="item'+(deckMode?' why':'')+(cls?' '+cls:'')+'" style="'+(deckMode?'border:none;padding:3px 0':'')+'">'+pill+expandable(esc(e.text),e.full)+'</div>';
   }
   var rows=act.map(function(e){return row(e,false)}).join('');
   if(!act.length)rows='<div class="item ok" style="border:none">✓ nothing needs you yet '+dayLabel+'</div>';
@@ -673,8 +681,20 @@ function research(d){
 function weekCal(d){
   var q=d.week_queue;if(!q)return '';
   function row(i){
-    return '<div class="item'+(i.p1?' bad':'')+'"><div class="row"><span>'+(i.doing?'🔨 ':'')+esc(i.title)+(i.p1?'<span class="pill hi">P1</span>':'')+'</span>'+
+    return '<div class="item'+(i.p1?' bad':'')+'"><div class="row"><span>'+(i.doing?'🔨 ':'')+expandable(esc(i.title),i.full)+(i.p1?'<span class="pill hi">P1</span>':'')+'</span>'+
       '<span class="num muted">'+esc(i.day==='wk'?'this wk':i.day)+' '+esc(String(i.date).slice(5))+'</span></div></div>';
+  }
+  // ✅ the DONE lane (Jeremy 2026-08-16: "if its completed it should say so
+  // and how it got us closer to our goals") — this week's landed builds,
+  // tap ▾ = the outcome sentences. DONE · IN FLIGHT · NEXT, always.
+  function doneRow(x){
+    var oc=x.full||x.outcome;
+    return '<div class="item ok" style="border:none;padding:3px 0">✅ '+expandable(esc(x.title),oc&&oc!==x.title?oc:null)+
+      '<span class="num muted" style="float:right">'+esc(x.day||'')+' '+esc(String(x.date).slice(5))+'</span></div>';
+  }
+  var doneRows='';
+  if((q.done_week||[]).length){
+    doneRows='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">✅ landed this week — '+q.done_week.length+' <span class="pill">tap ▾</span></summary>'+q.done_week.map(doneRow).join('')+'</details></div>';
   }
   function slipRow(s){
     return '<div class="item warn">⚠️ slipped '+s.days+'d: '+esc(s.title)+'<span class="why">dated '+esc(s.date)+' and still open — reschedule or kill it</span></div>';
@@ -691,10 +711,10 @@ function weekCal(d){
   if((q.next_week||[]).length){
     wk2='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">next week — '+q.next_week.length+' scheduled <span class="pill">tap ▾</span></summary>'+q.next_week.map(row).join('')+'</details></div>';
   }
-  if(!slips&&!wk1&&!wk2)return '';
+  if(!slips&&!wk1&&!wk2&&!doneRows)return '';
   var line=q.in_line?'<div class="item muted">🧾 '+q.in_line+' waiting in line — undated by law, promoted into the window as slots free</div>':'';
-  return '<div class="card"><h2>📅 The week<span class="tag">two-week window · from roadmap dates</span></h2>'+
-    slips+(wk1||'<div class="item muted">nothing dated this week</div>')+wk2+line+
+  return '<div class="card"><h2>📅 The week<span class="tag">done · in flight · next</span></h2>'+
+    slips+(wk1||'<div class="item muted">nothing dated this week</div>')+doneRows+wk2+line+
     '<div class="item why" style="border:none;padding-top:10px">the scheduling law (ratified at M1): only the next two weeks carry dates — everything else waits in line, ordered by the priority test · reorder from the phone: "desk: bump &lt;thing&gt;"</div></div>';
 }
 
@@ -772,7 +792,7 @@ function playbook(d){
       var isNew=e.added&&(now-new Date(e.added+'T12:00:00').getTime())<7*864e5;
       return '<div class="item"><b>'+esc(e.icon)+' '+esc(e.title)+'</b>'+
         (isNew?' <span class="pill">NEW</span>':'')+
-        '<span class="why">'+esc(e['do'])+'</span></div>';
+        '<span class="why">'+expandable(esc(e['do']),e.full)+'</span></div>';
     }).join('');
     return '<div style="margin-top:12px"><div style="font-size:12px;font-weight:600;color:#8b949e;text-transform:uppercase;letter-spacing:.05em">'+esc(s.title)+'</div>'+rows+'</div>';
   }).join('');
