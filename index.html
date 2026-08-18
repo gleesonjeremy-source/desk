@@ -270,7 +270,15 @@ function needsYou(d){
   // then decisions only you can make, then session work, then machine watch
   var n=d.needs_you||{},items=[];
   (n.p1||[]).forEach(function(t){items.push('<div class="item bad">🚨 P1 — running wrong: '+esc(t)+'<span class="why">repair beats building — bring this to tonight\'s session first</span></div>')});
-  (n.fill_proposals||[]).forEach(function(f){items.push('<div class="item">🌉 '+esc(f)+'<span class="why">real fill awaiting tracker import — say "option tracker" to Claude</span></div>')});
+  // 📒 books bell (2026-08-18): one summary row — the 19:50 bell carries the
+  // paste-ready drafts, so the Screen shows the pulse (count + age), not rows.
+  var bk=n.books||{};
+  if(bk.status==='drift'){
+    var age=bk.oldest_days||0,cls=age>=2?'warn':'';
+    items.push('<div class="item '+cls+'">📒 The books: '+bk.drift_n+' difference(s) vs the live account'+(age>=2?' — standing '+(age+1)+' nights ⏳':'')+'<span class="why">the 19:50 bell has the paste-ready drafts — ≈2-min tracker task, phone-OK; balancing clears this</span></div>');
+  } else if(bk.status!=='balanced'){
+    (n.fill_proposals||[]).forEach(function(f){items.push('<div class="item">🌉 '+esc(f)+'<span class="why">real fill awaiting tracker import — say "option tracker" to Claude</span></div>')});
+  }
   if(n.bench_decisions)items.push(nyRow('','🔨 '+n.bench_decisions+' Bench decision(s) need your call',n.bench_decision_items,''));
   if(n.dreamer_open)items.push(nyRow('','💭 '+n.dreamer_open+' dreamer suggestion(s) pending your look',n.dreamer_items,'the 🔮 panel below shows the whole ledger — say "absorb dreamer" in a session to clear these'));
   if(n.desk_inbox)items.push(nyRow('','📥 '+n.desk_inbox+' drop(s) on the Pad waiting to be absorbed',n.desk_inbox_items,'these clear in your next session with Claude — absorbed into the registry + ✅-stamped · drop more any time: "desk: idea" to the bot'));
