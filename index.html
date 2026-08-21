@@ -205,8 +205,17 @@ function strip(d){
   if(mini.length){var red=mini.filter(function(j){return !j.ok}).length;
     h.push('⏰ '+(red?'<span class="bad">'+red+' down</span>':'<span class="ok">all running</span>'))}
   var dock=((d.build||{}).dock||[]).length;if(dock)h.push('🚚 '+dock+' verifying');
-  var dro=(d.dreamer||{}).open;if(dro)h.push('💭 '+dro+' pending');
-  var pad=(d.needs_you||{}).desk_inbox;if(pad)h.push('📥 '+pad+' on the Pad');
+  // 📟 M4 meter chip (evolution #2): trailing-4wk real P&L vs the rent bar —
+  // RATIO + LIGHT only on this public page (no-dollars law)
+  var m4=d.m4;if(m4&&m4.state==='live')h.push('📟 M4 '+m4.ratio+'× rent '+m4.light);
+  // 🗳️ lane pulse (dreamer/pad chips merged into the lane counts)
+  var ln=((d.needs_you||{}).lane)||{};
+  var lp=[];
+  if((ln.today||[]).length)lp.push((ln.today||[]).length+' today');
+  var lf=((ln.friday||{}).items||[]).length+(ln.later||[]).length;
+  if(lf)lp.push(lf+' Fri');
+  if(((ln.weekend||{}).items||[]).length)lp.push(((ln.weekend||{}).items||[]).length+' wknd');
+  if(lp.length)h.push('🗳️ '+lp.join(' · '));
   if(!rows&&!chips.length&&!h.length)return '';
   return '<div class="card" style="padding:10px 14px">'+rows+more+
     (chips.length?'<div class="chips">'+chips.join('')+'</div>':'')+
@@ -266,25 +275,37 @@ function todayPanel(d){
   return '<div class="card"><h2>🫵 Needs me — '+dayLabel+staleTag+'</h2>'+rows+'</div>';
 }
 function needsYou(d){
-  // row order = urgency (2026-07-30): running-wrong, then your REAL money,
-  // then decisions only you can make, then session work, then machine watch
-  var n=d.needs_you||{},items=[];
+  // 🗳️ THE LANE — evolution #2's centerpiece (2026-08-20; Jeremy 08-16:
+  // "things that need me get scheduled as they come in and scheduled by
+  // prioritizing… ive been screaming this forever about dreamer"). The old
+  // pile-of-piles is now three SLOTS — every ask carries WHEN it gets
+  // handled: 🔴 today (blocks work or money) · 🟡 next Friday (cap 6,
+  // VISIBLE overflow) · 🔵 weekend (designs/discussions). The dreamer panel
+  // is MERGED in here — panel count down, per the reorganization mandate.
+  var n=d.needs_you||{},lane=n.lane||{},items=[];
   (n.p1||[]).forEach(function(t){items.push('<div class="item bad">🚨 P1 — running wrong: '+esc(t)+'<span class="why">repair beats building — bring this to tonight\'s session first</span></div>')});
-  // 📒 books bell (2026-08-18): one summary row — the 19:50 bell carries the
-  // paste-ready drafts, so the Screen shows the pulse (count + age), not rows.
-  var bk=n.books||{};
-  if(bk.status==='drift'){
-    var age=bk.oldest_days||0,cls=age>=2?'warn':'';
-    items.push('<div class="item '+cls+'">📒 The books: '+bk.drift_n+' difference(s) vs the live account'+(age>=2?' — standing '+(age+1)+' nights ⏳':'')+'<span class="why">the 19:50 bell has the paste-ready drafts — ≈2-min tracker task, phone-OK; balancing clears this</span></div>');
-  } else if(bk.status!=='balanced'){
-    (n.fill_proposals||[]).forEach(function(f){items.push('<div class="item">🌉 '+esc(f)+'<span class="why">real fill awaiting tracker import — say "option tracker" to Claude</span></div>')});
+  function lrow(x,cls){
+    var pills='';
+    if(x.slips>=2)pills+='<span class="pill hi">⏳ slipped ×'+x.slips+'</span>';
+    else if(x.slips)pills+='<span class="pill">⏳ slipped</span>';
+    if(x.overflow)pills+='<span class="pill">overflow → '+esc(String(x.slot).slice(5))+'</span>';
+    return nyRow(cls||'',x.icon+' '+x.n+' '+esc(x.label)+pills,
+      (x.items&&x.items.length)?x.items:null,x.why||'');
   }
-  if(n.bench_decisions)items.push(nyRow('','🔨 '+n.bench_decisions+' Bench decision(s) need your call',n.bench_decision_items,''));
-  if(n.dreamer_open)items.push(nyRow('','💭 '+n.dreamer_open+' dreamer suggestion(s) pending your look',n.dreamer_items,'the 🔮 panel below shows the whole ledger — say "absorb dreamer" in a session to clear these'));
-  if(n.desk_inbox)items.push(nyRow('','📥 '+n.desk_inbox+' drop(s) on the Pad waiting to be absorbed',n.desk_inbox_items,'these clear in your next session with Claude — absorbed into the registry + ✅-stamped · drop more any time: "desk: idea" to the bot'));
-  if(n.suspect_open_marks)items.push(nyRow('warn','🫥 '+n.suspect_open_marks+' open paper mark(s) flagged suspect',n.suspect_items,'wide/one-sided quotes — the close pass keeps re-checking them; nothing for you unless an exit is waiting on one'));
-  var body=items.length?items.join(''):'<div class="item ok">✅ Nothing needs you — the machine is running clean</div>';
-  return '<div class="card"><h2>🎯 Needs you</h2>'+body+'</div>';
+  function group(title,arr,cls){
+    if(!arr||!arr.length)return '';
+    return '<div class="item why" style="border:none;padding-bottom:0">'+title+'</div>'+
+      arr.map(function(x){return lrow(x,cls)}).join('');
+  }
+  var f=lane.friday||{},w=lane.weekend||{},lt=lane.later||[];
+  items.push(group('🔴 today — rings until clear',lane.today,'warn'));
+  items.push(group('🟡 Friday '+esc(String(f.date||'').slice(5))+' — the decision slot',f.items));
+  if(lt.length)items.push(group('🟡 overflow — the following Friday (cap 6 held)',lt));
+  items.push(group('🔵 weekend '+esc(String(w.date||'').slice(5))+' — discussions + designs',w.items));
+  items=items.filter(Boolean);
+  var body=items.length?items.join(''):'<div class="item ok">✅ Nothing needs you — every lane is clear</div>';
+  return '<div class="card"><h2>🗳️ The lane<span class="tag">everything that needs you, already scheduled</span></h2>'+body+
+    '<div class="item why" style="border:none;padding-top:10px">the anti-pile law: every ask is classified + slotted AT BIRTH — nothing waits unscheduled · dreamer answers: `desk: dreamer: &lt;answer&gt;` · a slot that slips twice escalates to the evening brief</div></div>';
 }
 
 function foldCard(title,tag,body,open){
@@ -335,13 +356,28 @@ function tsSim(d){
   }
   var rec='';
   if((s.recent||[]).length){
+    // evolution #2 (Desk 08-17 10:50 "TS sim fills need date filled and the
+    // Trade plan"): FULL dates (open → close) + the strategy's exit plan on
+    // every closed row — the plan is the unit of learning, one tap away
     var rr=s.recent.map(function(c){
       var tw=c.twin_pnl!=null?' · paper twin '+(c.twin_pnl>0?'+':'')+'$'+Math.round(c.twin_pnl):'';
-      return '<div class="item"><div class="row"><span>'+esc(String(c.close_date||'').slice(5))+' <span class="tk">'+esc(c.ticker)+'</span> · '+esc(c.strategy)+'</span>'+
+      var dates=(c.open_date?esc(String(c.open_date))+' → ':'')+esc(String(c.close_date||''));
+      return '<div class="item"><div class="row"><span>'+dates+' <span class="tk">'+esc(c.ticker)+'</span> · '+esc(c.strategy)+'</span>'+
         '<span class="num '+(c.pnl>0?'ok':(c.pnl<0?'bad':'muted'))+'">'+(c.pnl>0?'+':'')+'$'+Math.round(c.pnl)+'</span></div>'+
-        '<span class="why">'+esc(c.reason||'')+(c.days!=null?' · '+c.days+'d held':'')+tw+'</span></div>';
+        '<span class="why">out: '+esc(c.reason||'?')+(c.days!=null?' · '+c.days+'d held':'')+tw+'</span>'+
+        (c.plan?'<span class="why">🚪 the plan it ran: '+esc(c.plan)+'</span>':'')+'</div>';
     }).join('');
     rec='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">🏁 recent closes — real fills, real verdicts <span class="pill">tap ▾</span></summary>'+rr+'</details></div>';
+  }
+  var nf='';
+  if((s.no_fill_rows||[]).length){
+    // dated no-fill rows (same 08-17 drop: "no-fill attempts render only as
+    // counts") — each carries what the paper twin went on to do
+    nf='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">🫥 dated no-fills — the anti-chase law holding its price <span class="pill">tap ▾</span></summary>'+
+      s.no_fill_rows.map(function(x){
+        return '<div class="item why" style="padding:3px 0;border:none">'+esc(String(x.date||'?'))+' <span class="tk">'+esc(x.ticker)+'</span> · '+esc(x.strategy)+
+          (x.twin_pnl!=null?' · twin went '+(x.twin_pnl>0?'+':'')+'$'+Math.round(x.twin_pnl):' · twin still open')+'</div>';
+      }).join('')+'</details></div>';
   }
   var seats=(s.seats||[]).map(function(x){
     var pill=x.ladder?'<span class="pill">🪜 ladder rung</span>':'<span class="pill">🔬 measuring fills</span>';
@@ -358,7 +394,7 @@ function tsSim(d){
   if(s.missed_n)missed='<div class="item why" style="border:none">🫥 '+money(s.missed_paper_net)+' of paper profit never actually filled ('+s.missed_n+' dead limits)</div>';
   var sf=seats?'<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">🪜 per-seat fill-truth detail <span class="pill">tap ▾</span></summary>'+seats+missed+'</details></div>':'';
   return '<div class="card"><h2>🏦 TS-SIM — the broker truth<span class="tag">real limit orders, real fills, zero dollars</span></h2>'+
-    head+open+rec+sf+'</div>';
+    head+open+rec+nf+sf+'</div>';
 }
 
 function legDesc(s){ /* "O:GIS261016C00032500:long" -> {act,strike,cp,date} */
@@ -456,9 +492,15 @@ function signals(d){
    feed = the teach-me radar (fire/defense/closes/opens/experiments/
    confluence/movers) · rules trivia removed, the coach line stays. */
 function tradersBody(d){
+  // evolution #2 HUMAN-FIRST (Jeremy 08-18: "what is going on with the
+  // trades… where the trade is at… maybe the agent is looking for a level
+  // before entry"): every row answers state in one line — 👁️ pre-entry
+  // intent on idea rows, entry → now → target progress on open rows, and a
+  // last-closes list per agent WITH the exit reason (the SnapBack 08-19
+  // coaching drop: "it doesn't say why you got out").
   var tb=d.traders||{};
   var CS={};((d.tournament||{}).seats||[]).forEach(function(s){CS[s.agent]=s.callsign||s.agent});
-  var agents=Object.keys(tb).sort();
+  var agents=Object.keys(tb).filter(function(a){return a.charAt(0)!=='_'}).sort();
   if(!agents.length)return '';
   return agents.map(function(a){
     var ts=tb[a],net=0,known=false;
@@ -467,17 +509,25 @@ function tradersBody(d){
       var plan=[];
       if(t.target_pct!=null)plan.push('target +'+Math.round(t.target_pct*100)+'%');
       if(t.stop_pct!=null)plan.push('stop −'+Math.round(t.stop_pct*100)+'%');
+      if(t.status!=='idea'&&t.target_pct&&t.cost&&t.pnl!=null)
+        plan.push('now '+Math.round(100*t.pnl/(t.cost*t.target_pct))+'% of the way to target');
+      var state=t.status==='idea'?'<span class="pill med">👁️ pre-entry — watching for its level</span>':'';
       return '<div class="item" style="margin-left:8px">'+
         '<div class="row"><span><span class="tk">'+esc(t.ticker)+'</span> · '+esc(t.strategy)+
-        (t.direction==='bearish'?' 🔴':' 🟢')+(t.lab?'<span class="pill">🧪 lab</span>':'')+'</span>'+
+        (t.direction==='bearish'?' 🔴':' 🟢')+(t.lab?'<span class="pill">🧪 lab</span>':'')+state+'</span>'+
         '<span class="num '+(t.pnl>0?'ok':(t.pnl<0?'bad':'muted'))+'">'+(t.pnl!=null?(t.pnl>0?'+':'')+'$'+Math.round(t.pnl):'—')+'</span></div>'+
         '<div style="margin:2px 0">'+contractLine(t)+(t.cost!=null?' <span class="muted">@ $'+t.cost+'</span>':'')+'</div>'+
         (plan.length?'<span class="why">plan: '+esc(plan.join(' · '))+' · exit per strategy rules</span>':'')+
         (t.thesis?'<span class="why">💭 '+esc(t.thesis)+'</span>':'')+
         '</div>';
     }).join('');
+    var cl=((tb._closed||{})[a]||[]).map(function(x){
+      return '<div class="item why" style="margin-left:8px;padding:3px 0;border:none">🏁 '+esc(String(x.close_date||''))+' '+esc(x.ticker)+' '+
+        (x.pnl!=null?((x.pnl>0?'+':'')+'$'+Math.round(x.pnl)):'—')+' · out: '+esc(x.reason||'?')+(x.days!=null?' · '+x.days+'d held':'')+'</div>';
+    }).join('');
+    if(cl)cl='<div class="item why" style="margin-left:8px;border:none;padding-bottom:0">last closes — why they got out:</div>'+cl;
     return '<div class="item" style="border:none;padding-bottom:2px"><div class="row"><b>'+esc(CS[a]||a)+'</b>'+
-      '<span class="num '+(net>0?'ok':(net<0?'bad':'muted'))+'">'+ts.length+' open · '+(known?(net>0?'+':'')+'$'+Math.round(net):'—')+'</span></div></div>'+rows;
+      '<span class="num '+(net>0?'ok':(net<0?'bad':'muted'))+'">'+ts.length+' open · '+(known?(net>0?'+':'')+'$'+Math.round(net):'—')+'</span></div></div>'+rows+cl;
   }).join('');
 }
 function tournament(d){
@@ -639,28 +689,10 @@ function working(d){
 }
 
 /* 🔮 v3 (M1 ruling: "make sure dreamer notes are being taken care of") */
-function dreamerPanel(d){
-  var dr=d.dreamer;if(!dr)return '';
-  var c=dr.counts||{};
-  var handled=(c.accepted||0)+(c.answered||0)+(c.done||0);
-  var head='<div class="item"><div class="row"><span>'+
-    (dr.open?'<b class="'+(dr.open>15?'warn':'')+'">'+dr.open+' pending your look</b>':'<span class="ok">✅ nothing pending</span>')+
-    ' · '+dr.total+' all-time</span>'+
-    '<span class="num muted">'+handled+' handled'+(c.rejected?' · '+c.rejected+' rejected':'')+(c.parked?' · '+c.parked+' parked':'')+'</span></div></div>';
-  var pend='';
-  if((dr.open_items||[]).length){
-    var lis=dr.open_items.map(function(i){return '<div class="item why" style="margin-left:10px;padding:3px 0;border:none">• '+esc(i.date)+(i.tag?' <span class="pill">'+esc(i.tag)+'</span>':'')+' '+esc(i.text)+'</div>'}).join('');
-    pend='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">💭 the pending pile <span class="pill">tap ▾</span></summary>'+lis+'</details></div>';
-  }
-  var done='';
-  if((dr.handled||[]).length){
-    var lis2=dr.handled.map(function(i){return '<div class="item why" style="margin-left:10px;padding:3px 0;border:none">• '+esc(i.text)+(i.resolution?'<br>&nbsp;&nbsp;✅ '+esc(i.resolution):'')+'</div>'}).join('');
-    done='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">✅ recently handled — proof of care <span class="pill">tap ▾</span></summary>'+lis2+'</details></div>';
-  }
-  return foldCard('🔮 The dreamer',(dr.open?dr.open+' pending · ':'')+'tap to open',
-    head+pend+done+
-    '<div class="item why" style="border:none;padding-top:10px">the dreamer proposes overnight; pending items clear when a session absorbs them — say "absorb dreamer" · if pending climbs while handled doesn\'t, it\'s being ignored: that\'s the alarm this panel exists for</div>');
-}
+/* 🔮 dreamerPanel RETIRED at evolution #2 (2026-08-20): the dreamer's
+   needs-you half lives in 🗳️ the lane (💭 row, Friday slot) and its
+   ignored-pile alarm lives in the lane's slip escalation — one panel fewer,
+   per the reorganization mandate. Ledger depth stays in the vault. */
 
 /* 🔬 v3 (M1 ruling: "a place to do research / backtest stuff") */
 function research(d){
@@ -738,7 +770,23 @@ function milestones(d){
       (m.feeds?'<span class="pill">'+esc(m.feeds)+'</span>':'')+'</span><span class="num">'+when+'</span></div>'+
       (m.done&&m.outcome?'<span class="why">'+esc(m.outcome)+'</span>':'')+pace+'</div>';
   }).join('');
-  return foldCard('🗓️ The road','the strip shows the next · tap for all',rows+
+  // 📅 verdict-forecast lights (fdd289e, surfaced at evolution #2): which
+  // strategies are ON PACE / STARVED / burning dev budget — status words and
+  // paper dollars only
+  var fc=((d.proving||{}).forecast)||{};
+  var fl=[];
+  Object.keys(fc.per_strategy||{}).sort().forEach(function(k){
+    var v=fc.per_strategy[k];
+    if(v.starved)fl.push('<span class="bad">⚠️ '+esc(k)+' STARVED</span> — 0 closes'+(v.days_since!=null?' in '+v.days_since+'d':' at this ruleset'));
+    else if(v.dev_burn!=null)fl.push((v.dev_burn<=(v.budget||-3000)?'<span class="bad">':'<span class="warn">')+'🔥 '+esc(k)+' dev burn $'+Math.round(v.dev_burn)+' of $'+Math.round(v.budget||-3000)+' budget</span>');
+    else if(v.eta)fl.push('🪜 '+esc(k)+' → verdict bar ~'+esc(String(v.eta).slice(5))+' at current pace');
+    else if(v.at_bar)fl.push('<span class="ok">✅ '+esc(k)+' at its verdict bar (n='+v.n+')</span>');
+  });
+  var m2=fc.m2_sim;
+  if(m2&&m2.starved)fl.push('<span class="warn">⚠️ M2 sim: '+m2.n_v2+' v2-era closes · '+m2.no_fill+' no-fills · last filled close '+esc(String(m2.last_filled_close||'').slice(5))+' ('+m2.days_since+'d ago)</span>');
+  var flh=fl.length?'<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">📅 the forecast — pace, starvation, dev burn <span class="pill">tap ▾</span></summary>'+
+    fl.map(function(x){return '<div class="item why" style="padding:3px 0;border:none">'+x+'</div>'}).join('')+'</details></div>':'';
+  return foldCard('🗓️ The road','the strip shows the next · tap for all',rows+flh+
     '<div class="item why" style="border:none;padding-top:10px">reorder any time: text "desk: bump &lt;thing&gt; — more important than &lt;other&gt;" · Claude does the legwork, you steer</div>');
 }
 function build(d){
@@ -820,14 +868,15 @@ function render(d){
   if(age_h>14){$('#stale').style.display='block';
     $('#stale').textContent='⚠️ data is '+Math.round(age_h)+'h old — the generator may be stuck; ask Claude to run triage'}
   else $('#stale').style.display='none';
-  // panel order v3.2 (2026-08-13, Jeremy: "stuff that needs me that day
-  // needs to be the first thing i see"): 🫵 TODAY above everything (thin ✓
-  // line when empty so the strip keeps the front page on quiet days) →
-  // strip → needs me (the standing piles) → BROKER TRUTH (live sim book) →
-  // best trades → tournament → what's working → the week — then everything
-  // else FOLDED to one-line cards. Every panel must request a decision,
-  // show pace against a date, or grade an idea — or it gets merged.
-  $('#panels').innerHTML=todayPanel(d)+strip(d)+needsYou(d)+tsSim(d)+signals(d)+tournament(d)+working(d)+weekCal(d)+dreamerPanel(d)+research(d)+milestones(d)+build(d)+clock(d)+playbook(d);
+  // panel order v4 — evolution #2 (2026-08-20, the reorganization mandate):
+  // 🫵 TODAY above everything → strip (news · M4 meter · lane pulse) →
+  // 🗳️ THE LANE (everything that needs Jeremy, already scheduled — the old
+  // needs-you piles + the dreamer panel merged here) → BROKER TRUTH →
+  // best trades → tournament (human-first book: state · progress · why-exited)
+  // → what's working → the week — then folded one-line cards. Panel law
+  // unchanged: request a decision, show pace against a date, or grade an
+  // idea — or get merged. Panel count went DOWN this evolution (dreamer).
+  $('#panels').innerHTML=todayPanel(d)+strip(d)+needsYou(d)+tsSim(d)+signals(d)+tournament(d)+working(d)+weekCal(d)+research(d)+milestones(d)+build(d)+clock(d)+playbook(d);
 }
 
 function load(){
