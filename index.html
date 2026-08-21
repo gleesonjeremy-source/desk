@@ -286,6 +286,7 @@ function needsYou(d){
   (n.p1||[]).forEach(function(t){items.push('<div class="item bad">🚨 P1 — running wrong: '+esc(t)+'<span class="why">repair beats building — bring this to tonight\'s session first</span></div>')});
   function lrow(x,cls){
     var pills='';
+    if(x.who)pills+='<span class="pill">'+esc(x.who)+'</span>';
     if(x.slips>=2)pills+='<span class="pill hi">⏳ slipped ×'+x.slips+'</span>';
     else if(x.slips)pills+='<span class="pill">⏳ slipped</span>';
     if(x.overflow)pills+='<span class="pill">overflow → '+esc(String(x.slot).slice(5))+'</span>';
@@ -305,7 +306,7 @@ function needsYou(d){
   items=items.filter(Boolean);
   var body=items.length?items.join(''):'<div class="item ok">✅ Nothing needs you — every lane is clear</div>';
   return '<div class="card"><h2>🗳️ The lane<span class="tag">everything that needs you, already scheduled</span></h2>'+body+
-    '<div class="item why" style="border:none;padding-top:10px">the anti-pile law: every ask is classified + slotted AT BIRTH — nothing waits unscheduled · dreamer answers: `desk: dreamer: &lt;answer&gt;` · a slot that slips twice escalates to the evening brief</div></div>';
+    '<div class="item why" style="border:none;padding-top:10px">the anti-pile law: every ask is classified + slotted AT BIRTH — nothing waits unscheduled · each row's pill names WHICH CLAUDE handles it (🛠️ Mac Pro session · 📲 Telegram · 📱 Claude Phone) · dreamer answers: `desk: dreamer: &lt;answer&gt;` · a slot that slips twice escalates to the evening brief</div></div>';
 }
 
 function foldCard(title,tag,body,open){
