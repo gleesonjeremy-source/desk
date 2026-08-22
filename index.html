@@ -158,6 +158,16 @@ function fmtAge(ep){
    clock rendered in PT — never from the payload's generation date. */
 function ptToday(){try{return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles'}).format(new Date())}catch(x){return new Date().toISOString().slice(0,10)}}
 function ptHM(){try{return new Intl.DateTimeFormat('en-GB',{timeZone:'America/Los_Angeles',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date())}catch(x){var d=new Date();return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)}}
+/* PT-labeled human stamp from the payload EPOCH (the 08-21 one-clock ruling:
+   times shown to Jeremy are PT, labeled, on point — never a raw machine
+   string). Same-PT-day: time only; older: adds Mon Aug 20. Epoch-based, so
+   iOS date-string parsing can never bend it. */
+function ptStamp(ep){try{var d=new Date(ep*1000);
+  var t=new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',hour:'numeric',minute:'2-digit',hour12:true}).format(d);
+  var day=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles'}).format(d);
+  if(day===ptToday())return t+' PT';
+  return new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',weekday:'short',month:'short',day:'numeric'}).format(d)+' '+t+' PT';
+}catch(x){return ''}}
 function money(v){if(v==null)return '—';var r=Math.round(v);return (r>0?'+$':(r<0?'-$':'$'))+Math.abs(r)}
 /* 👆 tap-to-expand (2026-08-16 — Jeremy 08-14: "sometimes I want or need to
    see the whole thing"): server clips ship a `full` twin whenever they cut;
@@ -861,7 +871,7 @@ function playbook(d){
 
 function render(d){
   TICKETS={};TID=0;   // fresh ticket registry each render (5-min refresh)
-  $('#asof').textContent='machine-written '+fmtAge(d.asof_epoch)+' ('+d.asof+')';
+  $('#asof').textContent='machine-written '+fmtAge(d.asof_epoch)+' · '+ptStamp(d.asof_epoch);
   var age_h=(Date.now()/1000-d.asof_epoch)/3600;
   /* 14h banner (was 26h, 08-15): worst NORMAL gap is now Fri 20:00 → Sat 7:00
      = 11h — a missed morning-gen alarms the same morning instead of never.
