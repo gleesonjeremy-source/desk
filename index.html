@@ -348,7 +348,7 @@ function tsSim(d){
       if(t.qty)bits.push(t.qty+'x');
       if(t.cost!=null)bits.push('entry $'+Math.round(t.cost));
       if(t.max_loss!=null)bits.push('max loss $'+Math.round(t.max_loss));
-      if(t.open_date)bits.push('since '+esc(String(t.open_date).slice(5)));
+      if(t.open_date)bits.push('since '+esc(String(t.open_date).slice(5))+(t.open_time?' · filled '+esc(t.open_time)+' PT':''));
       if(t.exit_pending)bits.push('⏳ exit working: '+esc(t.exit_pending));
       var plan=[];
       if(t.target_price!=null)plan.push('🎯 target $'+t.target_price+(t.target_resting?' — RESTING at the broker (GTC)':''));
@@ -372,7 +372,7 @@ function tsSim(d){
     // every closed row — the plan is the unit of learning, one tap away
     var rr=s.recent.map(function(c){
       var tw=c.twin_pnl!=null?' · paper twin '+(c.twin_pnl>0?'+':'')+'$'+Math.round(c.twin_pnl):'';
-      var dates=(c.open_date?esc(String(c.open_date))+' → ':'')+esc(String(c.close_date||''));
+      var dates=(c.open_date?esc(String(c.open_date))+(c.open_time?' '+esc(c.open_time):'')+' → ':'')+esc(String(c.close_date||''))+(c.close_time?' '+esc(c.close_time):'')+((c.open_time||c.close_time)?' PT':'');
       return '<div class="item"><div class="row"><span>'+dates+' <span class="tk">'+esc(c.ticker)+'</span> · '+esc(c.strategy)+'</span>'+
         '<span class="num '+(c.pnl>0?'ok':(c.pnl<0?'bad':'muted'))+'">'+(c.pnl>0?'+':'')+'$'+Math.round(c.pnl)+'</span></div>'+
         '<span class="why">out: '+esc(c.reason||'?')+(c.days!=null?' · '+c.days+'d held':'')+tw+'</span>'+
@@ -523,17 +523,18 @@ function tradersBody(d){
       if(t.status!=='idea'&&t.target_pct&&t.cost&&t.pnl!=null)
         plan.push('now '+Math.round(100*t.pnl/(t.cost*t.target_pct))+'% of the way to target');
       var state=t.status==='idea'?'<span class="pill med">👁️ pre-entry — watching for its level</span>':'';
+      var when=t.open_date?' <span class="muted">· logged '+esc(String(t.open_date).slice(5))+(t.logged_time?' '+esc(t.logged_time)+' PT':'')+'</span>':'';
       return '<div class="item" style="margin-left:8px">'+
         '<div class="row"><span><span class="tk">'+esc(t.ticker)+'</span> · '+esc(t.strategy)+
         (t.direction==='bearish'?' 🔴':' 🟢')+(t.lab?'<span class="pill">🧪 lab</span>':'')+state+'</span>'+
         '<span class="num '+(t.pnl>0?'ok':(t.pnl<0?'bad':'muted'))+'">'+(t.pnl!=null?(t.pnl>0?'+':'')+'$'+Math.round(t.pnl):'—')+'</span></div>'+
-        '<div style="margin:2px 0">'+contractLine(t)+(t.cost!=null?' <span class="muted">@ $'+t.cost+'</span>':'')+'</div>'+
+        '<div style="margin:2px 0">'+contractLine(t)+(t.cost!=null?' <span class="muted">@ $'+t.cost+'</span>':'')+when+'</div>'+
         (plan.length?'<span class="why">plan: '+esc(plan.join(' · '))+' · exit per strategy rules</span>':'')+
         (t.thesis?'<span class="why">💭 '+esc(t.thesis)+'</span>':'')+
         '</div>';
     }).join('');
     var cl=((tb._closed||{})[a]||[]).map(function(x){
-      return '<div class="item why" style="margin-left:8px;padding:3px 0;border:none">🏁 '+esc(String(x.close_date||''))+' '+esc(x.ticker)+' '+
+      return '<div class="item why" style="margin-left:8px;padding:3px 0;border:none">🏁 '+esc(String(x.close_date||''))+(x.close_logged_time?' · logged '+esc(x.close_logged_time)+' PT':'')+' '+esc(x.ticker)+' '+
         (x.pnl!=null?((x.pnl>0?'+':'')+'$'+Math.round(x.pnl)):'—')+' · out: '+esc(x.reason||'?')+(x.days!=null?' · '+x.days+'d held':'')+'</div>';
     }).join('');
     if(cl)cl='<div class="item why" style="margin-left:8px;border:none;padding-bottom:0">last closes — why they got out:</div>'+cl;
