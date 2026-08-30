@@ -513,7 +513,7 @@ function tradersBody(d){
   // last-closes list per agent WITH the exit reason (the SnapBack 08-19
   // coaching drop: "it doesn't say why you got out").
   var tb=d.traders||{};
-  var CS={};((d.tournament||{}).seats||[]).forEach(function(s){CS[s.agent]=s.callsign||s.agent});
+  var CS={};((d.tournament||{}).seats||[]).forEach(function(s){CS[s.agent]=s.agent});
   var agents=Object.keys(tb).filter(function(a){return a.charAt(0)!=='_'}).sort();
   if(!agents.length)return '';
   return agents.map(function(a){
@@ -551,7 +551,7 @@ function tournament(d){
   var body='';
   if(t){
     var top=(t.seats||[])[0];
-    if(top)body+='<div class="item"><div class="row"><span>👑 <b>'+esc(top.callsign||top.agent)+'</b> leads on merit'+(top.streak?' · 🔥W'+top.streak:'')+'</span>'+
+    if(top)body+='<div class="item"><div class="row"><span>👑 <b>'+esc(top.agent)+'</b> leads on merit'+(top.streak?' · 🔥W'+top.streak:'')+'</span>'+
       '<span class="num">$'+(top.merit!=null?top.merit.toLocaleString():'—')+
       (top.trading!=null?' · trading <span class="'+(top.trading>0?'ok':(top.trading<0?'bad':'muted'))+'">'+money(top.trading)+'</span>':'')+'</span></div></div>';
     if(t.drama)body+='<div class="item">📉 <b>'+esc(t.drama.payer)+'</b> pays $'+t.drama.amount.toLocaleString()+' to '+esc(t.drama.payee)+' if the week ends now</div>';
@@ -575,7 +575,7 @@ function tournament(d){
   if(t&&(t.seats||[]).length){
     st=(t.seats||[]).map(function(s,i){
       var wd=s.week_delta;
-      return '<div class="item"><div class="row"><span>'+(i===0?'👑 ':(i===(t.seats.length-1)&&t.seats.length>2?'📉 ':''))+'<b>'+esc(s.callsign||s.agent)+'</b><span class="pill">'+esc(s.agent)+'</span>'+(s.streak?' 🔥W'+s.streak:'')+'</span>'+
+      return '<div class="item"><div class="row"><span>'+(i===0?'👑 ':(i===(t.seats.length-1)&&t.seats.length>2?'📉 ':''))+'<b>'+esc(s.agent)+'</b>'+(s.streak?' 🔥W'+s.streak:'')+'</span>'+
         '<span class="num">merit $'+(s.merit!=null?s.merit.toLocaleString():'—')+
         ' · trading <span class="'+(s.trading>0?'ok':(s.trading<0?'bad':'muted'))+'">'+money(s.trading)+'</span>'+
         (wd!=null?' · wk '+money(wd):'')+'</span></div>'+
