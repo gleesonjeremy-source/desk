@@ -558,9 +558,10 @@ function tournament(d){
     var ic={fire:'🔥',defense:'🛟',closed:'✅',opened:'🆕',lab:'🧪',confluence:'⚡',mover:'💰'};
     var wl=(t.watch||[]).map(function(w){
       var tr=w.trade;
+      var why=w.why||(tr&&tr.why); /* tape nests why inside the trade — Desk 08-27: fire card showed no reasoning */
       return '<div class="item">'+(ic[w.kind]||'•')+' '+esc(w.line)+
-        (w.why?'<span class="why">💭 '+esc(w.why)+'</span>':'')+
-        (tr?'<div style="margin:2px 0">'+contractLine(tr)+(tr.cost!=null?' <span class="muted">@ $'+tr.cost+'</span>':'')+
+        (why?'<span class="why">💭 '+esc(why)+'</span>':'')+
+        (tr?'<div style="margin:2px 0">'+(tr.ticker?'<b>'+esc(tr.ticker)+'</b>'+(tr.strategy?' <span class="pill">'+esc(String(tr.strategy).replace(/_/g,' '))+'</span>':'')+' — ':'')+contractLine(tr)+(tr.cost!=null?' <span class="muted">@ $'+tr.cost+'</span>':'')+
           (tr.enterable?'<span class="pill good">still enterable — near their price</span>':'<span class="pill">moved &gt;10% — watch only</span>')+
           tbtn(tr,'tournament — '+w.line)+'</div>':'')+
         '</div>';
