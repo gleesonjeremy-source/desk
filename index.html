@@ -215,11 +215,15 @@ function strip(d){
   if(mini.length){var red=mini.filter(function(j){return !j.ok}).length;
     h.push('⏰ '+(red?'<span class="bad">'+red+' down</span>':'<span class="ok">all running</span>'))}
   var dock=((d.build||{}).dock||[]).length;if(dock)h.push('🚚 '+dock+' verifying');
-  // 📈 growth chip (relabeled 08-26, Jeremy's catch: netWorth delta includes
-  // unrealized marks — crypto drift read as "rent" — CLOSED P&L IS MOST
-  // IMPORTANT): equity growth vs the bar, honestly named; the 💼 realized
-  // True-P&L rent meter lands Sat 08-29 and takes the M4 claim —
-  // RATIO + LIGHT only on this public page (no-dollars law)
+  // 💼 REALIZED rent chip (built 08-31 — THE M4 claim, closed-pnl-first) +
+  // 📈 growth beside it (marks incl., the labeled companion) — TWO numbers,
+  // never fused; RATIO + LIGHT only on this public page (no-dollars law)
+  var rent=d.rent;if(rent&&rent.state==='live'){
+    h.push('💼 realized '+rent.ratio+'× bar '+rent.light);
+    var pz=(rent.cc_rows||[]).filter(function(r){return r.pause});
+    if(pz.length)h.push('💼⏸️ '+pz.map(function(r){return esc(r.ticker)}).join('/')+' pause-rule review');
+    if(rent.tripwire&&rent.tripwire.flag)h.push('<span class="bad">🚨 equity jump '+esc(String(rent.tripwire.x_typical))+'× typical — confirm deposits</span>');
+  }
   var m4=d.m4;if(m4&&m4.state==='live')h.push('📈 growth (marks incl.) '+m4.ratio+'× bar '+m4.light);
   // 🗳️ lane pulse (dreamer/pad chips merged into the lane counts)
   var ln=((d.needs_you||{}).lane)||{};
