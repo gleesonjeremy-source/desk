@@ -690,7 +690,20 @@ function pitchBody(d){
   return head+takeNote+rows;
 }
 function working(d){
-  var g=(d.goals||[]).map(function(x){return '<div class="item"><b>'+esc(x.id)+'</b> · '+esc(x.title)+'</div>'}).join('');
+  // 🎯 scoreboard (08-31): light + reading + gap per goal; G1 unfolds the
+  // ruled ladder (rungs · ratchet · labeled companion). Ratios/percents only.
+  var g=(d.goals||[]).map(function(x){
+    var head='<b>'+esc(x.light||'')+' '+esc(x.id)+'</b> · '+esc(x.title);
+    var body='';
+    if(x.reading)body+='<div class="why">'+esc(x.reading)+'</div>';
+    if(x.gap)body+='<div class="why">→ '+esc(x.gap)+'</div>';
+    if(x.ladder){var L=x.ladder;
+      body+='<div class="why">🪜 '+esc(L.rung1.label)+': '+(L.rung1.ratio==null?'—':esc(String(L.rung1.ratio))+'×')+(L.rung1["pass"]?' ✅':' ❌')
+        +' · '+esc(L.rung2.label)+': '+(L.rung2.pct==null?'—':esc(String(L.rung2.pct))+'%')+' vs '+esc(String(L.rung2.bar_pct))+'%'+(L.rung2["pass"]?' ✅':' ❌')+'</div>';
+      if(L.companion_troi_pct!=null)body+='<div class="why">📈 companion: True-ROI (marks incl.) '+esc(String(L.companion_troi_pct))+'% — labeled, never fused</div>';
+      body+='<div class="why">🔄 '+esc(L.ratchet)+' · '+esc(L.window)+'</div>';}
+    return '<div class="item">'+head+body+'</div>';
+  }).join('');
   var lad=ladderBody(d);
   var reps=repsBody(d);
   var iq=ideaQualityBody(d);
