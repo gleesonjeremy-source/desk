@@ -439,25 +439,26 @@ function contractLine(c){
    phone-ready ticket on the clipboard: legs + OCC + numbers + why + exit
    plan + the house execution laws. Same format ships to Telegram Elite p1. */
 var TICKETS={},TID=0;
+function mny(v){var x=Math.round(Number(v)*100)/100;if(!isFinite(x))return String(v);return x%1===0?x.toFixed(0):x.toFixed(2);}
 function ticketText(c,kind){
   var L=[];
   L.push('Trade idea from my scanner ('+kind+') — help me work this on TradeStation. Verify everything live first; read-only until I confirm.');
   L.push('');
-  L.push(String(c.ticker||'')+' · '+String(c.strategy||'')+(c.direction||c.dir?' · '+(c.direction||c.dir):''));
+  L.push(String(c.ticker||'')+' · '+String(c.strategy||'')+(c.structure?' ('+String(c.structure)+')':'')+(c.direction||c.dir?' · '+(c.direction||c.dir):''));
   var legs=String(c.contracts||'').split(',').map(legDesc);
   if(legs.length&&legs.every(function(l){return l}))
     L.push('Legs: '+legs.map(function(l){return l.act+' $'+l.strike+l.cp+' '+l.date}).join(' / ')+(c.qty?' · qty '+c.qty:'')+(c.dte!=null?' · '+c.dte+' DTE':''));
   if(c.contracts)L.push('OCC: '+c.contracts);
   var n=[];
-  if(c.cost!=null)n.push('cost $'+c.cost);
-  if(c.max_loss!=null)n.push('max loss $'+c.max_loss);
-  if(c.max_gain!=null)n.push('max gain $'+c.max_gain);
+  if(c.cost!=null)n.push('cost $'+mny(c.cost));
+  if(c.max_loss!=null)n.push('max loss $'+mny(c.max_loss));
+  if(c.max_gain!=null)n.push('max gain $'+mny(c.max_gain));
   if(c.rr!=null)n.push('R:R '+c.rr);
   if(c.pop!=null)n.push('POP '+c.pop);
-  if(c.breakeven!=null)n.push('breakeven $'+c.breakeven);
+  if(c.breakeven!=null)n.push('breakeven $'+mny(c.breakeven));
   if(c.target!=null)n.push('target '+c.target);
   if(c.stop!=null)n.push('stop '+c.stop);
-  if(c.target_price!=null)n.push('target $'+c.target_price+(c.target_resting?' (resting GTC in sim)':''));
+  if(c.target_price!=null)n.push('target $'+mny(c.target_price)+(c.target_resting?' (resting GTC in sim)':''));
   if(n.length)L.push('Scan-time numbers: '+n.join(' · '));
   if(c.why)L.push('Why: '+c.why);
   if(c.plan)L.push('Exit plan: '+c.plan);
@@ -485,18 +486,19 @@ function signals(d){
   var rows=(dg.top||[]).map(function(c){
     var conv=c.conviction==='HIGH'?'<span class="pill hi">HIGH</span>':'<span class="pill med">MED</span>';
     var nums=[];
-    if(c.cost!=null)nums.push('cost $'+c.cost);
-    if(c.max_loss!=null)nums.push('max loss $'+c.max_loss);
-    if(c.max_gain!=null)nums.push('max gain $'+c.max_gain);
+    if(c.cost!=null)nums.push('cost $'+mny(c.cost));
+    if(c.max_loss!=null)nums.push('max loss $'+mny(c.max_loss));
+    if(c.max_gain!=null)nums.push('max gain $'+mny(c.max_gain));
     if(c.rr!=null)nums.push('R:R '+c.rr);
     if(c.pop!=null)nums.push('POP '+c.pop);
-    if(c.breakeven!=null)nums.push('BE $'+c.breakeven);
-    return '<div class="item">'+
-      '<div><span class="tk">'+esc(c.ticker)+'</span> '+(c.dir?esc(c.dir)+' ':'')+'· '+esc(c.strategy)+conv+'</div>'+
+    if(c.breakeven!=null)nums.push('BE $'+mny(c.breakeven));
+    var deadStyle=c.killed?' style="opacity:.55"':'';
+    return '<div class="item"'+deadStyle+'>'+
+      '<div'+(c.killed?' style="text-decoration:line-through"':'')+'><span class="tk">'+esc(c.ticker)+'</span> '+(c.dir?esc(c.dir)+' ':'')+'· '+esc(c.strategy)+(c.structure?' <span class="why">('+esc(c.structure)+')</span>':'')+conv+'</div>'+
       '<div style="margin:3px 0">'+contractLine(c)+'</div>'+
       (c.why?'<span class="why">'+esc(c.why)+'</span>':'')+
       (nums.length?'<span class="why num">'+esc(nums.join(' · '))+'</span>':'')+
-      tbtn(c,"today's board")+
+      (c.killed?'<span class="why" style="color:#c0392b">⚰️ killed at live quotes — '+esc(c.killed)+'</span>':tbtn(c,"today's board"))+
       '</div>';
   }).join('');
   return '<div class="card"><h2>💡 Best trades today<span class="tag">'+esc(dg.date||'')+' · '+(dg.n||0)+' found · '+(dg.n_high||0)+' high</span></h2>'+
