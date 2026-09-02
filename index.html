@@ -753,6 +753,36 @@ function research(d){
 
 /* 📅 v3: the smart-calendar v1 — the week_queue feed rendered (design @ M1;
    earnings dates + verdict docket join at the wk-08-10 build) */
+/* 📥 THE ONE INBOX (LINE+INBOX piece 2, 2026-09-01 — Jeremy 08-24: "i need
+   to be able to see the items so i can help prioritize them"). ITEM-level:
+   every ask that waits on Jeremy — needs-me due + dreamer + suggestions +
+   plan-lint — merged and ranked by scanner/inbox.py, each row sized
+   (est-minutes) and surfaced per the 08-18 surface law. The lane above
+   keeps the WHEN (slots + rings); this panel is the WHAT, as a list. */
+function needsJeremy(d){
+  var j=d.needs_jeremy;if(!j)return '';
+  function jrow(x){
+    var pills='';
+    if(x.age!=null&&x.age>0)pills+='<span class="pill">'+x.age+'d old</span>';
+    if(x.est)pills+='<span class="pill">~'+x.est+'m</span>';
+    if(x.who)pills+='<span class="pill">'+esc(x.who)+'</span>';
+    return '<div class="item">'+x.icon+' '+esc(x.text)+' '+pills+'</div>';
+  }
+  var rows=j.rows||[],vis=rows.slice(0,4).map(jrow).join(''),fold='';
+  if(rows.length>4){
+    fold='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">+'+(rows.length-4)+' more <span class="pill">tap ▾</span></summary>'+rows.slice(4).map(jrow).join('')+'</details></div>';
+  }
+  var sched='';
+  if((j.sched||[]).length){
+    sched='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">📅 '+j.sched.length+' appointment(s) ahead <span class="pill">tap ▾</span></summary>'+
+      j.sched.map(function(x){return '<div class="item muted">'+esc(String(x.due||'').slice(5))+' — '+esc(x.text)+'</div>'}).join('')+'</details></div>';
+  }
+  var head=j.answer_n?
+    '<div class="item">🫵 <b>'+j.answer_n+' to answer</b> · oldest '+(j.oldest_d||0)+'d · ~'+(j.est_min||0)+' min<span class="why">the cadence law: these get answered before building — every session opens with this same count</span></div>':
+    '<div class="item ok">✨ inbox clear — build away</div>';
+  return '<div class="card"><h2>📥 Needs Jeremy<span class="tag">one inbox — every ask, ranked</span></h2>'+head+vis+fold+sched+'</div>';
+}
+
 function weekCal(d){
   var q=d.week_queue;if(!q)return '';
   function row(i){
@@ -787,7 +817,17 @@ function weekCal(d){
     wk2='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">next week — '+q.next_week.length+' scheduled <span class="pill">tap ▾</span></summary>'+q.next_week.map(row).join('')+'</details></div>';
   }
   if(!slips&&!wk1&&!wk2&&!doneRows)return '';
-  var line=q.in_line?'<div class="item muted">🧾 '+q.in_line+' waiting in line — undated by law, promoted into the window as slots free</div>':'';
+  /* 🧾 THE LINE VISIBLE (LINE+INBOX piece 1, 2026-09-01): the grey count is
+     now a ranked, tappable list — prio first, oldest-in-line first, small
+     sizes float (they fit a freed slot); every row says why it sits there */
+  var line='';
+  if((q.line||[]).length){
+    var lr=q.line.map(function(x){return '<div class="item" style="border:none;padding:3px 0">'+expandable(esc(x.title),x.full)+'<span class="num muted" style="float:right">'+esc(x.why||'')+'</span></div>'}).join('');
+    var more=(q.in_line>q.line.length)?'<div class="item muted" style="border:none">…+'+(q.in_line-q.line.length)+' more in line · '+(q.line_units||'?')+' build-units total — say "desk: bump &lt;thing&gt;" to promote</div>':'';
+    line='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">🧾 the line — '+q.in_line+' waiting, ranked <span class="pill">tap ▾</span></summary>'+lr+more+'</details></div>';
+  } else if(q.in_line){
+    line='<div class="item muted">🧾 '+q.in_line+' waiting in line — undated by law, promoted into the window as slots free</div>';
+  }
   return '<div class="card"><h2>📅 The week<span class="tag">done · in flight · next</span></h2>'+
     slips+(wk1||'<div class="item muted">nothing dated this week</div>')+doneRows+wk2+line+
     '<div class="item why" style="border:none;padding-top:10px">the scheduling law (ratified at M1): only the next two weeks carry dates — everything else waits in line, ordered by the priority test · reorder from the phone: "desk: bump &lt;thing&gt;"</div></div>';
@@ -911,7 +951,7 @@ function render(d){
   // → what's working → the week — then folded one-line cards. Panel law
   // unchanged: request a decision, show pace against a date, or grade an
   // idea — or get merged. Panel count went DOWN this evolution (dreamer).
-  $('#panels').innerHTML=todayPanel(d)+strip(d)+needsYou(d)+tsSim(d)+signals(d)+tournament(d)+working(d)+weekCal(d)+research(d)+milestones(d)+build(d)+clock(d)+playbook(d);
+  $('#panels').innerHTML=todayPanel(d)+strip(d)+needsYou(d)+needsJeremy(d)+tsSim(d)+signals(d)+tournament(d)+working(d)+weekCal(d)+research(d)+milestones(d)+build(d)+clock(d)+playbook(d);
 }
 
 function load(){
