@@ -823,8 +823,9 @@ function weekCal(d){
   var line='';
   if((q.line||[]).length){
     var lr=q.line.map(function(x){return '<div class="item" style="border:none;padding:3px 0">'+expandable(esc(x.title),x.full)+'<span class="num muted" style="float:right">'+esc(x.why||'')+'</span></div>'}).join('');
-    var more=(q.in_line>q.line.length)?'<div class="item muted" style="border:none">…+'+(q.in_line-q.line.length)+' more in line · '+(q.line_units||'?')+' build-units total — say "desk: bump &lt;thing&gt;" to promote</div>':'';
-    line='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">🧾 the line — '+q.in_line+' waiting, ranked <span class="pill">tap ▾</span></summary>'+lr+more+'</details></div>';
+    var more=(q.in_line>q.line.length)?'<div class="item muted" style="border:none">…+'+(q.in_line-q.line.length)+' beyond the render bound</div>':'';
+    var foot='<div class="item why" style="border:none">'+(q.line_units||'?')+' build-units in the line'+(q.line_weeks?' · ≈'+q.line_weeks+' wks at the measured ~6 units/wk':'')+' — say "desk: bump &lt;thing&gt;" to promote anything</div>';
+    line='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">🧾 the line — '+q.in_line+' waiting, ALL ranked <span class="pill">tap ▾</span></summary>'+lr+more+foot+'</details></div>';
   } else if(q.in_line){
     line='<div class="item muted">🧾 '+q.in_line+' waiting in line — undated by law, promoted into the window as slots free</div>';
   }
