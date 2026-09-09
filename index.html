@@ -987,8 +987,23 @@ function render(d){
   // idea — or get merged. Panel count went DOWN this evolution (dreamer).
   // 📆 evolution #3 (2026-09-08, LINE+INBOX piece 10): the forward calendar
   // sits right after the inbox — what needs Jeremy, then WHEN everything is.
-  $('#panels').innerHTML=todayPanel(d)+strip(d)+needsYou(d)+needsJeremy(d)+forwardCal(d)+tsSim(d)+signals(d)+tournament(d)+working(d)+weekCal(d)+research(d)+milestones(d)+build(d)+clock(d)+playbook(d);
+  // 🫗 PANEL ISOLATION (2026-09-08 night — the second "Screen went blank"
+  // incident on this seam, 08-21 was the first; TWICE = ROOT CAUSE): one
+  // panel throwing used to blank EVERY panel, silently — the phone showed
+  // only the static "how this works" card. Each panel now renders on its
+  // own; a failing one becomes a red card that NAMES itself and the error,
+  // and the rest of the Screen stays up.
+  var PANELS=[['today',todayPanel],['strip',strip],['needsYou',needsYou],['needsJeremy',needsJeremy],['calendar',forwardCal],['tsSim',tsSim],['signals',signals],['tournament',tournament],['working',working],['weekCal',weekCal],['research',research],['milestones',milestones],['build',build],['clock',clock],['playbook',playbook]];
+  var html='';
+  for(var i=0;i<PANELS.length;i++){
+    try{html+=PANELS[i][1](d)||''}
+    catch(e){html+='<div class="card"><h2>⚠️ panel "'+esc(PANELS[i][0])+'" failed<span class="tag">tell Claude: Screen panel error</span></h2><div class="item bad">'+esc(String(e&&e.message||e))+'</div></div>'}
+  }
+  $('#panels').innerHTML=html;
 }
+window.onerror=function(m,u,l,c){ /* a script error anywhere prints on the Screen instead of vanishing */
+  try{var p=$('#panels');if(p&&!p.innerHTML)p.innerHTML='<div class="card"><h2>⚠️ Screen script error<span class="tag">tell Claude</span></h2><div class="item bad">'+esc(m)+' @'+l+':'+c+'</div></div>'}catch(x){}
+};
 
 function load(){
   if(!KEY){showLock();return}
