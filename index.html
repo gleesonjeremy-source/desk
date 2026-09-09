@@ -952,13 +952,17 @@ function forwardCal(d){
   }
   function fmtDay(s){try{return new Date(s+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}catch(x){return s}}
   function day(x){
-    var head='<div class="row"><b>'+(x.today?'👉 ':'')+esc(fmtDay(x.date))+'</b><span class="num muted">'+(x.items.length?x.items.length+' item'+(x.items.length>1?'s':''):'—')+'</span></div>';
-    return '<div class="item'+(x.today?' ok':'')+(x.weekend&&!x.items.length?' muted':'')+'">'+head+x.items.map(it).join('')+'</div>';
+    /* Firebase STRIPS empty arrays on write — an empty day arrives with no
+       `items` key at all (the 09-08 phone blank: 'x.items.length' undefined).
+       Every array read off the payload is guarded, always. */
+    var items=x.items||[];
+    var head='<div class="row"><b>'+(x.today?'👉 ':'')+esc(fmtDay(x.date))+'</b><span class="num muted">'+(items.length?items.length+' item'+(items.length>1?'s':''):'—')+'</span></div>';
+    return '<div class="item'+(x.today?' ok':'')+(x.weekend&&!items.length?' muted':'')+'">'+head+items.map(it).join('')+'</div>';
   }
   var days=c.days||[],first=days.slice(0,8),rest=days.slice(8);
   var body=first.map(day).join('');
   if(rest.length){
-    var n=rest.reduce(function(a,x){return a+x.items.length},0);
+    var n=rest.reduce(function(a,x){return a+(x.items||[]).length},0);
     body+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">+'+rest.length+' more days · '+n+' items <span class="pill">tap ▾</span></summary>'+rest.map(day).join('')+'</details></div>';
   }
   var k=c.counts||{},leg=[];
