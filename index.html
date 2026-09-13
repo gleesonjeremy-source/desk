@@ -206,7 +206,7 @@ function todayPanel(d){
   var staleTag=(t.today_date&&t.today_date!==vt)?'<span class="tag">data from '+esc(String(t.today_date).slice(5))+'</span>':'';
   /* 1 · alarms — the urgent class, always first */
   var bells=[];
-  (ny.p1||[]).forEach(function(x){bells.push('<div class="item bad">🚨 P1 — running wrong: '+esc(x)+'<span class="why">repair beats building — first thing at the next session</span></div>')});
+  (ny.p1||[]).forEach(function(x){bells.push('<div class="item bad">🚨 P1: '+esc(x)+'<span class="why">priority one — ahead of every build at the next session (P1 = running wrong, or it blocks money/proof)</span></div>')});
   var down=((d.schedule||{}).mini||[]).filter(function(j){return !j.ok});
   if(down.length)bells.push('<div class="item bad">⏰ job down: '+down.map(function(j){return esc(j.job)}).join(', ')+'<span class="why">🛠️ Mac Pro — run triage (REPAIRS.md)</span></div>');
   if(ny.suspect_open_marks)bells.push(nyRow('warn','🫥 '+ny.suspect_open_marks+' suspect paper mark(s) — exits wait on these <span class="pill">🛠️ Mac Pro</span>',ny.suspect_items||null,'the close pass re-verifies; a verify session clears them'));
@@ -254,7 +254,7 @@ function todayPanel(d){
   var decs='';
   if(dopen.length){
     decs+='<div class="item why" style="border:none;padding-bottom:0">🗳️ <b style="color:#c9d1d9">'+dopen.length+' DECISION'+(dopen.length>1?'S':'')+'</b> — '+
-      (dec.n_telegram?dec.n_telegram+' answered in Telegram (reply the number + your pick, or “all recs”)':'')+
+      (dec.n_telegram?dec.n_telegram+' to answer in Telegram (reply the number + your pick, or “all recs”)':'')+
       (dec.n_telegram&&dec.n_session?' · ':'')+(dec.n_session?dec.n_session+' for the next session':'')+
       (dec.oldest_d?' · oldest '+dec.oldest_d+'d':'')+'</div>'+dopen.map(drow).join('');
   }
@@ -492,8 +492,12 @@ function ideasPanel(d){
     out+='<div class="item"><b>0 tickets on the Desk</b>'+(I.n_considered?' · '+I.n_considered+' setups considered':'')+
       (n?'<span class="why">closest: <b>'+esc(n.ticker)+'</b> '+esc(n.strategy)+(n.grade?' 📈 '+esc(n.grade):'')+' — held by: '+esc((n.missing||[]).join('; ')||'no independent confirmation fired')+'</span>':'')+'</div>';
   }
-  if(held.length)out+='<div class="item why" style="border:none;padding-bottom:2px"><b style="color:#c9d1d9">HELD</b> — chart passed, something else didn\'t</div>'+held.map(function(h){return '<div class="item"><span class="tk">'+esc(h.ticker)+'</span> '+esc(h.strategy||'')+(h.grade?' 📈 '+esc(h.grade):'')+' <span class="why">'+esc(h.why||'')+'</span></div>'}).join('');
-  if(radar.length)out+='<div class="item why" style="border:none;padding-bottom:2px"><b style="color:#c9d1d9">RADAR</b> — best of the rest, no ticket</div>'+radar.map(rRow).join('');
+  /* v5 (09-13 phone test): HELD and RADAR show three rows, the rest fold —
+     with zero tickets a long held list pushed TODAY off the first screen */
+  function hRow(h){return '<div class="item"><span class="tk">'+esc(h.ticker)+'</span> '+esc(h.strategy||'')+(h.grade?' 📈 '+esc(h.grade):'')+' <span class="why">'+esc(h.why||'')+'</span></div>'}
+  function capped(rows,fn,label){var v=rows.slice(0,3),m=rows.slice(3);return v.map(fn).join('')+(m.length?'<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">+'+m.length+' more '+label+' <span class="pill">tap ▾</span></summary>'+m.map(fn).join('')+'</details></div>':'')}
+  if(held.length)out+='<div class="item why" style="border:none;padding-bottom:2px"><b style="color:#c9d1d9">HELD</b> — chart passed, something else didn\'t · '+held.length+'</div>'+capped(held,hRow,'held');
+  if(radar.length)out+='<div class="item why" style="border:none;padding-bottom:2px"><b style="color:#c9d1d9">RADAR</b> — best of the rest, no ticket · '+radar.length+'</div>'+capped(radar,rRow,'on the radar');
   if(study.length)out+='<div class="item why" style="border:none;padding-bottom:2px"><b style="color:#c9d1d9">STUDY CARD</b> — human eye only</div>'+study.map(sRow).join('');
   if((I.cooled||[]).length)out+='<div class="item why" style="border:none">🧊 on cooldown: '+esc(I.cooled.join(' · '))+'</div>';
   /* v5 (09-13 re-cut): the 💡 best-trades panel is retired — the board's
@@ -809,7 +813,7 @@ function machinePanel(d){
     if(r.sim&&(r.sim.closed||r.sim.open||r.sim.no_fill))stats.push('sim '+(r.sim.wins||0)+'/'+(r.sim.closed||0)+' green'+(r.sim.no_fill?' · '+r.sim.no_fill+' no-fill':'')+(r.sim.open?' · '+r.sim.open+' open':''));
     if(r.scan)stats.push('scan '+r.scan.arrow+(r.scan.wk!=null?' '+r.scan.wk+'/day':'')+(r.scan.prior!=null?' (was '+r.scan.prior+')':''));
     var vs=(r.versions||[]).map(vchip).join('');
-    return '<div class="item"><div class="row"><span><b>'+esc(r.name)+'</b>'+(r.verdict?' <span class="pill">'+esc(r.verdict)+'</span>':'')+'<span class="pill">'+esc(r.mode)+'</span></span>'+
+    return '<div class="item"><div class="row"><span><b>'+esc(r.name)+'</b>'+(r.verdict?' <span class="pill">'+esc(r.verdict)+'</span>':'')+' <span class="pill">'+esc(r.mode)+'</span></span>'+
       '<span class="num muted">'+(r.trusted!=null?r.trusted+'/20 verified':'')+'</span></div>'+
       (stats.length?'<span class="why">'+esc(stats.join(' · '))+'</span>':'')+
       (vs?'<div class="chips">'+vs+'</div>':'')+
@@ -829,6 +833,7 @@ function machinePanel(d){
   var foot=[];
   if((m.menu_lines||[]).length)foot.push('🧭 menu lines, your hand (no scanner): '+m.menu_lines.map(function(x){return esc(String(x).replace(/_/g,' '))}).join(' · '));
   if((m.off||[]).length)foot.push('⏻ off: '+m.off.map(function(x){return esc(String(x).replace(/_/g,' '))}).join(' · '));
+  if((m.shelf||[]).length)foot.push('📋 registered, never ran: '+m.shelf.map(function(x){return esc(String(x).replace(/_/g,' '))}).join(' · '));
   if(m.versions_note)foot.push(esc(m.versions_note));
   return '<div class="card"><h2>🖥️ State of the machine<span class="tag">'+(C.working||0)+' working · '+(C.developing||0)+' developing · '+(C.discovered||0)+' need reps · '+(C.needs_work||0)+' need work</span></h2>'+head+body+
     '<div class="item why" style="border:none;padding-top:10px">'+foot.join(' · ')+'</div></div>';
