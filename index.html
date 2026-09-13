@@ -812,11 +812,19 @@ function machinePanel(d){
     if(r.read)stats.push('rep-rate: '+r.read+(r.need_wk!=null?' (needs '+r.need_wk+'/wk, gets '+(r.supply_wk!=null?r.supply_wk:'?')+')':''));
     if(r.sim&&(r.sim.closed||r.sim.open||r.sim.no_fill))stats.push('sim '+(r.sim.wins||0)+'/'+(r.sim.closed||0)+' green'+(r.sim.no_fill?' · '+r.sim.no_fill+' no-fill':'')+(r.sim.open?' · '+r.sim.open+' open':''));
     if(r.scan)stats.push('scan '+r.scan.arrow+(r.scan.wk!=null?' '+r.scan.wk+'/day':'')+(r.scan.prior!=null?' (was '+r.scan.prior+')':''));
+    if(r.open_n)stats.push(r.open_n+' open, incubating'+(r.oldest_open_d!=null?' (oldest '+r.oldest_open_d+'d)':''));
+    if(r.hold)stats.push('⏸️ judged in: '+r.hold);
+    if(r.examples)stats.push('📚 '+r.examples+' example'+(r.examples>1?'s':'')+(r.examples_draft?' ('+r.examples_draft+' draft)':''));
+    var bk=r.books||{},bl=[];
+    ['paper','agent','sim','real'].forEach(function(b){var x=bk[b];if(!x)return;var t=(b==='agent'?'agents':b)+' '+(x.closed||0)+(x.open?'+'+x.open+' open':'');
+      if(b!=='real'&&x.closed){t+=' '+(x.wins||0)+'W';if(x.net!=null)t+=' '+money(x.net);if(x.net_realistic!=null&&x.paired)t+=' (realistic '+money(x.net_realistic)+' vs '+money(x.net_booked_paired)+' booked on '+x.paired+')';}
+      if(x.void)t+=' ⛔'+x.void;if(x.no_fill)t+=' · '+x.no_fill+' no-fill';bl.push(t)});
     var vs=(r.versions||[]).map(vchip).join('');
     return '<div class="item"><div class="row"><span><b>'+esc(r.name)+'</b>'+(r.verdict?' <span class="pill">'+esc(r.verdict)+'</span>':'')+' <span class="pill">'+esc(r.mode)+'</span></span>'+
       '<span class="num muted">'+(r.trusted!=null?r.trusted+'/20 verified':'')+'</span></div>'+
       (stats.length?'<span class="why">'+esc(stats.join(' · '))+'</span>':'')+
       (vs?'<div class="chips">'+vs+'</div>':'')+
+      (bl.length?'<span class="why">🗄️ books: '+esc(bl.join(' · '))+'</span>':'')+
       (r.alarm?'<span class="why" style="color:#f85149">⚠️ '+esc(r.alarm.join(' · '))+'</span>':'')+
       (r.bench_why?'<span class="why">⛺ '+esc(r.bench_why)+'</span>':'')+
       (r.next_step?'<span class="why">→ '+expandable(esc(r.next_step),r.full)+'</span>':'')+'</div>';
