@@ -1,7 +1,13 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>🖥️ The Desk</title><style>
-/* The Desk — Screen v4 (2026-08-09, Jeremy's M1-followup rulings): the strip
+/* The Desk — Screen v5 (2026-09-13, THE RE-CUT — Jeremy 09-11: "elite organized
+   desk with everything in order, dated, feeding information smoothly"): ordered
+   by the hour — 🎯 IDEAS → 🫵 TODAY (decisions + dated asks + bells) → the strip
+   → 📰 WHAT'S GOING ON → 📆 ONE CALENDAR → 🖥️ STATE OF THE MACHINE → folds
+   (TS-SIM · tournament · ladder · playbook). 16 cards → 9 + a strip. Panel law:
+   decision · pace · grade — or it merges. Budget tripwire rings (desk_data).
+   v4 (2026-08-09, Jeremy's M1-followup rulings): the strip
    becomes THE FRONT PAGE (📰 news engine + 🔨 next build + 📈 proof line;
    milestones carry done-state + event-driven conditions with pace ETAs) and
    the tournament ranks on MERIT with the ⚡ worth-watching feed (personas,
@@ -51,81 +57,48 @@ footer{color:#6e7681;font-size:11px;margin:16px 0 8px;text-align:center}
 #lock button{background:#238636;border:none;border-radius:8px;color:#fff;padding:10px 22px;font-size:14px;cursor:pointer}
 </style></head><body><div class="wrap">
 <h1>🖥️ The Desk</h1>
-<p class="sub">The command center · <a href="obsidian://open?file=00-inbox%2FThe%20Desk" style="color:#58a6ff;text-decoration:none">📝 the Pad</a> · <span id="asof" class="muted">loading…</span></p>
+<p class="sub">The human window · <a href="obsidian://open?file=00-inbox%2FThe%20Desk" style="color:#58a6ff;text-decoration:none">📝 the Pad</a> · <span id="asof" class="muted">loading…</span></p>
 <div id="stale"></div>
 <div id="panels"></div>
 
 <div class="card howto"><details><summary>❓ How this works — read me once</summary>
-<p><b>What this page is:</b> the human window on the trading machine — the whole
-project in one scroll. Everything here is read-only and machine-written; nothing
-is ever hand-edited. Depth lives in Obsidian; real dollars live in the
+<p><b>What this page is:</b> the human window on the trading machine, ordered by your
+morning hour. Everything here is read-only and machine-written; nothing is ever
+hand-edited. Depth lives in Obsidian; real dollars live in the
 <a href="https://gleesonjeremy-source.github.io/option-tracker/">tracker</a>.</p>
-<p><b>⏳ The strip</b> (top) — the front page: <b>📰 top of the news</b> (the
-machine watches the whole project and reports the day's biggest story — ships,
-verdicts, hot traders, hot tickers, milestone hits; "more news" fold underneath),
-<b>🔨 next build</b>, <b>📈 the proof line</b> (the strongest current evidence
-we're getting closer to the goals), milestone chips (event-driven milestones
-show "x of N closes · pace ETA" — they fire on their condition, dates are only
-review checkpoints), and the one-line machine health check (🧹 vault · ⏰ jobs ·
-🚚 deploys verifying · 💭 dreamer · 📥 Pad).</p>
-<p><b>🎯 Needs you</b> — your action list. <b>P1 = something running wrong → repair
-first</b>. Pad items = ideas you dropped (<code>desk: idea</code> from Telegram)
-waiting to be absorbed. Bench decisions + dreamer items = calls only you can make.
-Green line = machine's fine without you today.</p>
-<p><b>💡 Best trades today</b> — the top of the ranked board from this morning's
-scans: exact contract, why, and the risk numbers. The phone pitches are the
-curated cut; this is the fuller board. Prices are as-of scan time — always
-verify the live mid before entering.</p>
-<p><b>🏦 TS-SIM — the broker truth</b> — the machine's trades run as REAL limit
-orders in the TradeStation simulator: real fills, real no-fills, zero dollars.
-The headline is the <b>fill-truth gap</b>: what the broker actually paid vs what
-paper mid-marks claimed. No strategy touches real money without passing here.</p>
-<p><b>🏟️ The tournament</b> — the five-agent paper league, built to teach how to
-trade. The headline is the true 👑 (ranked on <b>merit</b> — the engine's own
-basis: equity minus relegation tax, suspect marks excluded — so tax recycling
-can't fake first place) plus the relegation drama. <b>⚡ Worth watching</b> is
-the radar: a trader on fire (with their newest trade, copyable, flagged if still
-enterable), first defenses, fresh opens/closes with the why, experiments,
-confluence. Full standings and every agent's open book fold underneath. Coach
-them: text <code>desk: tell vega …</code> — it lands on the Pad and shapes their
-next session.</p>
-<p><b>✅ What's working</b> — the whole evidence story in one card: the goals, the
-proving-ground ladder every strategy climbs (🌱 collecting → ✅ paper-proven →
-🏦 TS-SIM → 💵 live-small, version-aware — a redesigned strategy starts a fresh
-cohort), the weekly rep speedometer, and folded inside: the machine grading its
-own picks (HIGH must beat MEDIUM) and the pitch funnel (what it pitched → what
-you took → did it pay; stamp takes with "<code>&lt;TICKER&gt; found by
-scanner</code>" in a tracker session).</p>
-<p><b>🔮 The dreamer</b> — the overnight suggestion engine's ledger: what's
-pending your look, and the proof its ideas get handled (each handled item shows
-its resolution). If pending climbs and handled doesn't, the dreamer is being
-ignored — say "absorb dreamer" in a session.</p>
-<p><b>🔬 The bench</b> — the research state: foundry candidates (hypotheses
-earning a registry entry, each with its stage and PASS/FAIL gate) and the
-measured-validation shelf (what's been backtested and what it showed). Request
-work any time: <code>desk: backtest &lt;idea&gt;</code> — it lands on the Pad
-and enters the queue.</p>
-<p><b>📅 The week</b> — what's scheduled: this week's dated builds (P1s red),
-next week folded, and anything that slipped its date. This is the smart-calendar
-v1; earnings dates and the verdict docket join at the next build.</p>
-<p><b>🗓️ The road</b> — every dated waypoint between here and an autonomous live
-account, each tagged with the goal it feeds. <b>You steer from your phone:</b>
-<code>desk: bump &lt;thing&gt;</code> reorders priorities.</p>
-<p><b>🗺️ The build</b> — now building, next up, the deploy dock, and what shipped.
-If "now building" exceeds ~2 items, tell Claude to park one.</p>
-<p><b>⏰ The clock</b> — every scheduled job: what fires when (Pacific), read live
-from launchd so it can't drift. 🔴 = installed but not loaded — a repair. <b>If a
-job appears here you don't recognize, ask Claude.</b></p>
-<p><b>Freshness:</b> data refreshes ~hourly on market days, and every morning at
-7:00 + evenings even on weekends/holidays (the 08-15 repair — Saturday shows
-Saturday); the stamp at the top tells you its age, and an amber banner appears
-past ~14h. The page re-fetches every 5 minutes.</p>
+<p><b>🎯 IDEAS</b> — the window (Telegram is only the bell): your book's counts first,
+then the tickets with chart grade + record label and ONE 📋 COPY TICKET button each,
+held names, radar, study card, and "N more on the board" folded underneath.</p>
+<p><b>🫵 TODAY</b> — everything that needs you, in one list: alarms (a job down, suspect
+marks, tracker drift, a P1), dated asks for the day, and the <b>🗳️ decisions</b>. A
+decision reads in plain words with the machine's rec. <b>📲 rows are answered in
+Telegram: reply the number and your pick ("3 park") or "all recs"</b>; silent past
+the date = the rec is taken for you (shown for 7 days, "3 no — why" reverses it).
+<b>🛠️ rows wait for the next Mac Pro session and are never auto-taken.</b> Machine
+fixes never ask you — they queue as the batch.</p>
+<p><b>📰 What's going on</b> — the week's stories: an agent's first of a strategy, a
+trade gaining momentum, an agent heating up, a strategy working (or gone cold) right
+now, sim and paper closes, verdict changes, ships, hot tickers.</p>
+<p><b>📆 The calendar</b> — the ONE place for dates: the next 21 days of builds,
+your asks, rituals, expiries, earnings, macro; landed-this-week, in-flight, slipped
+and the waiting line fold inside it.</p>
+<p><b>🖥️ State of the machine</b> — the four buckets: ✅ WORKING · 🔧 DEVELOPING ·
+🌱 DISCOVERED (needs reps) · 🛠️ NEEDS WORK. Rules over the registry, verdicts,
+rep-rate, TS-SIM and the scan series; version chips per strategy; any verdict/mode
+mismatch shows red and rings Sunday. The goal lights and rent meter sit in its header.</p>
+<p><b>Folded reference:</b> 🏦 TS-SIM (real limit orders, real fills, zero dollars),
+🏟️ the tournament (leader · drama · worth watching, standings + the open book inside),
+✅ the ladder (🌱 collecting → ✅ paper-proven → 🏦 TS-SIM → 💵 live-small) with the
+weekly rep bars, and 📖 the playbook (how to drive the machine from your phone).</p>
+<p><b>Freshness:</b> data refreshes ~hourly on market days and every morning + evening
+including weekends; the stamp at the top tells its age, an amber banner appears past
+~14h. The page re-fetches every 5 minutes.</p>
 <p><b>The key:</b> this page reads the same locked database as the tracker. One
 key per device, asked once, kept in the browser (Telegram bot command
 <code>help</code> if you forget everything else).</p>
 </details></div>
 
-<footer>The Desk v4 · data via gen_hub → locked Firebase · auto-refresh 5 min ·
+<footer>The Desk v5 · data via gen_hub → locked Firebase · auto-refresh 5 min ·
 <a href="https://gleesonjeremy-source.github.io/option-tracker/">tracker</a></footer>
 </div>
 
@@ -177,30 +150,13 @@ function expandable(shortHtml,full){
   return '<details style="display:inline"><summary style="cursor:pointer;list-style:none;display:inline;padding:0">'+shortHtml+' <span class="pill">tap ▾</span></summary><div class="why" style="padding:4px 0 2px 10px">'+esc(full)+'</div></details>';
 }
 
-/* ⏳ THE STRIP (v4, 2026-08-09 Jeremy: "what is head lining the project that
-   week, whats the next important build and whats been working"): 📰 top of
-   the news (the news engine's freshest big story, deduped server-side) +
-   🔨 next build (from the week queue) + 📈 the proof line (strongest
-   goal-tied evidence) + milestone chips. Condition milestones render
-   "x of N closes · ~ETA" — never a date-lookalike ("8/20" read as Aug 20,
-   the bug that started v4). Every line carries a number or a date. */
+/* ⏳ THE STRIP (v5, 2026-09-13 — slimmed: news has its own panel now, the
+   next build lives on the calendar, the lane is gone): 📈 the proof line +
+   milestone chips + the one-line machine health check. Condition milestones
+   render "x of N closes · ~ETA" — never a date-lookalike. */
 function strip(d){
-  var n=d.news||{},rows='';
-  if(n.top)rows+='<div class="row"><span>📰 '+esc(n.top.line)+'</span></div>';
-  else if(n.last)rows+='<div class="row"><span class="muted">📰 quiet — last story: '+esc(n.last.line)+'</span></div>';
-  var q=d.week_queue||{},today=ptToday();
-  var up=[].concat(q.this_week||[],q.next_week||[]).filter(function(i){return String(i.date)>=today});
-  if(up.length){
-    var b=up[0];
-    var bt=String(b.title);
-    rows+='<div class="row"><span>🔨 next build: '+(bt.length>80?esc(bt.slice(0,79))+'…':esc(bt))+'</span><span class="num muted">'+esc(b.day==='wk'?'this wk':b.day)+' '+esc(String(b.date).slice(5))+'</span></div>';
-  }
+  var rows='';
   if((d.proof||{}).line)rows+='<div class="row"><span>📈 '+esc(d.proof.line)+'</span></div>';
-  var more='';
-  if((n.recent||[]).length>1){
-    more='<div class="item" style="border:none;padding:2px 0 0"><details><summary style="cursor:pointer;list-style:none;padding:2px 0" class="why">📰 more news <span class="pill">tap ▾</span></summary>'+
-      n.recent.slice(1).map(function(s){return '<div class="item why" style="padding:3px 0;border:none">• '+esc(s.line)+'</div>'}).join('')+'</details></div>';
-  }
   var chips=(d.milestones||[]).filter(function(m){return !m.done&&m.days_left!=null&&m.days_left>=-60}).slice(0,3).map(function(m){
     var p=m.progress;
     if(p&&p.met)return '<span class="chip"><b>'+esc(m.id)+'</b> <span class="ok">condition met ✓ — verdict fires</span></span>';
@@ -215,9 +171,6 @@ function strip(d){
   if(mini.length){var red=mini.filter(function(j){return !j.ok}).length;
     h.push('⏰ '+(red?'<span class="bad">'+red+' down</span>':'<span class="ok">all running</span>'))}
   var dock=((d.build||{}).dock||[]).length;if(dock)h.push('🚚 '+dock+' verifying');
-  // 💼 REALIZED rent chip (built 08-31 — THE M4 claim, closed-pnl-first) +
-  // 📈 growth beside it (marks incl., the labeled companion) — TWO numbers,
-  // never fused; RATIO + LIGHT only on this public page (no-dollars law)
   var rent=d.rent;if(rent&&rent.state==='live'){
     h.push('💼 realized '+rent.ratio+'× bar '+rent.light);
     var pz=(rent.cc_rows||[]).filter(function(r){return r.pause});
@@ -225,16 +178,9 @@ function strip(d){
     if(rent.tripwire&&rent.tripwire.flag)h.push('<span class="bad">🚨 equity jump '+esc(String(rent.tripwire.x_typical))+'× typical — confirm deposits</span>');
   }
   var m4=d.m4;if(m4&&m4.state==='live')h.push('📈 growth (marks incl.) '+m4.ratio+'× bar '+m4.light);
-  // 🗳️ lane pulse (dreamer/pad chips merged into the lane counts)
-  var ln=((d.needs_you||{}).lane)||{};
-  var lp=[];
-  if((ln.today||[]).length)lp.push((ln.today||[]).length+' today');
-  var lf=((ln.friday||{}).items||[]).length+(ln.later||[]).length;
-  if(lf)lp.push(lf+' Fri');
-  if(((ln.weekend||{}).items||[]).length)lp.push(((ln.weekend||{}).items||[]).length+' wknd');
-  if(lp.length)h.push('🗳️ '+lp.join(' · '));
+  var mc=d.machine;if(mc&&mc.alarm_n)h.push('<span class="bad">🖥️ '+mc.alarm_n+' machine mismatch'+(mc.alarm_n>1?'es':'')+'</span>');
   if(!rows&&!chips.length&&!h.length)return '';
-  return '<div class="card" style="padding:10px 14px">'+rows+more+
+  return '<div class="card" style="padding:10px 14px">'+rows+
     (chips.length?'<div class="chips">'+chips.join('')+'</div>':'')+
     (h.length?'<div class="why" style="margin-top:2px">'+h.join(' · ')+'</div>':'')+'</div>';
 }
@@ -246,21 +192,28 @@ function nyRow(cls,head,arr,hint){
   return '<div class="item'+(cls?' '+cls:'')+'"><details><summary style="cursor:pointer;list-style:none">'+head+
     ' <span class="pill">tap ▾</span></summary>'+lis+h+'</details></div>';
 }
+function fmtDayS(s){try{return new Date(s+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}catch(x){return s||''}}
+/* 🫵 TODAY v2 (2026-09-13 re-cut — Jeremy 09-11: "things for me are in
+   different spots and are confusing"): ONE list of everything that needs
+   you — 🚨 alarms · dated asks for the day · 🗳️ the DECISIONS ledger
+   (plain words + rec; 📲 rows are answered in Telegram by number, silent past
+   the date = rec taken; 🛠️ rows wait for a session, never auto-taken) · the
+   🤖 batch that never asks. Replaces 🗳️ the lane + 📥 needs-Jeremy.
+   "today" is the VIEWER's PT date, never the payload's (08-15 repair). */
 function todayPanel(d){
-  // 🫵 NEEDS ME — TODAY (Jeremy ruled 2026-08-13: "stuff that needs me that
-  // day needs to be the first thing i see" — including things that DIDN'T
-  // happen). Renders ABOVE the strip when it has items; collapses to one
-  // thin ✓ line when empty so quiet days keep the front page.
-  // 08-15 repair: "today" is the VIEWER's date (PT), never the payload's —
-  // a Saturday look at Friday-evening data promotes Saturday's rows, keeps
-  // unanswered deadman/input/rider rows ACTIVE and escalated (carried · Nd,
-  // red at 3d — unanswered must follow, answered must clear), and folds only
-  // stale plan/watch rows. Deadman due times compare in PT (ptHM), killing
-  // the old browser-local Date bug.
-  var t=d.today||{},items=t.items||[];
-  function fmtDay(s){try{return new Date(s+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}catch(x){return s||''}}
-  var vt=ptToday(),dayLabel=esc(fmtDay(vt));
+  var t=d.today||{},items=t.items||[],dec=d.decisions||{},ny=d.needs_you||{};
+  var vt=ptToday(),dayLabel=esc(fmtDayS(vt));
   var staleTag=(t.today_date&&t.today_date!==vt)?'<span class="tag">data from '+esc(String(t.today_date).slice(5))+'</span>':'';
+  /* 1 · alarms — the urgent class, always first */
+  var bells=[];
+  (ny.p1||[]).forEach(function(x){bells.push('<div class="item bad">🚨 P1 — running wrong: '+esc(x)+'<span class="why">repair beats building — first thing at the next session</span></div>')});
+  var down=((d.schedule||{}).mini||[]).filter(function(j){return !j.ok});
+  if(down.length)bells.push('<div class="item bad">⏰ job down: '+down.map(function(j){return esc(j.job)}).join(', ')+'<span class="why">🛠️ Mac Pro — run triage (REPAIRS.md)</span></div>');
+  if(ny.suspect_open_marks)bells.push(nyRow('warn','🫥 '+ny.suspect_open_marks+' suspect paper mark(s) — exits wait on these <span class="pill">🛠️ Mac Pro</span>',ny.suspect_items||null,'the close pass re-verifies; a verify session clears them'));
+  var bk=ny.books||{};
+  if(bk.status==='drift')bells.push('<div class="item '+((bk.oldest_days||0)>=2?'bad':'warn')+'">📒 tracker differences ×'+(bk.drift_n||0)+((bk.oldest_days||0)>=2?' — standing '+(bk.oldest_days+1)+' nights ⏳':'')+'<span class="why">the 19:50 bell has paste-ready drafts (≈2 min, phone-OK) — balancing the book is the ack</span></div>');
+  if((ny.fill_proposals||[]).length)bells.push(nyRow('','🌉 '+ny.fill_proposals.length+' fill link(s) to confirm <span class="pill">📲 Telegram</span>',ny.fill_proposals,'quick yes/no — pitch-influence soft-links'));
+  /* 2 · dated asks for the day (needs_me: deadman · input · rider · board) */
   var act=[],deck=[],fold=[];
   items.forEach(function(e){
     var dt=String(e.date||'');
@@ -269,7 +222,6 @@ function todayPanel(d){
     else if(e.kind==='deadman'||e.kind==='input'||e.kind==='rider')act.push(e);
     else fold.push(e);
   });
-  if(!act.length&&!deck.length&&!fold.length)return '<div class="card" style="padding:8px 14px"><span class="ok">🫵 nothing needs you '+dayLabel+' ✓</span><span class="why"> — day asks, watches and didn\'t-happen checks land here first</span>'+staleTag+'</div>';
   function row(e,deckMode){
     var cls='',pill='',dt=String(e.date||'');
     var carried=!deckMode&&dt&&dt<vt;
@@ -281,49 +233,41 @@ function todayPanel(d){
     }else if(carried){
       var aged=(e.age_d!=null)?e.age_d:1;
       cls=(e.escalated||aged>=3)?'bad':'warn';
-      pill='<span class="pill">carried from '+esc(fmtDay(dt))+' · '+aged+'d</span> ';
+      pill='<span class="pill">carried from '+esc(fmtDayS(dt))+' · '+aged+'d</span> ';
     }else if(e.due){pill='<span class="pill">'+esc(e.due)+' PT</span> ';}
     return '<div class="item'+(deckMode?' why':'')+(cls?' '+cls:'')+'" style="'+(deckMode?'border:none;padding:3px 0':'')+'">'+pill+expandable(esc(e.text),e.full)+'</div>';
   }
-  var rows=act.map(function(e){return row(e,false)}).join('');
-  if(!act.length)rows='<div class="item ok" style="border:none">✓ nothing needs you yet '+dayLabel+'</div>';
-  if(deck.length)rows+='<div class="item why" style="border:none;padding:6px 0 2px">on deck '+esc(fmtDay(deck[0].date))+' ↓</div>'+deck.map(function(e){return row(e,true)}).join('');
-  if(fold.length)rows+='<div class="item" style="border:none;padding:2px 0 0"><details><summary style="cursor:pointer;list-style:none;padding:2px 0" class="why">🌒 from '+esc(fmtDay(fold[0].date))+' — data hasn\'t rebuilt yet <span class="pill">tap ▾</span></summary>'+fold.map(function(e){return '<div class="item why" style="padding:3px 0;border:none">• '+esc(e.text)+'</div>'}).join('')+'</details></div>';
-  return '<div class="card"><h2>🫵 Needs me — '+dayLabel+staleTag+'</h2>'+rows+'</div>';
-}
-function needsYou(d){
-  // 🗳️ THE LANE — evolution #2's centerpiece (2026-08-20; Jeremy 08-16:
-  // "things that need me get scheduled as they come in and scheduled by
-  // prioritizing… ive been screaming this forever about dreamer"). The old
-  // pile-of-piles is now three SLOTS — every ask carries WHEN it gets
-  // handled: 🔴 today (blocks work or money) · 🟡 next Friday (cap 6,
-  // VISIBLE overflow) · 🔵 weekend (designs/discussions). The dreamer panel
-  // is MERGED in here — panel count down, per the reorganization mandate.
-  var n=d.needs_you||{},lane=n.lane||{},items=[];
-  (n.p1||[]).forEach(function(t){items.push('<div class="item bad">🚨 P1 — running wrong: '+esc(t)+'<span class="why">repair beats building — bring this to tonight\'s session first</span></div>')});
-  function lrow(x,cls){
-    var pills='';
-    if(x.who)pills+='<span class="pill">'+esc(x.who)+'</span>';
-    if(x.slips>=2)pills+='<span class="pill hi">⏳ slipped ×'+x.slips+'</span>';
-    else if(x.slips)pills+='<span class="pill">⏳ slipped</span>';
-    if(x.overflow)pills+='<span class="pill">overflow → '+esc(String(x.slot).slice(5))+'</span>';
-    return nyRow(cls||'',x.icon+' '+x.n+' '+esc(x.label)+pills,
-      (x.items&&x.items.length)?x.items:null,x.why||'');
+  var asks=act.map(function(e){return row(e,false)}).join('');
+  if(deck.length)asks+='<div class="item why" style="border:none;padding:6px 0 2px">on deck '+esc(fmtDayS(deck[0].date))+' ↓</div>'+deck.map(function(e){return row(e,true)}).join('');
+  if(fold.length)asks+='<div class="item" style="border:none;padding:2px 0 0"><details><summary style="cursor:pointer;list-style:none;padding:2px 0" class="why">🌒 from '+esc(fmtDayS(fold[0].date))+' — data hasn\'t rebuilt yet <span class="pill">tap ▾</span></summary>'+fold.map(function(e){return '<div class="item why" style="padding:3px 0;border:none">• '+esc(e.text)+'</div>'}).join('')+'</details></div>';
+  /* 3 · the decisions ledger */
+  var dopen=dec.open||[],dtaken=dec.taken||[],batch=dec.batch||[];
+  function drow(r){
+    var tele=r.cls==='default_ok';
+    var how=tele?'<span class="pill good">📲 reply “'+r.n+' '+esc(r.rec||'yes')+'”</span>':'<span class="pill">🛠️ next session</span>';
+    var sub='';
+    if(r.rec)sub+='rec: <b>'+esc(String(r.rec).toUpperCase())+'</b>'+((r.options||[]).length?' · '+esc(r.options.join(' / ')):'')+(r.due?' · silent by '+esc(String(r.due).slice(5))+' = rec taken':'');
+    else sub+=esc(r.surface||'');
+    return '<div class="item'+(r.urgent?' bad':'')+'"><div><b>#'+r.n+'</b> '+esc(r.q)+' '+how+(r.age?'<span class="pill">'+r.age+'d</span>':'')+'</div>'+
+      (sub?'<span class="why">'+sub+'</span>':'')+(r.why?'<span class="why">'+esc(r.why)+'</span>':'')+'</div>';
   }
-  function group(title,arr,cls){
-    if(!arr||!arr.length)return '';
-    return '<div class="item why" style="border:none;padding-bottom:0">'+title+'</div>'+
-      arr.map(function(x){return lrow(x,cls)}).join('');
+  var decs='';
+  if(dopen.length){
+    decs+='<div class="item why" style="border:none;padding-bottom:0">🗳️ <b style="color:#c9d1d9">'+dopen.length+' DECISION'+(dopen.length>1?'S':'')+'</b> — '+
+      (dec.n_telegram?dec.n_telegram+' answered in Telegram (reply the number + your pick, or “all recs”)':'')+
+      (dec.n_telegram&&dec.n_session?' · ':'')+(dec.n_session?dec.n_session+' for the next session':'')+
+      (dec.oldest_d?' · oldest '+dec.oldest_d+'d':'')+'</div>'+dopen.map(drow).join('');
   }
-  var f=lane.friday||{},w=lane.weekend||{},lt=lane.later||[];
-  items.push(group('🔴 today — rings until clear',lane.today,'warn'));
-  items.push(group('🟡 Friday '+esc(String(f.date||'').slice(5))+' — the decision slot',f.items));
-  if(lt.length)items.push(group('🟡 overflow — the following Friday (cap 6 held)',lt));
-  items.push(group('🔵 weekend '+esc(String(w.date||'').slice(5))+' — discussions + designs',w.items));
-  items=items.filter(Boolean);
-  var body=items.length?items.join(''):'<div class="item ok">✅ Nothing needs you — every lane is clear</div>';
-  return '<div class="card"><h2>🗳️ The lane<span class="tag">everything that needs you, already scheduled</span></h2>'+body+
-    '<div class="item why" style="border:none;padding-top:10px">the anti-pile law: every ask is classified + slotted AT BIRTH — nothing waits unscheduled · each row\'s pill names WHICH CLAUDE handles it (🛠️ Mac Pro session · 📲 Telegram · 📱 Claude Phone) · dreamer answers: `desk: dreamer: &lt;answer&gt;` · a slot that slips twice escalates to the evening brief</div></div>';
+  if(dtaken.length){
+    decs+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">✅ '+dtaken.length+' answered or taken for you this week <span class="pill">tap ▾</span></summary>'+
+      dtaken.map(function(r){return '<div class="item why" style="padding:3px 0;border:none">#'+r.n+' '+esc(r.q)+' → <b>'+esc(String(r.answer||''))+'</b> ('+esc(r.by||'')+(r.when?' '+esc(String(r.when).slice(5)):'')+(r.executed?' · done':' · executes at the next session')+')'+(r.state==='default_taken'?' — say “'+r.n+' no — why” to reverse':'')+'</div>'}).join('')+'</details></div>';
+  }
+  if(dec.batch_n)decs+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">🤖 '+dec.batch_n+' machine fix'+(dec.batch_n>1?'es':'')+' queued for the next session — never asks you <span class="pill">tap ▾</span></summary>'+
+      batch.map(function(b){return '<div class="item why" style="padding:3px 0;border:none">• '+esc(b.text)+'</div>'}).join('')+'</details></div>';
+  var body=bells.join('')+asks+decs;
+  if(!body)return '<div class="card" style="padding:8px 14px"><span class="ok">🫵 nothing needs you '+dayLabel+' ✓</span><span class="why"> — alarms, day asks and decisions land here first</span>'+staleTag+'</div>';
+  return '<div class="card"><h2>🫵 TODAY — '+dayLabel+'<span class="tag">'+(bells.length?bells.length+' alarm'+(bells.length>1?'s':'')+' · ':'')+(act.length?act.length+' ask'+(act.length>1?'s':'')+' · ':'')+dopen.length+' decision'+(dopen.length===1?'':'s')+'</span>'+staleTag+'</h2>'+body+
+    '<div class="item why" style="border:none;padding-top:10px">📲 = answer in Telegram by number (silent past the date = the rec is taken, reversible) · 🛠️ = the next Mac Pro session answers it, never auto-taken · every ask appears once</div></div>';
 }
 
 function foldCard(title,tag,body,open){
@@ -333,7 +277,7 @@ function foldCard(title,tag,body,open){
   return '<div class="card"><details'+(open?' open':'')+'><summary style="cursor:pointer;list-style:none"><h2 style="margin:0">'+title+'<span class="tag">'+tag+'</span></h2></summary><div style="margin-top:8px">'+body+'</div></details></div>';
 }
 function tsSim(d){
-  // 🏦 the broker-truth panel — v3.1: the LIVE SIM BOOK is the headline
+  // 🏦 the broker-truth panel — v3.1 (v5: a fold, see the return): the LIVE SIM BOOK is the headline
   // (Jeremy M1 evening: "the most important trades from ts sim are not
   // there") — full contracts, entry, risk, pending exits; recent closes with
   // real P&L; the per-seat aggregates fold underneath
@@ -411,8 +355,10 @@ function tsSim(d){
   var missed='';
   if(s.missed_n)missed='<div class="item why" style="border:none">🫥 '+money(s.missed_paper_net)+' of paper profit never actually filled ('+s.missed_n+' dead limits)</div>';
   var sf=seats?'<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">🪜 per-seat fill-truth detail <span class="pill">tap ▾</span></summary>'+seats+missed+'</details></div>':'';
-  return '<div class="card"><h2>🏦 TS-SIM — the broker truth<span class="tag">real limit orders, real fills, zero dollars</span></h2>'+
-    head+open+rec+nf+sf+'</div>';
+  /* v5 (09-13 re-cut, Jeremy: "TS sim should be a drop down"): folds shut;
+     the summary line carries the pulse — open · recent closes · the gap */
+  var tag=(s.open||[]).length+' open · '+(s.recent||[]).length+' recent close'+((s.recent||[]).length===1?'':'s')+(gap!=null?' · fill-truth gap '+money(gap):'')+' · zero dollars · tap';
+  return foldCard('🏦 TS-SIM — the broker truth',tag,head+open+rec+nf+sf,false);
 }
 
 function legDesc(s){ /* "O:GIS261016C00032500:long" -> {act,strike,cp,date} */
@@ -550,35 +496,15 @@ function ideasPanel(d){
   if(radar.length)out+='<div class="item why" style="border:none;padding-bottom:2px"><b style="color:#c9d1d9">RADAR</b> — best of the rest, no ticket</div>'+radar.map(rRow).join('');
   if(study.length)out+='<div class="item why" style="border:none;padding-bottom:2px"><b style="color:#c9d1d9">STUDY CARD</b> — human eye only</div>'+study.map(sRow).join('');
   if((I.cooled||[]).length)out+='<div class="item why" style="border:none">🧊 on cooldown: '+esc(I.cooled.join(' · '))+'</div>';
+  /* v5 (09-13 re-cut): the 💡 best-trades panel is retired — the board's
+     next rows fold here as one line, no second ticket format */
+  var dg=d.digest||{},mo=dg.more||[];
+  if(dg.n)out+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">🗂️ '+dg.n+' on the board'+(dg.n_high?' · '+dg.n_high+' high':'')+(dg.date?' · '+esc(dg.date):'')+' — the next rows, no ticket <span class="pill">tap ▾</span></summary>'+
+    mo.map(function(c){return '<div class="item why" style="padding:3px 0;border:none">'+(c.killed?'⚰️ ':'')+'<span class="tk">'+esc(c.ticker)+'</span> '+esc(c.strategy)+(c.dir?' '+esc(c.dir):'')+(c.conviction?' · '+esc(c.conviction):'')+(c.rr!=null?' · R:R '+esc(String(c.rr)):'')+(c.pop!=null?' · POP '+esc(String(c.pop)):'')+(c.killed?' · killed: '+esc(c.killed):'')+'</div>'}).join('')+
+    '<div class="item why" style="border:none">the full ranked board lives in the vault (latest_digest) — these never carry a copy button</div></details></div>';
   out+='<div class="item why" style="border:none;padding-top:10px">prices are as-of scan time — the copy block tells Claude Phone to reprice live · Telegram is the bell, this is the window</div></div>';
   return out;
 }
-function signals(d){
-  var dg=d.digest;
-  if(!dg)return '';
-  var rows=(dg.top||[]).map(function(c){
-    var conv=c.conviction==='HIGH'?'<span class="pill hi">HIGH</span>':'<span class="pill med">MED</span>';
-    var nums=[];
-    if(c.cost!=null)nums.push('cost $'+mny(c.cost));
-    if(c.max_loss!=null)nums.push('max loss $'+mny(c.max_loss));
-    if(c.max_gain!=null)nums.push('max gain $'+mny(c.max_gain));
-    if(c.rr!=null)nums.push('R:R '+c.rr);
-    if(c.pop!=null)nums.push('POP '+c.pop);
-    if(c.breakeven!=null)nums.push('BE $'+mny(c.breakeven));
-    var deadStyle=c.killed?' style="opacity:.55"':'';
-    return '<div class="item"'+deadStyle+'>'+
-      '<div'+(c.killed?' style="text-decoration:line-through"':'')+'><span class="tk">'+esc(c.ticker)+'</span> '+(c.dir?esc(c.dir)+' ':'')+'· '+esc(c.strategy)+(c.structure?' <span class="why">('+esc(c.structure)+')</span>':'')+conv+'</div>'+
-      '<div style="margin:3px 0">'+contractLine(c)+'</div>'+
-      (c.why?'<span class="why">'+esc(c.why)+'</span>':'')+
-      (nums.length?'<span class="why num">'+esc(nums.join(' · '))+'</span>':'')+
-      (c.killed?'<span class="why" style="color:#c0392b">⚰️ killed at live quotes — '+esc(c.killed)+'</span>':tbtn(c,"today's board"))+
-      '</div>';
-  }).join('');
-  return '<div class="card"><h2>💡 Best trades today<span class="tag">'+esc(dg.date||'')+' · '+(dg.n||0)+' found · '+(dg.n_high||0)+' high</span></h2>'+
-    (rows||'<div class="item muted">no qualifying setups today</div>')+
-    '<div class="item why" style="border:none;padding-top:10px">the phone pitches are the curated cut — this is the fuller board · prices are as-of scan time — always verify the live mid before entering</div></div>';
-}
-
 /* 🏟️ v4 (2026-08-09 Jeremy rulings): personas everywhere · standings rank on
    MERIT (the engine's own judgment basis — raw capital crowned the tax-fattest
    seat, the exact bug the 07-19 fight-card fix solved) · ⚡ worth-watching
@@ -625,9 +551,13 @@ function tradersBody(d){
   }).join('');
 }
 function tournament(d){
+  /* 🏟️ v5 (09-13 re-cut, ⚖️ ruling 1 of the bloat audit): THREE LINES —
+     leader · drama · the two strongest worth-watching rows; standings, the
+     rest of the radar and every agent's open book fold underneath. Agent
+     stories (firsts, heat, momentum) also ride 📰 What's going on. */
   var t=d.tournament,book=tradersBody(d);
   if(!t&&!book)return '';
-  var body='';
+  var body='',wl='',more='';
   if(t){
     var top=(t.seats||[])[0];
     if(top)body+='<div class="item"><div class="row"><span>👑 <b>'+esc(top.agent)+'</b> leads on merit'+(top.streak?' · 🔥W'+top.streak:'')+'</span>'+
@@ -635,20 +565,19 @@ function tournament(d){
       (top.trading!=null?' · trading <span class="'+(top.trading>0?'ok':(top.trading<0?'bad':'muted'))+'">'+money(top.trading)+'</span>':'')+'</span></div></div>';
     if(t.drama)body+='<div class="item">📉 <b>'+esc(t.drama.payer)+'</b> pays $'+t.drama.amount.toLocaleString()+' to '+esc(t.drama.payee)+' if the week ends now</div>';
     var ic={fire:'🔥',defense:'🛟',closed:'✅',opened:'🆕',lab:'🧪',confluence:'⚡',mover:'💰'};
-    var wl=(t.watch||[]).map(function(w){
+    function wrow(w){
       var tr=w.trade;
-      var why=w.why||(tr&&tr.why); /* tape nests why inside the trade — Desk 08-27: fire card showed no reasoning */
+      var why=w.why||(tr&&tr.why);
       return '<div class="item">'+(ic[w.kind]||'•')+' '+esc(w.line)+
         (why?'<span class="why">💭 '+esc(why)+'</span>':'')+
         (tr?'<div style="margin:2px 0">'+(tr.ticker?'<b>'+esc(tr.ticker)+'</b>'+(tr.strategy?' <span class="pill">'+esc(String(tr.strategy).replace(/_/g,' '))+'</span>':'')+' — ':'')+contractLine(tr)+(tr.cost!=null?' <span class="muted">@ $'+tr.cost+'</span>':'')+
           (tr.enterable?'<span class="pill good">still enterable — near their price</span>':'<span class="pill">moved &gt;10% — watch only</span>')+
           tbtn(tr,'tournament — '+w.line)+'</div>':'')+
         '</div>';
-    }).join('');
-    if(wl){
-      body+='<div class="item why" style="border:none;padding-bottom:0">⚡ worth watching:</div>'+wl;
-      if(t.watch_more)body+='<div class="item why" style="border:none">+'+t.watch_more+' more in the folds below</div>';
-    }else body+='<div class="item muted">nothing worth watching this pass — no fresh opens or closes, streaks, defenses, or experiments</div>';
+    }
+    var w=t.watch||[];
+    wl=w.slice(0,2).map(wrow).join('');
+    if(w.length>2)more='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">⚡ '+(w.length-2+(t.watch_more||0))+' more worth watching <span class="pill">tap ▾</span></summary>'+w.slice(2).map(wrow).join('')+'</details></div>';
   }
   var st='';
   if(t&&(t.seats||[]).length){
@@ -665,13 +594,12 @@ function tournament(d){
     if((t.graduates||[]).length)bits.push('🏆 graduated: '+t.graduates.map(esc).join(', '));
     if(bits.length)st+='<div class="item why" style="border:none">'+bits.join(' · ')+'</div>';
     st='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">🏆 full merit standings <span class="pill">tap ▾</span></summary>'+st+
-      '<div class="item why" style="border:none">⚖️ merit = equity − relegation tax, suspect marks excluded, lab losses shielded — the ranking the crown, the axe, and the champion all use; tax recycling can\'t buy the top seat · 📉 = pays the tax if the week ends now</div></details></div>';
+      '<div class="item why" style="border:none">⚖️ merit = equity − relegation tax, suspect marks excluded, lab losses shielded · 📉 = pays the tax if the week ends now</div></details></div>';
   }
   var bookFold=book?'<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">📖 the open book — every agent\'s trades + plans <span class="pill">tap ▾</span></summary>'+book+'</details></div>':'';
   var tag=(t&&t.week!=null?'wk '+t.week:'')+(t&&t.season_break?' · season breaks '+esc(String(t.season_break).slice(5)):'');
-  return '<div class="card"><h2>🏟️ The tournament<span class="tag">'+(tag||'paper league')+'</span></h2>'+
-    (body||'<div class="item muted">standings unavailable this pass</div>')+st+bookFold+
-    '<div class="item why" style="border:none;padding-top:10px">coach any agent: text "desk: tell &lt;name&gt; …" — it lands on the Pad and shapes their next turn</div></div>';
+  return foldCard('🏟️ The tournament',tag||'paper league',(body||'<div class="item muted">standings unavailable this pass</div>')+(wl||'')+more+st+bookFold+
+    '<div class="item why" style="border:none;padding-top:10px">coach any agent: text “desk: tell &lt;name&gt; …” — it lands on the Pad and shapes their next turn</div>',false);
 }
 
 /* ✅ v3: the merged evidence story — goals + ladder visible, the grading
@@ -729,45 +657,125 @@ function repsBody(d){
   }).join('');
   return '<svg viewBox="0 0 100 34" preserveAspectRatio="xMidYMid meet">'+bars+'</svg>';
 }
-function ideaQualityBody(d){
-  var q=d.idea_quality;if(!q)return '';
-  function fr(label,r){
-    if(!r||!r.n)return '';
-    var win=r.closed?Math.round(100*r.wins/r.closed)+'% win':'no closes yet';
-    return '<div class="item"><div class="row"><span>'+label+'</span>'+
-      '<span class="num">'+r.n+' ideas · '+r.closed+' closed · '+win+
-      ' · <span class="'+(r.net>0?'ok':(r.net<0?'bad':'muted'))+'">'+(r.net>0?'+':'')+'$'+(r.net||0)+'</span></span></div></div>';
-  }
-  var bc=q.by_conviction||{},hi=bc.HIGH,md=bc.MEDIUM,warn='';
-  if(hi&&md&&hi.closed>=5&&md.closed>=5&&(md.net/md.closed)>(hi.net/hi.closed)){
-    warn='<div class="item warn">⚠️ MEDIUM ideas are outperforming HIGH — the ranking needs work, tell Claude</div>';
-  }
-  var feeds=(q.feeds||[]).map(function(r){
-    return fr(esc(r.feed),{n:r.n,closed:r.n_closed,wins:r.wins,net:Math.round(r.realized||0)});
-  }).join('');
-  return warn+fr('🔥 HIGH conviction',hi)+fr('⚡ MEDIUM conviction',md)+feeds;
-}
-function pitchBody(d){
-  var q=d.pitch_scoreboard;if(!q)return '';
-  var head='<div class="item"><div class="row"><span>'+q.n_pitched+' pitched · <b>'+q.n_taken+' taken by you</b>'+
-    ' · '+q.closed+' closed ('+(q.closed?Math.round(100*q.wins/q.closed)+'% win':'—')+')</span>'+
-    '<span class="num">realized <span class="'+(q.realized>0?'ok':(q.realized<0?'bad':'muted'))+'">'+(q.realized>0?'+':'')+'$'+q.realized+'</span>'+
-    ' · open <span class="'+(q.open_mark>0?'ok':(q.open_mark<0?'bad':'muted'))+'">'+(q.open_mark>0?'+':'')+'$'+q.open_mark+'</span></span></div></div>';
-  var takeNote=q.n_taken===0?'<div class="item warn">📱 no real takes recorded yet — when you take a pitch, tell the tracker session "<b>&lt;TICKER&gt; found by scanner</b>" so the link gets stamped and this board starts measuring YOUR funnel</div>':'';
-  var rows=(q.recent||[]).map(function(e){
-    var st;
-    if(e.status==='closed')st='<span class="'+(e.pnl>0?'ok':'bad')+'">closed '+(e.pnl>0?'+':'')+'$'+Math.round(e.pnl||0)+(e.exit_reason?' ('+esc(e.exit_reason)+')':'')+'</span>';
-    else if(e.status==='not-logged')st='<span class="muted">not paper-logged</span>';
-    else st='<span class="muted">open · mark '+(e.pnl!=null?((e.pnl>0?'+':'')+'$'+Math.round(e.pnl)):'—')+'</span>';
-    return '<div class="item"><div class="row"><span>'+esc(String(e.date).slice(5))+' <span class="tk">'+esc(e.ticker)+'</span> · '+esc(e.strategy)+
-      (e.taken?'<span class="pill good">📱 TAKEN</span>':'')+'</span><span class="num">'+st+'</span></div></div>';
-  }).join('');
-  return head+takeNote+rows;
-}
 function working(d){
-  // 🎯 scoreboard (08-31): light + reading + gap per goal; G1 unfolds the
-  // ruled ladder (rungs · ratchet · labeled companion). Ratios/percents only.
-  var g=(d.goals||[]).map(function(x){
+  /* ✅ THE LADDER (v5 fold): the proving-ground ladder + the weekly rep bars.
+     The goals moved to the machine panel's header; the idea-quality and
+     pitch-funnel folds moved to the monthly exit pulse (09-12 ruling). */
+  var lad=ladderBody(d),reps=repsBody(d);
+  if(!lad&&!reps)return '';
+  return foldCard('✅ The ladder','proving ground · 20 reps → verdict · tap',
+    (lad?'<div style="margin-top:4px">'+lad+'</div>':'')+
+    (reps?'<div style="margin-top:8px"><span class="why">📈 trades closed per week — how fast the proof piles up:</span>'+reps+'</div>':'')+
+    '<div class="item why" style="border:none;padding-top:10px">🌱 collecting → ✅ paper-proven → 🏦 TS-SIM → 💵 live-small — version-aware, a redesigned strategy starts a fresh cohort · real numbers live in the <a href="https://gleesonjeremy-source.github.io/option-tracker/">tracker</a></div>',false);
+}
+
+var PB_CACHE=null;
+function playbookBody(p){
+  var now=Date.now();
+  return (p.sections||[]).map(function(s){
+    var rows=(s.entries||[]).map(function(e){
+      var isNew=e.added&&(now-new Date(e.added+'T12:00:00').getTime())<7*864e5;
+      return '<div class="item"><b>'+esc(e.icon)+' '+esc(e.title)+'</b>'+
+        (isNew?' <span class="pill">NEW</span>':'')+
+        '<span class="why">'+expandable(esc(e['do']),e.full)+'</span></div>';
+    }).join('');
+    return '<div style="margin-top:12px"><div style="font-size:12px;font-weight:600;color:#8b949e;text-transform:uppercase;letter-spacing:.05em">'+esc(s.title)+'</div>'+rows+'</div>';
+  }).join('')+'<div class="item why" style="border:none;padding-top:10px">⚖️ law-backed: a ping without a playbook entry is a BUG — tell Claude. Grows with every build.</div>';
+}
+function loadPlaybook(el){
+  /* 📖 ON-DEMAND (09-13 re-cut): the playbook is 58 KB of reference prose —
+     it rides its own node under the same locked key and downloads only when
+     this fold opens, once per page load. The main payload stays light. */
+  if(!el||!el.open)return;
+  var box=el.querySelector('.pbbody');if(!box||box.getAttribute('data-loaded'))return;
+  box.setAttribute('data-loaded','1');
+  if(PB_CACHE){box.innerHTML=playbookBody(PB_CACHE);return}
+  box.innerHTML='<div class="item muted">loading the playbook…</div>';
+  var node=(box.getAttribute('data-node')||'deskPlaybook');
+  fetch(FB+'/p_'+KEY+'/'+node+'.json').then(function(r){return r.json()}).then(function(p){
+    if(!p||!p.sections){box.innerHTML='<div class="item bad">playbook node empty — the mini\'s next pass republishes it</div>';return}
+    PB_CACHE=p;box.innerHTML=playbookBody(p);
+  }).catch(function(e){box.innerHTML='<div class="item bad">could not load the playbook ('+esc(String(e))+')</div>'});
+}
+function playbook(d){
+  // 📖 THE HUMAN PLAYBOOK (Jeremy ruled 2026-08-12: "so i can really leverage
+  // the machine to its max capabilities from my phone"). Renders playbook.yaml
+  // mechanically — never hand-written here. Folded reference card; entries
+  // added in the last 7 days wear a NEW pill. v5: fetched on demand from its
+  // own node (playbook_meta carries the summary); an old payload that still
+  // ships `playbook` inline renders directly.
+  var p=d.playbook,m=d.playbook_meta;
+  if(p&&p.sections&&p.sections.length)return '<div class="card"><details><summary style="cursor:pointer;list-style:none">'+
+    '<h2 style="margin:0">📖 How to drive me<span class="tag">v'+esc(p.version)+' · '+esc(p.updated)+' · every new surface must update this</span></h2></summary>'+playbookBody(p)+'</details></div>';
+  if(!m)return '';
+  return '<div class="card"><details ontoggle="loadPlaybook(this)"><summary style="cursor:pointer;list-style:none">'+
+    '<h2 style="margin:0">📖 How to drive me<span class="tag">v'+esc(m.version)+' · '+esc(m.updated)+' · '+(m.n||0)+' entries · tap to load</span></h2></summary>'+
+    '<div class="pbbody" data-node="'+esc(m.node||'deskPlaybook')+'"></div></details></div>';
+}
+
+function forwardCal(d){
+  /* 📆 THE ONE CALENDAR (v2, 2026-09-13 re-cut — Jeremy 09-11: "calendar is
+     spread out all over the place"): the next 21 days of everything the
+     machine has a date for (09-08 renderer) + the folds that used to be
+     their own panels — in flight · landed this week · slipped · the line ·
+     the next milestone. Empty days stay visible as facts. */
+  var c=d.calendar;if(!c||!c.days)return '';
+  function it(x){
+    var pills='';
+    if(x.who)pills+='<span class="pill">'+esc(x.who)+'</span>';
+    if(x.due)pills+='<span class="pill">'+esc(x.due)+'</span>';
+    if(x.p1)pills+='<span class="pill hi">P1</span>';
+    if(x.size)pills+='<span class="pill">'+esc(x.size)+'</span>';
+    var cls=(x.cls==='deadman'||x.p1)?' bad':(x.cls==='JEREMY'||x.cls==='input'||x.cls==='rider')?' warn':'';
+    return '<div class="item'+cls+'" style="border:none;padding:2px 0 2px 14px">'+x.icon+' '+(x.doing?'🔨 ':'')+expandable(esc(x.text),x.full)+' '+pills+'</div>';
+  }
+  function day(x){
+    var items=x.items||[];
+    var head='<div class="row"><b>'+(x.today?'👉 ':'')+esc(fmtDayS(x.date))+'</b><span class="num muted">'+(items.length?items.length+' item'+(items.length>1?'s':''):'—')+'</span></div>';
+    return '<div class="item'+(x.today?' ok':'')+(x.weekend&&!items.length?' muted':'')+'">'+head+items.map(it).join('')+'</div>';
+  }
+  var top='';
+  var inf=c.in_flight||[];
+  if(inf.length)top+='<div class="item" style="border:none;padding:2px 0">🔨 in flight: '+inf.map(esc).join(' · ')+'</div>';
+  var ms=c.next_milestone;
+  if(ms){var p=ms.progress;top+='<div class="item" style="border:none;padding:2px 0">🏁 next milestone <b>'+esc(ms.id)+'</b> '+esc(String(ms.date).slice(5))+' — '+esc(ms.title)+(p?'<span class="why">🪜 '+p.have+' of '+p.bar+' '+esc(p.label)+' closes'+(p.eta?' · pace says ~'+esc(p.eta):'')+'</span>':'')+'</div>';}
+  var days=c.days||[],first=days.slice(0,8),rest=days.slice(8);
+  var body=first.map(day).join('');
+  if(rest.length){
+    var n=rest.reduce(function(a,x){return a+(x.items||[]).length},0);
+    body+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">+'+rest.length+' more days · '+n+' items <span class="pill">tap ▾</span></summary>'+rest.map(day).join('')+'</details></div>';
+  }
+  var folds='';
+  var sl=(c.slipped||[]).slice().sort(function(a,b){return (b.days||0)-(a.days||0)});
+  if(sl.length){
+    folds+=sl.slice(0,2).map(function(s){return '<div class="item warn">⚠️ slipped '+s.days+'d: '+esc(s.title)+'<span class="why">dated '+esc(s.date)+' and still open — reschedule or kill it</span></div>'}).join('');
+    if(sl.length>2)folds+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">⚠️ '+(sl.length-2)+' more slipped <span class="pill">tap ▾</span></summary>'+sl.slice(2).map(function(s){return '<div class="item why" style="padding:3px 0;border:none">'+s.days+'d · '+esc(s.title)+'</div>'}).join('')+'</details></div>';
+  }
+  var dw=c.done_week||[];
+  if(dw.length)folds+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">✅ landed this week — '+dw.length+' <span class="pill">tap ▾</span></summary>'+
+    dw.map(function(x){return '<div class="item ok" style="border:none;padding:3px 0">✅ '+esc(x.title)+'<span class="num muted" style="float:right">'+esc(x.day||'')+' '+esc(String(x.date).slice(5))+'</span>'+(x.outcome?'<span class="why">'+esc(x.outcome)+'</span>':'')+'</div>'}).join('')+'</details></div>';
+  var dk=c.dock||[];
+  if(dk.length)folds+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">🚚 '+dk.length+' in the deploy dock <span class="pill">tap ▾</span></summary>'+dk.map(function(s){return '<div class="item why" style="padding:3px 0;border:none">'+(s.state==='staged'?'📦 staged':'🔬 verifying')+' — '+esc(s.what)+(s.on?' · proves on: '+esc(s.on):'')+'</div>'}).join('')+'</details></div>';
+  var ln=c.line||{};
+  if(ln.n)folds+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">🧾 the line — '+ln.n+' waiting, ranked <span class="pill">tap ▾</span></summary>'+
+    (ln.rows||[]).map(function(x){return '<div class="item" style="border:none;padding:3px 0">'+esc(x.title)+'<span class="num muted" style="float:right">'+esc(x.why||'')+'</span></div>'}).join('')+
+    (ln.n>(ln.rows||[]).length?'<div class="item muted" style="border:none">…+'+(ln.n-(ln.rows||[]).length)+' more in the vault line</div>':'')+
+    '<div class="item why" style="border:none">'+(ln.units||'?')+' build-units'+(ln.weeks?' · ≈'+ln.weeks+' wks at the measured pace':'')+' · stale rows surface as 🗳️ decisions (park by default) · promote anything with “desk: bump &lt;thing&gt;”</div></details></div>';
+  var k=c.counts||{},leg=[];
+  ['BUILD','JEREMY','deadman','input','rider','ritual','expiry','earnings','macro'].forEach(function(z){if(k[z])leg.push(k[z]+' '+z.toLowerCase())});
+  return '<div class="card"><h2>📆 The calendar<span class="tag">next '+(c.horizon_days||21)+' days · '+(c.n||0)+' dated things · '+(c.empty_days||0)+' empty days</span></h2>'+top+
+    '<div class="item muted" style="border:none">'+esc(leg.join(' · '))+'<span class="why">roadmap · your asks · rituals · open-book expiries + earnings · macro — nothing here schedules; moving a date is a ruling (“desk: bump …”)</span></div>'+body+folds+'</div>';
+}
+
+/* 🖥️ STATE OF THE MACHINE (⚖️ Jeremy ruled Sun 09-13 — "we build it then I
+   never hear about it again" fix; "the desk needs to be scalable"): four
+   buckets by strategy, RULES over the registry × verdicts × rep-rate × TS-SIM
+   × the scan series; version chips (per-version verdicts land Tue 09-15);
+   verdict/mode mismatches red + counted (the strip chip + Sunday's ring). The
+   goal lights and the rent meter sit in the header — this is where the Desk
+   earns its spot. */
+function goalsBody(d){
+  return (d.goals||[]).map(function(x){
     var head='<b>'+esc(x.light||'')+' '+esc(x.id)+'</b> · '+esc(x.title);
     var body='';
     if(x.reading)body+='<div class="why">'+esc(x.reading)+'</div>';
@@ -779,269 +787,73 @@ function working(d){
       body+='<div class="why">🔄 '+esc(L.ratchet)+' · '+esc(L.window)+'</div>';}
     return '<div class="item">'+head+body+'</div>';
   }).join('');
-  var lad=ladderBody(d);
-  var reps=repsBody(d);
-  var iq=ideaQualityBody(d);
-  var pb=pitchBody(d);
-  if(!g&&!lad)return '';
-  function fold(title,body){
-    return body?'<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">'+title+' <span class="pill">tap ▾</span></summary>'+body+'</details></div>':'';
-  }
-  var gf=g?'<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">🎯 the goals <span class="pill">tap ▾</span></summary>'+g+'</details></div>':'';
-  return '<div class="card"><h2>✅ What\'s working<span class="tag">the proving ground · 20 reps → verdict</span></h2>'+gf+
-    (lad?'<div style="margin-top:8px">'+lad+'</div>':'')+
-    (reps?'<div style="margin-top:8px"><span class="why">📈 trades closed per week — how fast the proof piles up:</span>'+reps+'</div>':'')+
-    fold('🎯 are the ideas good? — picks graded by outcome (21d)',iq)+
-    fold('💼 the pitch funnel — pitched → taken → paid (30d)',pb)+
-    '<div class="item why" style="border:none;padding-top:10px">the ladder: 🌱 collecting → ✅ paper-proven → 🏦 TS-SIM → 💵 live-small — version-aware, so a redesigned strategy starts a fresh cohort · your real numbers live in the <a href="https://gleesonjeremy-source.github.io/option-tracker/">tracker</a></div></div>';
 }
-
-/* 🔮 v3 (M1 ruling: "make sure dreamer notes are being taken care of") */
-/* 🔮 dreamerPanel RETIRED at evolution #2 (2026-08-20): the dreamer's
-   needs-you half lives in 🗳️ the lane (💭 row, Friday slot) and its
-   ignored-pile alarm lives in the lane's slip escalation — one panel fewer,
-   per the reorganization mandate. Ledger depth stays in the vault. */
-
-/* 🔬 v3 (M1 ruling: "a place to do research / backtest stuff") */
-function research(d){
-  var r=d.research;if(!r)return '';
-  var cands=(r.candidates||[]).map(function(x){
-    var st={hypothesis:'💭 hypothesis',recording:'📼 recording',backtesting:'🧪 backtesting',lab:'🔬 lab'}[x.stage]||esc(x.stage||'');
-    return '<div class="item"><details><summary style="cursor:pointer;list-style:none"><b>'+esc(x.name)+'</b>'+
-      '<span class="pill">'+st+'</span>'+(x.since?'<span class="pill">since '+esc(String(x.since).slice(5))+'</span>':'')+
-      ' <span class="pill">tap ▾</span></summary>'+
-      (x.thesis?'<span class="why">💡 '+esc(x.thesis)+'</span>':'')+
-      (x.gate?'<span class="why">🚧 gate: '+esc(x.gate)+'</span>':'')+'</details></div>';
-  }).join('');
-  var shelf='';
-  if((r.shelf||[]).length){
-    var lis=r.shelf.map(function(s){return '<div class="item why" style="margin-left:10px;padding:3px 0;border:none">• <b>'+esc(s.strategy)+'</b> — '+esc(s.note)+'</div>'}).join('');
-    shelf='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">📏 the validation shelf — what\'s been measured <span class="pill">tap ▾</span></summary>'+lis+'</details></div>';
+function machinePanel(d){
+  var m=d.machine;if(!m||!m.buckets)return '';
+  var B=m.buckets,C=m.counts||{};
+  var names={working:'✅ WORKING',developing:'🔧 DEVELOPING',discovered:'🌱 DISCOVERED — needs reps',needs_work:'🛠️ NEEDS WORK — benched or slipping'};
+  var lights=(d.goals||[]).map(function(g){return esc(g.light||'')+' '+esc(g.id)}).join(' · ');
+  var rent=d.rent,rl='';
+  if(rent&&rent.state==='live')rl=' · 💼 realized '+rent.ratio+'× the $/wk bar '+rent.light;
+  var head='<div class="item" style="border:none;padding:0 0 6px"><details><summary style="cursor:pointer;list-style:none">🎯 goals: '+(lights||'—')+rl+' <span class="pill">tap ▾</span></summary>'+goalsBody(d)+'</details></div>';
+  var alarms=m.alarms||[];
+  if(alarms.length)head+='<div class="item bad">⚠️ '+alarms.length+' mismatch'+(alarms.length>1?'es':'')+' — '+alarms.map(function(a){return esc(a.strategy)+': '+esc(a.why)}).join(' · ')+'<span class="why">verdict says one thing, the mode/plumbing another — Sunday\'s brief rings this until it clears</span></div>';
+  function vchip(v){var st=String(v.status||'');var cls=st==='proven'?'good':((st==='benched'||st==='paused'||st==='parked')?'hi':'');return '<span class="pill '+cls+'">'+esc(v.key)+' · '+esc(st)+'</span>'}
+  function srow(r){
+    var stats=[];
+    if(r.n)stats.push(r.n+' reps');
+    if(r.n&&r.win_pct!=null)stats.push(r.win_pct+'% win');
+    if(typeof r.pf==='number')stats.push('PF '+r.pf.toFixed(2));
+    if(typeof r.trail_pf==='number')stats.push('trailing PF '+r.trail_pf.toFixed(2));
+    if(r.read)stats.push('rep-rate: '+r.read+(r.need_wk!=null?' (needs '+r.need_wk+'/wk, gets '+(r.supply_wk!=null?r.supply_wk:'?')+')':''));
+    if(r.sim&&(r.sim.closed||r.sim.open||r.sim.no_fill))stats.push('sim '+(r.sim.wins||0)+'/'+(r.sim.closed||0)+' green'+(r.sim.no_fill?' · '+r.sim.no_fill+' no-fill':'')+(r.sim.open?' · '+r.sim.open+' open':''));
+    if(r.scan)stats.push('scan '+r.scan.arrow+(r.scan.wk!=null?' '+r.scan.wk+'/day':'')+(r.scan.prior!=null?' (was '+r.scan.prior+')':''));
+    var vs=(r.versions||[]).map(vchip).join('');
+    return '<div class="item"><div class="row"><span><b>'+esc(r.name)+'</b>'+(r.verdict?' <span class="pill">'+esc(r.verdict)+'</span>':'')+'<span class="pill">'+esc(r.mode)+'</span></span>'+
+      '<span class="num muted">'+(r.trusted!=null?r.trusted+'/20 verified':'')+'</span></div>'+
+      (stats.length?'<span class="why">'+esc(stats.join(' · '))+'</span>':'')+
+      (vs?'<div class="chips">'+vs+'</div>':'')+
+      (r.alarm?'<span class="why" style="color:#f85149">⚠️ '+esc(r.alarm.join(' · '))+'</span>':'')+
+      (r.bench_why?'<span class="why">⛺ '+esc(r.bench_why)+'</span>':'')+
+      (r.next_step?'<span class="why">→ '+expandable(esc(r.next_step),r.full)+'</span>':'')+'</div>';
   }
-  return foldCard('🔬 The bench','foundry · research · tap to open',
-    (cands||'<div class="item muted">no foundry candidates</div>')+shelf+
-    '<div class="item why" style="border:none;padding-top:10px">candidates earn a registry entry by passing their gate — or die here with the verdict recorded · request a study any time: text "desk: backtest &lt;idea&gt;" · depth: '+
-    '<a href="obsidian://open?file=Garage">🧰 Garage</a> · <a href="obsidian://open?file=proving-ground">🏛️ proving ground</a> · <a href="obsidian://open?file=Home">🏠 Home</a></div>');
-}
-
-/* 📅 v3: the smart-calendar v1 — the week_queue feed rendered (design @ M1;
-   earnings dates + verdict docket join at the wk-08-10 build) */
-/* 📥 THE ONE INBOX (LINE+INBOX piece 2, 2026-09-01 — Jeremy 08-24: "i need
-   to be able to see the items so i can help prioritize them"). ITEM-level:
-   every ask that waits on Jeremy — needs-me due + dreamer + suggestions +
-   plan-lint — merged and ranked by scanner/inbox.py, each row sized
-   (est-minutes) and surfaced per the 08-18 surface law. The lane above
-   keeps the WHEN (slots + rings); this panel is the WHAT, as a list. */
-function needsJeremy(d){
-  var j=d.needs_jeremy;if(!j)return '';
-  function jrow(x){
-    var pills='';
-    if(x.age!=null&&x.age>0)pills+='<span class="pill">'+x.age+'d old</span>';
-    if(x.est)pills+='<span class="pill">~'+x.est+'m</span>';
-    if(x.who)pills+='<span class="pill">'+esc(x.who)+'</span>';
-    return '<div class="item">'+x.icon+' '+esc(x.text)+' '+pills+'</div>';
-  }
-  var rows=j.rows||[],vis=rows.slice(0,4).map(jrow).join(''),fold='';
-  if(rows.length>4){
-    fold='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">+'+(rows.length-4)+' more <span class="pill">tap ▾</span></summary>'+rows.slice(4).map(jrow).join('')+'</details></div>';
-  }
-  var sched='';
-  if((j.sched||[]).length){
-    sched='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">📅 '+j.sched.length+' appointment(s) ahead <span class="pill">tap ▾</span></summary>'+
-      j.sched.map(function(x){return '<div class="item muted">'+esc(String(x.due||'').slice(5))+' — '+esc(x.text)+'</div>'}).join('')+'</details></div>';
-  }
-  var head=j.answer_n?
-    '<div class="item">🫵 <b>'+j.answer_n+' to answer</b> · oldest '+(j.oldest_d||0)+'d · ~'+(j.est_min||0)+' min<span class="why">the cadence law: these get answered before building — every session opens with this same count</span></div>':
-    '<div class="item ok">✨ inbox clear — build away</div>';
-  return '<div class="card"><h2>📥 Needs Jeremy<span class="tag">one inbox — every ask, ranked</span></h2>'+head+vis+fold+sched+'</div>';
-}
-
-function weekCal(d){
-  var q=d.week_queue;if(!q)return '';
-  function row(i){
-    return '<div class="item'+(i.p1?' bad':'')+'"><div class="row"><span>'+(i.doing?'🔨 ':'')+expandable(esc(i.title),i.full)+(i.p1?'<span class="pill hi">P1</span>':'')+'</span>'+
-      '<span class="num muted">'+esc(i.day==='wk'?'this wk':i.day)+' '+esc(String(i.date).slice(5))+'</span></div></div>';
-  }
-  // ✅ the DONE lane (Jeremy 2026-08-16: "if its completed it should say so
-  // and how it got us closer to our goals") — this week's landed builds,
-  // tap ▾ = the outcome sentences. DONE · IN FLIGHT · NEXT, always.
-  function doneRow(x){
-    var oc=x.full||x.outcome;
-    return '<div class="item ok" style="border:none;padding:3px 0">✅ '+expandable(esc(x.title),oc&&oc!==x.title?oc:null)+
-      '<span class="num muted" style="float:right">'+esc(x.day||'')+' '+esc(String(x.date).slice(5))+'</span></div>';
-  }
-  var doneRows='';
-  if((q.done_week||[]).length){
-    doneRows='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">✅ landed this week — '+q.done_week.length+' <span class="pill">tap ▾</span></summary>'+q.done_week.map(doneRow).join('')+'</details></div>';
-  }
-  function slipRow(s){
-    return '<div class="item warn">⚠️ slipped '+s.days+'d: '+esc(s.title)+'<span class="why">dated '+esc(s.date)+' and still open — reschedule or kill it</span></div>';
-  }
-  // worst 3 visible, rest folded — 9+ full-height slips drowned the panel
-  // (seen on the v3 build day; the census ritual is what clears the list)
-  var sl=(q.slipped||[]).slice().sort(function(a,b){return b.days-a.days});
-  var slips=sl.slice(0,3).map(slipRow).join('');
-  if(sl.length>3){
-    slips+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">⚠️ '+(sl.length-3)+' more slipped <span class="pill">tap ▾</span></summary>'+sl.slice(3).map(slipRow).join('')+'</details></div>';
-  }
-  var wk1=(q.this_week||[]).map(row).join('');
-  var wk2='';
-  if((q.next_week||[]).length){
-    wk2='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">next week — '+q.next_week.length+' scheduled <span class="pill">tap ▾</span></summary>'+q.next_week.map(row).join('')+'</details></div>';
-  }
-  if(!slips&&!wk1&&!wk2&&!doneRows)return '';
-  /* 🧾 THE LINE VISIBLE (LINE+INBOX piece 1, 2026-09-01): the grey count is
-     now a ranked, tappable list — prio first, oldest-in-line first, small
-     sizes float (they fit a freed slot); every row says why it sits there */
-  var line='';
-  if((q.line||[]).length){
-    var lr=q.line.map(function(x){return '<div class="item" style="border:none;padding:3px 0">'+expandable(esc(x.title),x.full)+'<span class="num muted" style="float:right">'+esc(x.why||'')+'</span></div>'}).join('');
-    var more=(q.in_line>q.line.length)?'<div class="item muted" style="border:none">…+'+(q.in_line-q.line.length)+' beyond the render bound</div>':'';
-    var foot='<div class="item why" style="border:none">'+(q.line_units||'?')+' build-units in the line'+(q.line_weeks?' · ≈'+q.line_weeks+' wks at the measured ~6 units/wk':'')+' — say "desk: bump &lt;thing&gt;" to promote anything</div>';
-    line='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">🧾 the line — '+q.in_line+' waiting, ALL ranked <span class="pill">tap ▾</span></summary>'+lr+more+foot+'</details></div>';
-  } else if(q.in_line){
-    line='<div class="item muted">🧾 '+q.in_line+' waiting in line — undated by law, promoted into the window as slots free</div>';
-  }
-  return '<div class="card"><h2>📅 The week<span class="tag">done · in flight · next</span></h2>'+
-    slips+(wk1||'<div class="item muted">nothing dated this week</div>')+doneRows+wk2+line+
-    '<div class="item why" style="border:none;padding-top:10px">the scheduling law (ratified at M1): only the next two weeks carry dates — everything else waits in line, ordered by the priority test · reorder from the phone: "desk: bump &lt;thing&gt;"</div></div>';
-}
-
-function milestones(d){
-  var ms=d.milestones;if(!ms||!ms.length)return '';
-  var rows=ms.filter(function(m){return m.days_left==null||m.days_left>-30}).map(function(m){
-    var dl=m.days_left;
-    var when=m.done?'<span class="ok">✅ done'+(m.done_date?' '+esc(String(m.done_date).slice(5)):'')+'</span>'
-      :(dl==null?'':(dl<0?'<span class="bad">'+(-dl)+'d overdue</span>':(dl<=14?'<span class="warn">'+dl+'d</span>':'<span class="muted">'+dl+'d</span>')));
-    var p=m.progress;
-    var pace=p?'<span class="why">🪜 '+p.have+' of '+p.bar+' '+esc(p.label)+' closes'+(p.eta?' · pace says ~'+esc(p.eta):'')+' · fires on the condition, not the date</span>':'';
-    return '<div class="item"><div class="row"><span><b>'+esc(String(m.date).slice(5))+'</b> · '+esc(m.title)+
-      (m.feeds?'<span class="pill">'+esc(m.feeds)+'</span>':'')+'</span><span class="num">'+when+'</span></div>'+
-      (m.done&&m.outcome?'<span class="why">'+esc(m.outcome)+'</span>':'')+pace+'</div>';
-  }).join('');
-  // 📅 verdict-forecast lights (fdd289e, surfaced at evolution #2): which
-  // strategies are ON PACE / STARVED / burning dev budget — status words and
-  // paper dollars only
-  var fc=((d.proving||{}).forecast)||{};
-  var fl=[];
-  Object.keys(fc.per_strategy||{}).sort().forEach(function(k){
-    var v=fc.per_strategy[k];
-    if(v.starved)fl.push('<span class="bad">⚠️ '+esc(k)+' STARVED</span> — 0 closes'+(v.days_since!=null?' in '+v.days_since+'d':' at this ruleset'));
-    else if(v.dev_burn!=null)fl.push((v.dev_burn<=(v.budget||-3000)?'<span class="bad">':'<span class="warn">')+'🔥 '+esc(k)+' dev burn $'+Math.round(v.dev_burn)+' of $'+Math.round(v.budget||-3000)+' budget</span>');
-    else if(v.eta)fl.push('🪜 '+esc(k)+' → verdict bar ~'+esc(String(v.eta).slice(5))+' at current pace');
-    else if(v.at_bar)fl.push('<span class="ok">✅ '+esc(k)+' at its verdict bar (n='+v.n+')</span>');
+  var body='';
+  ['working','developing','discovered','needs_work'].forEach(function(b){
+    var rows=B[b]||[];
+    body+='<div class="item why" style="border:none;padding:8px 0 0"><b style="color:#c9d1d9">'+names[b]+'</b> · '+(C[b]||0)+'</div>';
+    if(!rows.length){body+='<div class="item muted" style="border:none;padding:2px 0 2px 10px">none</div>';return}
+    var vis=rows.slice(0,b==='needs_work'?3:8),more=rows.slice(vis.length);
+    body+=vis.map(srow).join('');
+    if(more.length)body+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">+'+more.length+' more <span class="pill">tap ▾</span></summary>'+more.map(srow).join('')+'</details></div>';
   });
-  var m2=fc.m2_sim;
-  if(m2&&m2.starved)fl.push('<span class="warn">⚠️ M2 sim: '+m2.n_v2+' v2-era closes · '+m2.no_fill+' no-fills · last filled close '+esc(String(m2.last_filled_close||'').slice(5))+' ('+m2.days_since+'d ago)</span>');
-  var flh=fl.length?'<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">📅 the forecast — pace, starvation, dev burn <span class="pill">tap ▾</span></summary>'+
-    fl.map(function(x){return '<div class="item why" style="padding:3px 0;border:none">'+x+'</div>'}).join('')+'</details></div>':'';
-  return foldCard('🗓️ The road','the strip shows the next · tap for all',rows+flh+
-    '<div class="item why" style="border:none;padding-top:10px">reorder any time: text "desk: bump &lt;thing&gt; — more important than &lt;other&gt;" · Claude does the legwork, you steer</div>');
-}
-function build(d){
-  var b=d.build||{};
-  var now=(b.now||[]).map(function(t){return '<div class="item">🔨 '+esc(t)+'</div>'}).join('');
-  if(b.open_slots)now+='<div class="item ok">🟢 '+b.open_slots+' build slot'+(b.open_slots>1?'s':'')+' open — next in queue moves up</div>';
-  var wait=(b.waiting||[]).map(function(w){return '<div class="item muted">⏳ '+esc(w.title)+'<span class="why">waiting on: '+esc(w.on)+'</span></div>'}).join('');
-  var nxt=(b.next||[]).slice(0,5).map(function(t,i){
-    return '<div class="item'+(t.indexOf('🚨')===0?' bad':' muted')+'">'+(i+1)+'. '+esc(t)+'</div>'}).join('');
-  var dk=(b.dock||[]).map(function(s){
-    return '<div class="item">'+(s.state==='staged'?'📦 staged':'🔬 verifying')+' — '+esc(s.what)+
-      (s.on?'<span class="why">proves on: '+esc(s.on)+'</span>':'')+'</div>';
-  }).join('');
-  var sh=(b.shipped||[]).slice(0,3).map(function(t){return '<div class="item why" style="padding:4px 0">🚚 '+esc(t)+'</div>'}).join('');
-  var wip=(b.now||[]).length>2?'<div class="item warn">⚠️ more than 2 builds in flight — finishing beats starting</div>':'';
-  return foldCard('🗺️ The build',((b.now||[]).length||'0')+' building · '+((b.dock||[]).length||'0')+' in the dock · tap',wip+
-    (now||'<div class="item muted">nothing actively building</div>')+
-    (nxt?'<div style="margin-top:8px"><span class="why">up next (P1s pinned — "desk: bump/demote" to reorder):</span>'+nxt+'</div>':'')+
-    (wait?'<div style="margin-top:8px"><span class="why">progressing on their own (nobody\'s building these — they\'re accumulating evidence):</span>'+wait+'</div>':'')+
-    (dk?'<div style="margin-top:8px"><span class="why">🚚 the dock — builds in the deploy pipeline:</span>'+dk+'</div>':'')+
-    (sh?'<div style="margin-top:8px"><span class="why">shipped recently:</span>'+sh+'</div>':'')+
-    '<div class="item why" style="border:none;padding-top:10px">🗓️ build windows (the rhythm, agreed 07-29): '+
-    '<b>Wed + Thu = heavy</b> · Tue after 13:30 · Mon + Fri light (verify + rituals) · weekend = research only · '+
-    'deploys ride quiet windows (13:30–17:00 or 17:15–19:45 PT, never before a morning digest) · '+
-    'law: after a ship the mini FREEZES until its next live pass runs green — that\'s why some asks wait for tomorrow</div>');
-}
-function clock(d){
-  var s=d.schedule;if(!s)return '';
-  var rows=(s.mini||[]).map(function(j){
-    return '<div class="item"><div class="row"><span>'+(j.ok?'✅':'<span class="bad">🔴</span>')+' <b>'+esc(j.job)+'</b></span>'+
-      '<span class="num muted">'+esc(j.when)+'</span></div>'+
-      '<span class="why">'+esc(j.what)+'</span></div>';
-  }).join('');
-  var oth=(s.other||[]).map(function(j){
-    return '<div class="item"><div class="row"><span>🛰️ <b>'+esc(j.job)+'</b>'+(j.where?'<span class="pill">'+esc(j.where)+'</span>':'')+'</span>'+
-      '<span class="num muted">'+esc(j.when)+'</span></div>'+
-      '<span class="why">'+esc(j.what)+'</span></div>';
-  }).join('');
-  if(!rows&&!oth)return '';
-  // red job = broken engine — the clock UNFOLDS itself so it can't hide a repair
-  var red=(s.mini||[]).some(function(j){return !j.ok});
-  return '<div class="card"><details'+(red?' open':'')+'><summary style="cursor:pointer;list-style:none">'+
-    '<h2 style="margin:0">⏰ The clock<span class="tag">'+(red?'🔴 a job is down — open me':'tap to expand · all times Pacific')+'</span></h2></summary>'+
-    '<div style="margin-top:8px">'+rows+
-    (oth?'<div style="margin-top:8px"><span class="why">off the mini (hand-kept list — not machine-verified):</span>'+oth+'</div>':'')+
-    '<div class="item why" style="border:none;padding-top:10px">🔴 = installed but NOT loaded — that\'s a repair, tell Claude to run triage</div></div></details></div>';
+  var foot=[];
+  if((m.menu_lines||[]).length)foot.push('🧭 menu lines, your hand (no scanner): '+m.menu_lines.map(function(x){return esc(String(x).replace(/_/g,' '))}).join(' · '));
+  if((m.off||[]).length)foot.push('⏻ off: '+m.off.map(function(x){return esc(String(x).replace(/_/g,' '))}).join(' · '));
+  if(m.versions_note)foot.push(esc(m.versions_note));
+  return '<div class="card"><h2>🖥️ State of the machine<span class="tag">'+(C.working||0)+' working · '+(C.developing||0)+' developing · '+(C.discovered||0)+' need reps · '+(C.needs_work||0)+' need work</span></h2>'+head+body+
+    '<div class="item why" style="border:none;padding-top:10px">'+foot.join(' · ')+'</div></div>';
 }
 
-function playbook(d){
-  // 📖 THE HUMAN PLAYBOOK (Jeremy ruled 2026-08-12: "so i can really leverage
-  // the machine to its max capabilities from my phone"). Renders playbook.yaml
-  // mechanically via desk_data — never hand-written here. Folded reference
-  // card (Jeremy-ruled exception to the decision-panel law). Entries added in
-  // the last 7 days wear a NEW pill so the panel visibly gets smarter.
-  var p=d.playbook; if(!p||!p.sections||!p.sections.length)return '';
-  var now=Date.now();
-  var body=p.sections.map(function(s){
-    var rows=(s.entries||[]).map(function(e){
-      var isNew=e.added&&(now-new Date(e.added+'T12:00:00').getTime())<7*864e5;
-      return '<div class="item"><b>'+esc(e.icon)+' '+esc(e.title)+'</b>'+
-        (isNew?' <span class="pill">NEW</span>':'')+
-        '<span class="why">'+expandable(esc(e['do']),e.full)+'</span></div>';
-    }).join('');
-    return '<div style="margin-top:12px"><div style="font-size:12px;font-weight:600;color:#8b949e;text-transform:uppercase;letter-spacing:.05em">'+esc(s.title)+'</div>'+rows+'</div>';
-  }).join('');
-  return '<div class="card"><details><summary style="cursor:pointer;list-style:none">'+
-    '<h2 style="margin:0">📖 How to drive me<span class="tag">v'+esc(p.version)+' · '+esc(p.updated)+' · every new surface must update this</span></h2></summary>'+
-    body+
-    '<div class="item why" style="border:none;padding-top:10px">⚖️ law-backed: a ping without a playbook entry is a BUG — tell Claude. Grows with every build.</div></details></div>';
-}
-
-function forwardCal(d){
-  /* 📆 THE CALENDAR REVEALED (LINE+INBOX piece 10, 2026-09-08 — Jeremy
-     08-26: "the calendar is the formula to success / things that need to
-     be revealed are hidden from me"): the next 21 days of everything the
-     machine already has a date for, one page. Days with nothing stay
-     visible as thin rows so an EMPTY day is a fact, not an omission. */
-  var c=d.calendar;if(!c||!c.days)return '';
-  function it(x){
-    var pills='';
-    if(x.who)pills+='<span class="pill">'+esc(x.who)+'</span>';
-    if(x.due)pills+='<span class="pill">'+esc(x.due)+'</span>';
-    if(x.p1)pills+='<span class="pill hi">P1</span>';
-    if(x.size)pills+='<span class="pill">'+esc(x.size)+'</span>';
-    var cls=(x.cls==='deadman'||x.p1)?' bad':(x.cls==='JEREMY'||x.cls==='input'||x.cls==='rider')?' warn':'';
-    return '<div class="item'+cls+'" style="border:none;padding:2px 0 2px 14px">'+x.icon+' '+(x.doing?'🔨 ':'')+expandable(esc(x.text),x.full)+' '+pills+'</div>';
-  }
-  function fmtDay(s){try{return new Date(s+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})}catch(x){return s}}
-  function day(x){
-    /* Firebase STRIPS empty arrays on write — an empty day arrives with no
-       `items` key at all (the 09-08 phone blank: 'x.items.length' undefined).
-       Every array read off the payload is guarded, always. */
-    var items=x.items||[];
-    var head='<div class="row"><b>'+(x.today?'👉 ':'')+esc(fmtDay(x.date))+'</b><span class="num muted">'+(items.length?items.length+' item'+(items.length>1?'s':''):'—')+'</span></div>';
-    return '<div class="item'+(x.today?' ok':'')+(x.weekend&&!items.length?' muted':'')+'">'+head+items.map(it).join('')+'</div>';
-  }
-  var days=c.days||[],first=days.slice(0,8),rest=days.slice(8);
-  var body=first.map(day).join('');
-  if(rest.length){
-    var n=rest.reduce(function(a,x){return a+(x.items||[]).length},0);
-    body+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">+'+rest.length+' more days · '+n+' items <span class="pill">tap ▾</span></summary>'+rest.map(day).join('')+'</details></div>';
-  }
-  var k=c.counts||{},leg=[];
-  ['BUILD','JEREMY','deadman','input','rider','ritual','expiry','earnings','macro'].forEach(function(z){if(k[z])leg.push(k[z]+' '+z.toLowerCase())});
-  return '<div class="card"><h2>📆 The calendar<span class="tag">next '+(c.horizon_days||21)+' days · '+(c.n||0)+' dated things · '+(c.empty_days||0)+' empty days</span></h2>'+
-    '<div class="item muted" style="border:none">'+esc(leg.join(' · '))+'<span class="why">a read over the roadmap · needs-me · rituals · open-book expiries + earnings · macro — nothing here schedules; moving a date is a ruling</span></div>'+body+'</div>';
+/* 📰 WHAT'S GOING ON (⚖️ Jeremy Sun 09-13: "if an agent does something
+   interesting i want to know — maverick opened an IC for the first time, a
+   trade gaining momentum, agent heating up, this strategy is working good
+   right now"): the news engine's 7-day feed, top story first, grouped by
+   the day it was first seen (server-side dedupe — a story never repeats). */
+function whatsOn(d){
+  var n=d.news||{},rec=n.recent||[];
+  if(!rec.length)return '<div class="card"><h2>📰 What\'s going on<span class="tag">quiet week</span></h2><div class="item muted">nothing new in 7 days'+(n.last?' — last story: '+esc(n.last.line):'')+'</div></div>';
+  var vt=ptToday(),yd=new Date(Date.now()-864e5);
+  var ydS=(function(){try{return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles'}).format(yd)}catch(x){return ''}})();
+  function dayName(s){if(s===vt)return 'today';if(s===ydS)return 'yesterday';return fmtDayS(s)}
+  var top=rec[0],rest=rec.slice(1),groups=[],seen={};
+  rest.forEach(function(s){var k=s.day||vt;if(!seen[k]){seen[k]=[];groups.push(k)}seen[k].push(s)});
+  var body='<div class="item" style="border-left:3px solid #58a6ff;padding-left:10px"><b>'+esc(top.line)+'</b><span class="why">'+esc(dayName(top.day||vt))+' · top story</span></div>';
+  groups.forEach(function(k){
+    body+='<div class="item why" style="border:none;padding:6px 0 0"><b>'+esc(dayName(k))+'</b></div>'+
+      seen[k].map(function(s){return '<div class="item" style="border:none;padding:3px 0 3px 10px">'+esc(s.line)+'</div>'}).join('');
+  });
+  return '<div class="card"><h2>📰 What\'s going on<span class="tag">'+(n.n||rec.length)+' stor'+((n.n||rec.length)===1?'y':'ies')+' · 7 days</span></h2>'+body+
+    '<div class="item why" style="border:none;padding-top:10px">firsts · momentum · heat · strategies working or cold · sim + paper closes · verdicts · ships · hot tickers — the machine watches, you read</div></div>';
 }
 
 function render(d){
@@ -1054,26 +866,17 @@ function render(d){
   if(age_h>14){$('#stale').style.display='block';
     $('#stale').textContent='⚠️ data is '+Math.round(age_h)+'h old — the generator may be stuck; ask Claude to run triage'}
   else $('#stale').style.display='none';
-  // panel order v4 — evolution #2 (2026-08-20, the reorganization mandate):
-  // 🫵 TODAY above everything → strip (news · M4 meter · lane pulse) →
-  // 🗳️ THE LANE (everything that needs Jeremy, already scheduled — the old
-  // needs-you piles + the dreamer panel merged here) → BROKER TRUTH →
-  // best trades → tournament (human-first book: state · progress · why-exited)
-  // → what's working → the week — then folded one-line cards. Panel law
-  // unchanged: request a decision, show pace against a date, or grade an
-  // idea — or get merged. Panel count went DOWN this evolution (dreamer).
-  // 📆 evolution #3 (2026-09-08, LINE+INBOX piece 10): the forward calendar
-  // sits right after the inbox — what needs Jeremy, then WHEN everything is.
-  // 🫗 PANEL ISOLATION (2026-09-08 night — the second "Screen went blank"
-  // incident on this seam, 08-21 was the first; TWICE = ROOT CAUSE): one
-  // panel throwing used to blank EVERY panel, silently — the phone showed
-  // only the static "how this works" card. Each panel now renders on its
-  // own; a failing one becomes a red card that NAMES itself and the error,
-  // and the rest of the Screen stays up.
-  // 🎯 evolution #4 (2026-09-12, Jeremy's 09-11 ruling "the Screen is the idea
-  // window"): the IDEAS panel (your book + the tickets + copy buttons) renders
-  // ABOVE today — the phone opens on the trades; TODAY stays the ask list.
-  var PANELS=[['ideas',ideasPanel],['today',todayPanel],['strip',strip],['needsYou',needsYou],['needsJeremy',needsJeremy],['calendar',forwardCal],['tsSim',tsSim],['signals',signals],['tournament',tournament],['working',working],['weekCal',weekCal],['research',research],['milestones',milestones],['build',build],['clock',clock],['playbook',playbook]];
+  // 🖥️ PANEL ORDER v5 (2026-09-13 re-cut — Jeremy's 09-11 order "trade ideas,
+  // then what needs me, then what's going on, everything dated in one place"):
+  // 🎯 IDEAS → 🫵 TODAY (alarms · asks · decisions) → the strip → 📰 WHAT'S
+  // GOING ON → 📆 ONE CALENDAR → 🖥️ STATE OF THE MACHINE → folded reference:
+  // 🏦 TS-SIM · 🏟️ tournament · ✅ ladder · 📖 playbook. Retired: 💡 best
+  // trades · 🗳️ lane · 📥 needs-Jeremy · 📅 week · 🗓️ road · 🗺️ build ·
+  // ⏰ clock · 🔬 research. PANEL LAW: decision · pace · grade — or it merges;
+  // the budget tripwire (desk_data) rings if the payload creeps back up.
+  // 🫗 PANEL ISOLATION (2026-09-08): each panel renders on its own; a failing
+  // one becomes a red card that names itself, the rest of the Screen stays up.
+  var PANELS=[['ideas',ideasPanel],['today',todayPanel],['strip',strip],['whatsOn',whatsOn],['calendar',forwardCal],['machine',machinePanel],['tsSim',tsSim],['tournament',tournament],['working',working],['playbook',playbook]];
   var html='';
   for(var i=0;i<PANELS.length;i++){
     try{html+=PANELS[i][1](d)||''}
