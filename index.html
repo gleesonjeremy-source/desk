@@ -461,10 +461,21 @@ function ideasPanel(d){
   var tk=I.tickets||[],held=I.held||[],radar=I.radar||[],study=I.study||[];
   function recPill(r){if(!r)return '';var cls=r.indexOf('✅')>=0?'good':(r.indexOf('⚠️')>=0?'hi':'');return '<span class="pill '+cls+'">'+esc(r)+'</span>'}
   function gradeLine(c){return c.grade?'<span class="why">📈 chart '+esc(c.grade)+(c.chart_dir?' ('+esc(c.chart_dir)+')':'')+(c.chart_read?' — '+esc(c.chart_read):'')+'</span>':''}
+  /* 🧩 router (09-14): every ticket names its version, shape + why, the
+     runner-up it beat and what changed since it last showed (bar 5) */
+  function routerLine(c){
+    if(!c.structure_reason)return '';
+    var p=(c.p_wall!=null&&c.wall_px!=null)?' · p(wall $'+esc(String(c.wall_px))+') '+Math.round(c.p_wall*100)+'%':'';
+    var s='<span class="why">🧩 '+esc(c.version_label||c.version||'')+' — '+esc(c.structure_reason)+p+'</span>';
+    if(c.runner_up)s+='<span class="why">↔ runner-up: '+esc(c.runner_up)+'</span>';
+    if(c.new_info)s+='<span class="why">🔁 '+esc(c.new_info)+'</span>';
+    return s;
+  }
   function tRow(c,i){
     var conv=c.conviction==='HIGH'?'<span class="pill hi">HIGH</span>':'<span class="pill med">MED</span>';
-    return '<div class="item"><div><span class="tk">'+(i+1)+'. '+esc(c.ticker)+'</span> — '+esc(c.strategy)+(c.dir?' '+esc(c.dir):'')+conv+recPill(c.record)+'</div>'+
-      gradeLine(c)+
+    var ord=c.order==='quota'?'<span class="pill">📣 rep need</span>':'';
+    return '<div class="item"><div><span class="tk">'+(i+1)+'. '+esc(c.ticker)+'</span> — '+esc(c.strategy)+(c.dir?' '+esc(c.dir):'')+conv+recPill(c.record)+ord+'</div>'+
+      gradeLine(c)+routerLine(c)+
       '<div style="margin:3px 0">'+contractLine(c)+'</div>'+
       (c.line?'<span class="why">'+esc(c.line)+'</span>':'')+
       ((c.confirms||[]).length?'<span class="why">'+esc(c.confirms.join(' · '))+'</span>':'')+
@@ -485,6 +496,11 @@ function ideasPanel(d){
   var when=(I.date?esc(I.date):'')+(I.label&&I.label!=='morning'?' · '+esc(I.label)+' pass':' · 07:00 pass')+(I.ts?' · '+esc(String(I.ts).slice(11))+' PT':'');
   var out='<div class="card"><h2>🎯 IDEAS — the window<span class="tag">'+tk.length+' ticket'+(tk.length===1?'':'s')+' · '+when+'</span></h2>';
   if(I.red_folder)out+='<div class="item" style="color:#f85149;border:none;padding-top:0">🔴 '+esc(I.red_folder)+'</div>';
+  /* 🧩 THE COUNT LINE (bar 6) + 🗑️ THE TRASH RATE (bar 7), 09-14: the line
+     missing = the router did not run (say so); the rate is his one number */
+  if(I.count_line)out+='<div class="item why" style="border:none;padding-top:0">'+esc(I.count_line)+'</div>';
+  else out+='<div class="item why" style="border:none;padding-top:0;color:#f0883e">🧩 no count line — the router did not stamp this pass (fallback board)</div>';
+  if(I.trash&&I.trash.line){var tr=I.trash;out+='<div class="item why" style="border:none;padding-top:0"><span class="pill '+(tr.trashed?'hi':'good')+'">'+esc(tr.line)+'</span>'+((tr.last||[]).length?' <span class="why">last: '+esc(tr.last.map(function(x){return x.ticker+' '+(x.date||'').slice(5)+(x.why?' — '+x.why:'')}).join(' · '))+'</span>':'')+' <span class="why">· mark one: desk: trash &lt;ticker&gt; &lt;why&gt;</span></div>';}
   out+=bookStrip(b);
   if(tk.length)out+='<div class="item why" style="border:none;padding-bottom:2px"><b style="color:#c9d1d9">TICKETS</b> — tap 📋, paste ALONE into your Trading Desk Project; it verifies live and builds the entry</div>'+tk.map(tRow).join('');
   else{
