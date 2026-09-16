@@ -955,12 +955,22 @@ function whatsOn(d){
   rest.forEach(function(s){var k=s.day||vt;if(!seen[k]){seen[k]=[];groups.push(k)}seen[k].push(s)});
   /* 🖥️ 09-15 PM neat-and-organized: the top story + the next five lines,
      the rest of the week opens on a tap */
-  var body='<div class="item" style="border-left:3px solid #58a6ff;padding-left:10px"><b>'+esc(top.line)+'</b><span class="why">'+esc(dayName(top.day||vt))+' · top story</span></div>';
+  /* ⚖️ Jeremy 09-15 PM: "make the trades easier to read and if I want to take
+     one I can" — a story that carries a trade shows the legs in words, the
+     cost, whether it is still enterable, and ONE 📋 button (the same
+     client-side block the tournament rows use). */
+  function tradeBits(s){
+    var tr=s.trade;if(!tr||!tr.contracts)return '';
+    return '<div style="margin:2px 0 2px 10px">'+contractLine(tr)+(tr.cost!=null?' <span class="muted">@ $'+Math.round(Math.abs(tr.cost))+'</span>':'')+(s.grade?' <span class="pill '+(s.grade==='A'?'good':'')+'">📈 '+esc(s.grade)+'</span>':'')+
+      (tr.enterable?'<span class="pill good">still enterable — near their price</span>':'<span class="pill">moved &gt;10% — watch only</span>')+
+      tbtn(tr,'📰 '+s.line)+'</div>';
+  }
+  var body='<div class="item" style="border-left:3px solid #58a6ff;padding-left:10px"><b>'+esc(top.line)+'</b><span class="why">'+esc(dayName(top.day||vt))+' · top story</span>'+tradeBits(top)+'</div>';
   var shown=0,more='';
   groups.forEach(function(k){
     var head='<div class="item why" style="border:none;padding:6px 0 0"><b>'+esc(dayName(k))+'</b></div>';
     seen[k].forEach(function(s,j){
-      var line=(j===0?head:'')+'<div class="item" style="border:none;padding:3px 0 3px 10px">'+esc(s.line)+'</div>';
+      var line=(j===0?head:'')+'<div class="item" style="border:none;padding:3px 0 3px 10px">'+esc(s.line)+tradeBits(s)+'</div>';
       if(shown<5){body+=line;shown++}else more+=line;
     });
   });
