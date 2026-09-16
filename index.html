@@ -532,7 +532,16 @@ function ideasPanel(d){
       (c.ticket?tbtnRaw(c.ticket,'📋 COPY TICKET'):tbtn(c,'the looks'))+
       '</div>';
   }
-  if(looks.length)out+='<div class="item why" style="border:none;padding-bottom:2px"><b style="color:#c9d1d9">👀 LOOKS</b> — A/B charts the machine priced and held · your eye decides · '+looks.length+'</div>'+looks.map(lRow).join('');
+  /* ⚖️ Jeremy Tue 09-15 PM ("make the 20 ideas a drop down… make sure the key
+     information is still there"): the names + grades strip stays on the desk,
+     the 20 cards with their 📋 buttons open on ONE tap. */
+  if(looks.length){
+    var gA=looks.filter(function(c){return c.grade==='A'}).length,gB=looks.length-gA;
+    var nstrip=looks.map(function(c){return '<b>'+esc(c.ticker)+'</b> '+esc(c.grade||'')+(c.dir?esc(c.dir):'')}).join(' · ');
+    out+='<div class="item why" style="border:none;padding-bottom:2px"><b style="color:#c9d1d9">👀 LOOKS</b> — '+looks.length+' A/B charts priced and held · '+gA+' A · '+gB+' B · your eye decides</div>'+
+      '<div class="item why" style="border:none;padding:2px 0">'+nstrip+'</div>'+
+      '<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">open the '+looks.length+' with contract, read, edge and 📋 <span class="pill">tap ▾</span></summary>'+looks.map(lRow).join('')+'</details></div>';
+  }
   if(waits.length)out+='<div class="item why" style="border:none">🎯 <b style="color:#c9d1d9">WAITING FOR A LEVEL</b>'+(I.waits_date?' <span class="muted">'+esc(I.waits_date)+'</span>':'')+': '+waits.map(function(w){return '<b>'+esc(w.ticker)+'</b> '+(w.dir==='down'?'↓':'↑')+' $'+esc(String(w.trigger))+(w.grade?' 📈'+esc(w.grade):'')+' ('+esc(w.strategy||'')+')'}).join(' · ')+' <span class="muted">· rings when the tape touches the 20 SMA</span></div>';
   /* v5 (09-13 phone test): HELD and RADAR show three rows, the rest fold —
      with zero tickets a long held list pushed TODAY off the first screen */
@@ -809,8 +818,16 @@ function forwardCal(d){
     '<div class="item why" style="border:none">'+(ln.units||'?')+' build-units'+(ln.weeks?' · ≈'+ln.weeks+' wks at the measured pace':'')+' · stale rows surface as 🗳️ decisions (park by default) · promote anything with “desk: bump &lt;thing&gt;”</div></details></div>';
   var k=c.counts||{},leg=[];
   ['BUILD','JEREMY','deadman','input','rider','ritual','expiry','earnings','macro'].forEach(function(z){if(k[z])leg.push(k[z]+' '+z.toLowerCase())});
-  return '<div class="card"><h2>📆 The calendar<span class="tag">next '+(c.horizon_days||21)+' days · '+(c.n||0)+' dated things · '+(c.empty_days||0)+' empty days</span></h2>'+top+
-    '<div class="item muted" style="border:none">'+esc(leg.join(' · '))+'<span class="why">roadmap · your asks · rituals · open-book expiries + earnings · macro — nothing here schedules; moving a date is a ruling (“desk: bump …”)</span></div>'+body+folds+'</div>';
+  /* ⚖️ Jeremy Tue 09-15 PM ("calendar should be a drop down… neat and
+     organized"): the card shows the NEXT two dated days as one line each,
+     the 21-day board and its folds open on ONE tap. */
+  var nxt=days.filter(function(x){return (x.items||[]).length}).slice(0,2).map(function(x){
+    var its=x.items||[];
+    return '<div class="item" style="border:none;padding:2px 0"><b>'+(x.today?'👉 ':'🔜 ')+esc(fmtDayS(x.date))+'</b> · '+its.length+' item'+(its.length>1?'s':'')+' — <span class="why" style="display:inline">'+its.slice(0,3).map(function(i){return i.icon+' '+esc(String(i.text||'').slice(0,48))}).join(' · ')+(its.length>3?' · +'+(its.length-3)+' more':'')+'</span></div>';
+  }).join('');
+  return '<div class="card"><h2>📆 The calendar<span class="tag">next '+(c.horizon_days||21)+' days · '+(c.n||0)+' dated things · '+(c.empty_days||0)+' empty days</span></h2>'+nxt+
+    '<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">open the '+(c.horizon_days||21)+'-day board — '+esc(leg.join(' · '))+' <span class="pill">tap ▾</span></summary>'+top+
+    '<div class="item muted" style="border:none"><span class="why">roadmap · your asks · rituals · open-book expiries + earnings · macro — nothing here schedules; moving a date is a ruling (“desk: bump …”)</span></div>'+body+folds+'</details></div></div>';
 }
 
 /* 🖥️ STATE OF THE MACHINE (⚖️ Jeremy ruled Sun 09-13 — "we build it then I
@@ -876,9 +893,12 @@ function machinePanel(d){
     var rows=B[b]||[];
     body+='<div class="item why" style="border:none;padding:8px 0 0"><b style="color:#c9d1d9">'+names[b]+'</b> · '+(C[b]||0)+'</div>';
     if(!rows.length){body+='<div class="item muted" style="border:none;padding:2px 0 2px 10px">none</div>';return}
-    var vis=rows.slice(0,b==='needs_work'?3:8),more=rows.slice(vis.length);
+    /* ⚖️ 09-15 PM neat-and-organized: WORKING + DEVELOPING cards stay open
+       (the ones being watched); the long tails open on one tap each. */
+    var visN=(b==='working'||b==='developing')?8:0;
+    var vis=rows.slice(0,visN),more=rows.slice(vis.length);
     body+=vis.map(srow).join('');
-    if(more.length)body+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">+'+more.length+' more <span class="pill">tap ▾</span></summary>'+more.map(srow).join('')+'</details></div>';
+    if(more.length)body+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">'+(visN?'+'+more.length+' more':'open the '+more.length+' cards — '+more.map(function(r){return esc(r.name)}).join(' · '))+' <span class="pill">tap ▾</span></summary>'+more.map(srow).join('')+'</details></div>';
   });
   var foot=[];
   if((m.menu_lines||[]).length)foot.push('🧭 menu lines, your hand (no scanner): '+m.menu_lines.map(function(x){return esc(String(x).replace(/_/g,' '))}).join(' · '));
@@ -931,7 +951,10 @@ function render(d){
   // the budget tripwire (desk_data) rings if the payload creeps back up.
   // 🫗 PANEL ISOLATION (2026-09-08): each panel renders on its own; a failing
   // one becomes a red card that names itself, the rest of the Screen stays up.
-  var PANELS=[['ideas',ideasPanel],['today',todayPanel],['strip',strip],['whatsOn',whatsOn],['calendar',forwardCal],['machine',machinePanel],['tsSim',tsSim],['tournament',tournament],['working',working],['playbook',playbook]];
+  /* ⚖️ Jeremy Tue 09-15 PM ("where did the engine go, I like monitoring that"):
+     the engine strip rides FIRST — proof line · milestone chips · ⏰ jobs ·
+     vault · realized/growth · mismatches — then his morning order. */
+  var PANELS=[['strip',strip],['ideas',ideasPanel],['today',todayPanel],['whatsOn',whatsOn],['calendar',forwardCal],['machine',machinePanel],['tsSim',tsSim],['tournament',tournament],['working',working],['playbook',playbook]];
   var html='';
   for(var i=0;i<PANELS.length;i++){
     try{html+=PANELS[i][1](d)||''}
