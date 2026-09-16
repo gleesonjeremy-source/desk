@@ -458,7 +458,7 @@ function ideasPanel(d){
   var I=d.ideas,b=d.book;
   if(!I&&!b)return '';
   I=I||{};
-  var tk=I.tickets||[],held=I.held||[],radar=I.radar||[],study=I.study||[];
+  var tk=I.tickets||[],held=I.held||[],radar=I.radar||[],study=I.study||[],looks=I.looks||[],waits=I.waits||[];
   function recPill(r){if(!r)return '';var cls=r.indexOf('✅')>=0?'good':(r.indexOf('⚠️')>=0?'hi':'');return '<span class="pill '+cls+'">'+esc(r)+'</span>'}
   function gradeLine(c){return c.grade?'<span class="why">📈 chart '+esc(c.grade)+(c.chart_dir?' ('+esc(c.chart_dir)+')':'')+(c.chart_read?' — '+esc(c.chart_read):'')+'</span>':''}
   /* 🧩 router (09-14): every ticket names its version, shape + why, the
@@ -494,7 +494,7 @@ function ideasPanel(d){
       '<span class="why">evidence '+((c.confirms||[]).length)+(c.need?'/'+c.need:'')+' · missing: '+esc(miss)+'</span></div>';
   }
   var when=(I.date?esc(I.date):'')+(I.label&&I.label!=='morning'?' · '+esc(I.label)+' pass':' · 07:00 pass')+(I.ts?' · '+esc(String(I.ts).slice(11))+' PT':'');
-  var out='<div class="card"><h2>🎯 IDEAS — the window<span class="tag">'+tk.length+' ticket'+(tk.length===1?'':'s')+' · '+when+'</span></h2>';
+  var out='<div class="card"><h2>🎯 IDEAS — the window<span class="tag">'+tk.length+' ticket'+(tk.length===1?'':'s')+(looks.length?' · '+looks.length+' looks':'')+' · '+when+'</span></h2>';
   if(I.red_folder)out+='<div class="item" style="color:#f85149;border:none;padding-top:0">🔴 '+esc(I.red_folder)+'</div>';
   /* 🧩 THE COUNT LINE (bar 6) + 🗑️ THE TRASH RATE (bar 7), 09-14: the line
      missing = the router did not run (say so); the rate is his one number */
@@ -508,6 +508,32 @@ function ideasPanel(d){
     out+='<div class="item"><b>0 tickets on the Desk</b>'+(I.n_considered?' · '+I.n_considered+' setups considered':'')+
       (n?'<span class="why">closest: <b>'+esc(n.ticker)+'</b> '+esc(n.strategy)+(n.grade?' 📈 '+esc(n.grade):'')+' — held by: '+esc((n.missing||[]).join('; ')||'no independent confirmation fired')+'</span>':'')+'</div>';
   }
+  /* 👀 THE LOOKS (⚖️ Jeremy Tue 09-15: "I should have at least 15 ideas on
+     desk so I can maybe finally take one" · "how do I trade it? for what
+     contract?"): every A/B chart the machine priced and then HELD — one per
+     name, grade first, ≤8 diagonals, spent signals out — each with the ONE
+     reason it is not a ticket, the exact contract, the shape line, the edge
+     gauges and the same 📋 copy block a ticket gets. His eye decides. */
+  function lRow(c,i){
+    var g=c.grade?'<span class="pill '+(c.grade==='A'?'good':'')+'">📈 '+esc(c.grade)+'</span>':'';
+    var edge=[];
+    if(c.ivr!=null)edge.push('IVR '+Math.round(c.ivr));
+    if(c.iv_vs_hv!=null)edge.push('IV vs HV '+Math.round(c.iv_vs_hv)+'th');
+    if(c.p_wall!=null&&c.wall_px!=null)edge.push('p(wall $'+esc(String(c.wall_px))+') '+Math.round(c.p_wall*100)+'%');
+    if(c.rr!=null)edge.push('R:R 1:'+esc(String(c.rr)));
+    if(c.kit)edge.push(esc(String(c.kit)));
+    return '<div class="item"><div><span class="tk">'+(i+1)+'. '+esc(c.ticker)+'</span> — '+esc(c.strategy)+(c.dir?' '+esc(c.dir):'')+(c.structure?' · '+esc(c.structure):'')+' '+g+recPill(c.record)+'</div>'+
+      '<span class="why">👀 held: '+esc(c.why||'no reason stamped')+'</span>'+
+      (c.chart_read?'<span class="why">📈 '+esc(c.chart_read)+'</span>':'')+
+      (c.structure_reason?'<span class="why">🧩 '+esc(c.version_label||c.version||'')+' — '+esc(c.structure_reason)+'</span>':'')+
+      '<div style="margin:3px 0">'+contractLine(c)+(c.cost!=null?' <span class="muted">@ $'+Math.abs(c.cost)+'</span>':'')+'</div>'+
+      (edge.length?'<span class="why">🌡️ '+edge.join(' · ')+(c.book_balance?' · 📒 '+esc(c.book_balance):'')+'</span>':'')+
+      (c.exits?'<span class="why">⛔ '+esc(c.exits)+'</span>':'')+
+      (c.ticket?tbtnRaw(c.ticket,'📋 COPY TICKET'):tbtn(c,'the looks'))+
+      '</div>';
+  }
+  if(looks.length)out+='<div class="item why" style="border:none;padding-bottom:2px"><b style="color:#c9d1d9">👀 LOOKS</b> — A/B charts the machine priced and held · your eye decides · '+looks.length+'</div>'+looks.map(lRow).join('');
+  if(waits.length)out+='<div class="item why" style="border:none">🎯 <b style="color:#c9d1d9">WAITING FOR A LEVEL</b>'+(I.waits_date?' <span class="muted">'+esc(I.waits_date)+'</span>':'')+': '+waits.map(function(w){return '<b>'+esc(w.ticker)+'</b> '+(w.dir==='down'?'↓':'↑')+' $'+esc(String(w.trigger))+(w.grade?' 📈'+esc(w.grade):'')+' ('+esc(w.strategy||'')+')'}).join(' · ')+' <span class="muted">· rings when the tape touches the 20 SMA</span></div>';
   /* v5 (09-13 phone test): HELD and RADAR show three rows, the rest fold —
      with zero tickets a long held list pushed TODAY off the first screen */
   function hRow(h){return '<div class="item"><span class="tk">'+esc(h.ticker)+'</span> '+esc(h.strategy||'')+(h.grade?' 📈 '+esc(h.grade):'')+' <span class="why">'+esc(h.why||'')+'</span></div>'}
