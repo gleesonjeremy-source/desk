@@ -154,8 +154,24 @@ function expandable(shortHtml,full){
    next build lives on the calendar, the lane is gone): 📈 the proof line +
    milestone chips + the one-line machine health check. Condition milestones
    render "x of N closes · ~ETA" — never a date-lookalike. */
+function usd(v){if(v==null)return '—';var r=Math.round(v);return (r<0?'−$':'$')+Math.abs(r).toLocaleString()}
+function usdS(v){if(v==null)return '—';var r=Math.round(v);return (r>0?'+$':(r<0?'−$':'$'))+Math.abs(r).toLocaleString()}
 function strip(d){
   var rows='';
+  /* 🏁 THE SCORE — Jeremy's two numbers, in English, first (⚖️ 09-16 evening:
+     "put the account value and growth on desk … I need English on there").
+     The one named exception to the no-dollars law (see desk_data.score). */
+  var sc=d.score;
+  if(sc&&sc.value!=null){
+    var since=(sc.start_date||'').slice(5);
+    rows+='<div class="row"><span>🏁 <b>Account '+usd(sc.value)+'</b> · '+usdS(sc.growth)+(sc.growth_pct!=null?' ('+(sc.growth_pct>=0?'+':'')+sc.growth_pct+'%)':'')+' since '+esc(since)+', deposits out, marks in · <span class="muted">'+esc(sc.label||'')+(sc.resets?' · resets '+esc(String(sc.resets).slice(5))+(sc.resets_label?' = '+esc(sc.resets_label):''):'')+'</span></span></div>';
+    if(sc.closed!=null){
+      var yr=sc.closed_ann_pct;
+      rows+='<div class="row"><span>🏁 <b>Closed P&amp;L '+usdS(sc.closed)+'</b> since '+esc(since)+(sc.n_closes?' ('+sc.n_closes+' closes)':'')+(yr!=null?' = <b>'+(yr>=0?'+':'')+yr+'% a year</b> vs the '+(sc.floor_pct||18)+'% floor '+(sc.pass?'✅':'❌'):'')+(sc.floor_dollars_yr?' · the floor on this account '+usd(sc.floor_dollars_yr)+'/yr':'')+(sc.needed!=null?' · to reach it by '+esc(String(sc.year_end||'').slice(5))+': '+usdS(sc.needed)+(sc.needed_per_wk!=null?' (≈ '+usd(sc.needed_per_wk)+'/wk for '+Math.round(sc.weeks_left||0)+' wks)':''):'')+'</span></div>';
+    }else rows+='<div class="row"><span>🏁 Closed P&amp;L ⚪ '+esc(sc.why||'collecting')+'</span></div>';
+  }else if(sc&&sc.growth_pct!=null){
+    rows+='<div class="row"><span>🏁 '+esc(sc.label||'')+' · account '+(sc.growth_pct>=0?'+':'')+sc.growth_pct+'%'+(sc.closed_ann_pct!=null?' · closed '+(sc.closed_ann_pct>=0?'+':'')+sc.closed_ann_pct+'% a year vs the '+(sc.floor_pct||18)+'% floor '+(sc.pass?'✅':'❌'):'')+'</span></div>';
+  }
   if((d.proof||{}).line)rows+='<div class="row"><span>📈 '+esc(d.proof.line)+'</span></div>';
   var chips=(d.milestones||[]).filter(function(m){return !m.done&&m.days_left!=null&&m.days_left>=-60}).slice(0,3).map(function(m){
     var p=m.progress;
@@ -172,16 +188,13 @@ function strip(d){
     h.push('⏰ '+(red?'<span class="bad">'+red+' down</span>':'<span class="ok">all running</span>'))}
   var dock=((d.build||{}).dock||[]).length;if(dock)h.push('🚚 '+dock+' verifying');
   var rent=d.rent;if(rent&&rent.state==='live'){
-    h.push('💼 realized '+rent.ratio+'× bar '+rent.light);
+    /* English (Jeremy 09-16: "what does −4.25× bar mean") — closed P&L per
+       week over the last 4 weeks vs the $130/wk break-even bar */
+    if(rent.per_wk!=null)h.push('💼 closed P&amp;L last 4 wks <b>'+usdS(rent.per_wk)+'/wk</b> vs the $130/wk break-even bar '+rent.light);
+    else h.push('💼 closed P&amp;L last 4 wks '+rent.ratio+'× the $130/wk break-even bar '+rent.light);
     var pz=(rent.cc_rows||[]).filter(function(r){return r.pause});
     if(pz.length)h.push('💼⏸️ '+pz.map(function(r){return esc(r.ticker)}).join('/')+' pause-rule review');
     if(rent.tripwire&&rent.tripwire.flag)h.push('<span class="bad">🚨 equity jump '+esc(String(rent.tripwire.x_typical))+'× typical — confirm deposits</span>');
-  }
-  var sc=d.score;if(sc&&sc.growth_pct!=null){
-    var scl='🏁 '+esc(sc.label||'')+' · account '+(sc.growth_pct>=0?'+':'')+sc.growth_pct+'%';
-    if(sc.closed_ann_pct!=null)scl+=' · closed '+(sc.closed_ann_pct>=0?'+':'')+sc.closed_ann_pct+'%/yr vs '+(sc.floor_pct||18)+'% '+(sc.pass?'✅':'❌');
-    else scl+=' · closed ⚪';
-    h.push(scl);
   }
   var mc=d.machine;if(mc&&mc.alarm_n)h.push('<span class="bad">🖥️ '+mc.alarm_n+' machine mismatch'+(mc.alarm_n>1?'es':'')+'</span>');
   if(!rows&&!chips.length&&!h.length)return '';
@@ -874,7 +887,7 @@ function goalsBody(d){
     if(x.reading)body+='<div class="why">'+esc(x.reading)+'</div>';
     if(x.gap)body+='<div class="why">→ '+esc(x.gap)+'</div>';
     if(x.ladder){var L=x.ladder;
-      body+='<div class="why">🪜 '+esc(L.rung1.label)+': '+(L.rung1.ratio==null?'—':esc(String(L.rung1.ratio))+'×')+(L.rung1["pass"]?' ✅':' ❌')
+      body+='<div class="why">🪜 '+esc(L.rung1.label)+': '+(L.rung1.per_wk!=null?usdS(L.rung1.per_wk)+'/wk':(L.rung1.ratio==null?'—':esc(String(L.rung1.ratio))+'× the bar'))+(L.rung1["pass"]?' ✅':' ❌')
         +' · '+esc(L.rung2.label)+': '+(L.rung2.pct==null?'—':esc(String(L.rung2.pct))+'%')+' vs '+esc(String(L.rung2.bar_pct))+'%'+(L.rung2["pass"]?' ✅':' ❌')+'</div>';
       if(L.companion_troi_pct!=null)body+='<div class="why">📈 companion: True-ROI (marks incl.) '+esc(String(L.companion_troi_pct))+'% — labeled, never fused</div>';
       body+='<div class="why">🔄 '+esc(L.ratchet)+' · '+esc(L.window)+'</div>';}
