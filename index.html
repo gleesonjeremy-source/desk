@@ -177,7 +177,12 @@ function strip(d){
     if(pz.length)h.push('💼⏸️ '+pz.map(function(r){return esc(r.ticker)}).join('/')+' pause-rule review');
     if(rent.tripwire&&rent.tripwire.flag)h.push('<span class="bad">🚨 equity jump '+esc(String(rent.tripwire.x_typical))+'× typical — confirm deposits</span>');
   }
-  var m4=d.m4;if(m4&&m4.state==='live')h.push('📈 growth (marks incl.) '+m4.ratio+'× bar '+m4.light);
+  var sc=d.score;if(sc&&sc.growth_pct!=null){
+    var scl='🏁 '+esc(sc.label||'')+' · account '+(sc.growth_pct>=0?'+':'')+sc.growth_pct+'%';
+    if(sc.closed_ann_pct!=null)scl+=' · closed '+(sc.closed_ann_pct>=0?'+':'')+sc.closed_ann_pct+'%/yr vs '+(sc.floor_pct||18)+'% '+(sc.pass?'✅':'❌');
+    else scl+=' · closed ⚪';
+    h.push(scl);
+  }
   var mc=d.machine;if(mc&&mc.alarm_n)h.push('<span class="bad">🖥️ '+mc.alarm_n+' machine mismatch'+(mc.alarm_n>1?'es':'')+'</span>');
   if(!rows&&!chips.length&&!h.length)return '';
   return '<div class="card" style="padding:10px 14px">'+rows+
