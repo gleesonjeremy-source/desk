@@ -218,6 +218,28 @@ function fmtDayS(s){try{return new Date(s+'T12:00:00').toLocaleDateString('en-US
    the date = rec taken; 🛠️ rows wait for a session, never auto-taken) · the
    🤖 batch that never asks. Replaces 🗳️ the lane + 📥 needs-Jeremy.
    "today" is the VIEWER's PT date, never the payload's (08-15 repair). */
+/* 🩹 YOUR POSITIONS (09-20 PM, the placement rule: Telegram gets the DELTA with a
+   clock, the Desk shows the CURRENT VERDICT on every real position). Fed by
+   scanner/repair_read.py → desk_data.positions every evening pass. One verdict
+   word per position, the why and the one alternative on a tap; per-share prices
+   only, never account dollars; ROOM in house units. Lives INSIDE the TODAY card
+   (the panel law: merge, never add). */
+var ACTION_VERBS=['ROLL','BUY BACK','LET GO','HARVEST','CUT','SELL CALL'];
+function positionsBlock(d){
+  var p=d.positions;if(!p||!(p.rows||[]).length)return '';
+  var acts=p.rows.filter(function(r){return ACTION_VERBS.indexOf(r.verdict)>=0});
+  var holds=p.rows.filter(function(r){return r.verdict==='HOLD'});
+  var nocall=p.rows.filter(function(r){return r.verdict==='NO CALL'});
+  function leg(r){return esc(r.ticker)+' '+esc(r.leg)+(r.kind&&r.kind.indexOf('long')===0?' long':'')}
+  function head(r){var h='<b>'+esc(r.verdict)+'</b> '+leg(r);if(r.verdict==='ROLL'&&r.roll&&r.roll.to)h+=' → '+esc(r.roll.to)+(r.roll.credit!=null?' for '+(r.roll.credit>=0?'+':'')+Number(r.roll.credit).toFixed(2)+' credit':'');return h}
+  var out='<div class="item why" style="border:none;padding-bottom:0">🩹 <b style="color:#c9d1d9">YOUR POSITIONS</b> — '+acts.length+' to decide · '+holds.length+' hold · as of '+esc(p.asof||'')+' · you act on 📱 Phone at your price</div>';
+  acts.forEach(function(r){out+='<div class="item warn"><details><summary style="cursor:pointer;list-style:none;padding:0;color:inherit;font-size:14px">'+head(r)+'</summary><div class="why">why: '+esc(r.why||'')+'</div>'+(r.alt?'<div class="why">or: '+esc(r.alt)+'</div>':'')+'</details></div>'});
+  if(holds.length)out+='<div class="item"><details><summary style="cursor:pointer;list-style:none;padding:0;color:inherit;font-size:14px"><b>HOLD</b> '+holds.map(function(r){return esc(r.ticker)}).join(' · ')+' <span class="pill">tap ▾</span></summary>'+holds.map(function(r){return '<div class="why">'+leg(r)+' — '+esc(r.why||r.brief||'')+'</div>'}).join('')+'</details></div>';
+  if(nocall.length)out+='<div class="item why" style="border:none"><b style="color:#c9d1d9">NO CALL</b> '+nocall.map(function(r){return leg(r)}).join(' · ')+' — '+esc(nocall[0].why||'')+'</div>';
+  if((p.week||[]).length)out+='<div class="item why" style="border:none">📆 this week: '+esc(p.week.join(' · '))+'</div>';
+  if(p.room)out+='<div class="item why" style="border:none">💳 room: '+esc(p.room)+'</div>';
+  return out;
+}
 function todayPanel(d){
   var t=d.today||{},items=t.items||[],dec=d.decisions||{},ny=d.needs_you||{};
   var vt=ptToday(),dayLabel=esc(fmtDayS(vt));
@@ -287,7 +309,7 @@ function todayPanel(d){
   }
   if(dec.batch_n)decs+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">🤖 '+dec.batch_n+' machine fix'+(dec.batch_n>1?'es':'')+' queued for the next session — never asks you <span class="pill">tap ▾</span></summary>'+
       batch.map(function(b){return '<div class="item why" style="padding:3px 0;border:none">• '+esc(b.text)+'</div>'}).join('')+'</details></div>';
-  var body=bells.join('')+asks+decs;
+  var body=bells.join('')+positionsBlock(d)+asks+decs;
   if(!body)return '<div class="card" style="padding:8px 14px"><span class="ok">🫵 nothing needs you '+dayLabel+' ✓</span><span class="why"> — alarms, day asks and decisions land here first</span>'+staleTag+'</div>';
   return '<div class="card"><h2>🫵 TODAY — '+dayLabel+'<span class="tag">'+(bells.length?bells.length+' alarm'+(bells.length>1?'s':'')+' · ':'')+(act.length?act.length+' ask'+(act.length>1?'s':'')+' · ':'')+dopen.length+' decision'+(dopen.length===1?'':'s')+'</span>'+staleTag+'</h2>'+body+
     '<div class="item why" style="border:none;padding-top:8px">📲 answer in Telegram by number · 🛠️ the next session answers it · tap a row for the why</div></div>';
