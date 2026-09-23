@@ -91,8 +91,9 @@ verdicts, hot tickers), then the notable rest; five lines, the week on a tap.</p
 name, then your next dated thing. Only YOUR dates: sit-downs, asks, the season, macro, and
 earnings/expiries on names you actually hold. The machine's build days live in the vault.</p>
 <p><b>Folded reference:</b> 🖥️ the machine (buckets, mismatches, goal lights — the
-strategy cards live in the vault Garage), 🏦 TS-SIM (the head-count adds up to the sim
-account: scanner twins listed, agent mirrors on the Copy Desk), 🏟️ the tournament
+strategy cards live in the vault Garage), 🏦 TS-SIM (the practice account at TradeStation —
+real orders, fake money: the head-count adds up to the account, scanner twins listed, agent
+mirrors on the Copy Desk, and this week's fill rate), 🏟️ the tournament
 standings, and 📖 the playbook.</p>
 <p><b>Freshness:</b> data refreshes ~hourly on market days and every morning + evening
 including weekends; the stamp at the top tells its age, an amber banner appears past
@@ -362,6 +363,11 @@ function tsSim(d){
   var byAg=Object.keys(cs.mirror_by_agent||{}).sort().map(function(a){return esc(a)+' '+cs.mirror_by_agent[a]}).join(' · ');
   var head='<div class="item"><b>the sim account holds '+npos+' position'+(npos===1?'':'s')+'</b>'+(nwork?' + '+nwork+' working order'+(nwork>1?'s':''):'')+
     '<span class="why">🧪 scanner twins '+(cs.rung_filled||0)+' (listed below) · 🪞 agent mirrors '+(cs.mirror_filled||0)+(byAg?' ('+byAg+')':'')+' → their cards are on the Copy Desk</span></div>';
+  /* ⚖️ 09-22 ('yes do both'): the week's fill rate — the number Saturday's fill
+     ladder is built to move (orders posted once at mid mostly died unfilled) */
+  var fw=s.fill_week;
+  if(fw&&fw.attempted)head+='<div class="item"><b>this week: '+fw.filled+' of '+(fw.filled+fw.no_fill)+' sim orders filled</b>'+(fw.working?' · '+fw.working+' still working':'')+
+    '<span class="why">'+(fw.no_fill?fw.no_fill+' never filled — posted once at the mid and never adjusted · Saturday\'s fill ladder is the fix (start at mid, walk 2–3 steps toward the market)':'every attempted order filled')+'</span></div>';
   if(s.pairs){
     head+='<div class="item"><div class="row"><span><b>the fill-truth gap</b> · '+s.pairs+' closed pair(s)</span>'+
       '<span class="num '+(gap>=0?'ok':'bad')+'">'+money(gap)+'</span></div>'+
@@ -435,8 +441,8 @@ function tsSim(d){
   var sf=seats?'<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none">🪜 per-seat fill-truth detail <span class="pill">tap ▾</span></summary>'+seats+missed+'</details></div>':'';
   /* v5 (09-13 re-cut, Jeremy: "TS sim should be a drop down"): folds shut;
      the summary line carries the pulse — open · recent closes · the gap */
-  var tag=npos+' positions · '+(cs.rung_filled||0)+' twins · '+(cs.mirror_filled||0)+' mirrors'+(gap!=null?' · fill-truth gap '+money(gap):'');
-  return foldCard('🏦 TS-SIM — the sim account',tag,head+open+rec+nf+sf,false);
+  var tag=npos+' positions · '+(cs.rung_filled||0)+' twins · '+(cs.mirror_filled||0)+' mirrors'+(fw&&fw.attempted?' · '+fw.filled+'/'+(fw.filled+fw.no_fill)+' filled this week':'');
+  return foldCard('🏦 TS-SIM — the practice account at TradeStation (real orders, fake money)',tag,head+open+rec+nf+sf,false);
 }
 
 function legDesc(s){ /* "O:GIS261016C00032500:long" -> {act,strike,cp,date} */
