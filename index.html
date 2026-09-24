@@ -559,7 +559,7 @@ function heatBlock(d){
     }).join(' · ');
   }
   function card(x,icon){
-    return '<div class="item"><div>'+icon+' <b>'+esc(x.label)+'</b>'+(x.version?' <span class="pill">'+esc(x.version)+'</span>':'')+'<span class="pill">'+esc(x.book_label)+'</span></div>'+
+    return '<div class="item"><div>'+icon+' <b>'+esc(x.label)+'</b>'+(x.version?' <span class="pill">'+esc(x.version)+'</span>':'')+bowPill(x)+'<span class="pill">'+esc(x.book_label)+'</span></div>'+
       '<span class="why"><b style="color:#c9d1d9">'+x.streak+' straight · '+usdS(x.streak_usd)+'</b>'+(icon==='🌡️'?' — one more win and it heats up':'')+' · rare for it (needs '+x.need+' at '+x.win_pct+'% wins)</span>'+
       '<span class="why">record '+x.wins+'-'+(x.n-x.wins)+' · last-20 PF '+(x.pf20!=null?x.pf20:'—')+' · last 8 '+usdS(x.last8)+(x.sim?' · 🏦 sim '+x.sim.wins+' of '+x.sim.n+' green':' · not yet in the sim')+(x.agents?' · by '+esc(x.agents.join(' / ')):'')+'</span>'+
       '<span class="why" style="color:#3fb950">'+take(x)+'</span></div>';
@@ -570,6 +570,31 @@ function heatBlock(d){
   }
   return '<div class="item why" style="border:none;padding-bottom:2px">🔥 '+hdr+' — winning right now: the streak is rare for it and the last 8 made money (realistic prices)</div>'+
     hot.map(function(x){return card(x,'🔥')}).join('')+warm.map(function(x){return card(x,'🌡️')}).join('');
+}
+/* 🎀 THE BOW TIE, NAMED (⚖️ Jeremy Wed 09-23: "I have not seen any bow tie
+   yet" — it ran from 09-16 and Tuesday's one ticket GLXY was one; the page
+   never said the word). bowPill tags any ticket · look · copy card whose
+   version is a bow tie; bowtieLine is tonight's board in one line. */
+function bowPill(c){
+  var v=String((c&&(c.version||c.version_label))||'');
+  if(v.indexOf('bow_tie')<0&&!(c&&c.kit==='bow_tie'))return '';
+  var w=v.indexOf('kit_bounce')>=0?'kit bounce':(v.indexOf('bear')>=0?'bear tie · lab':'bow tie');
+  return '<span class="pill good">🎀 '+w+'</span>';
+}
+function bowtieLine(d){
+  var b=d.bowtie;if(!b)return '';
+  var bits=[];
+  if((b.boost||[]).length)bits.push('boost <b>'+b.boost.map(esc).join(' · ')+'</b>');
+  if((b.kit||[]).length)bits.push('kit bounce <b>'+b.kit.map(function(k){return esc(k.ticker)+(k.grade?' '+esc(k.grade):'')}).join(' · ')+'</b>');
+  var reps=(b.versions||[]).map(function(v){
+    var o=(v.open||[]).length;
+    if(!o&&!v.closed)return esc(v.label)+' 0 yet';
+    return esc(v.label)+' '+o+' open'+(v.closed?' · '+v.wins+'-'+(v.closed-v.wins)+' closed':'');
+  });
+  var when=b.board_for?' for '+esc(String(b.board_for).slice(5)):'';
+  return '<div class="item why" style="border:none;padding-top:0">🎀 <b style="color:#c9d1d9">BOW TIE</b>'+when+' — '+
+    (bits.length?bits.join(' · '):'no boost or kit-bounce cell')+' · '+(b.fresh_bull||0)+' fresh bull ties'+
+    (reps.length?'<span class="why">reps: '+reps.join(' · ')+'</span>':'')+'</div>';
 }
 function ideasPanel(d){
   var I=d.ideas;
@@ -611,7 +636,7 @@ function ideasPanel(d){
     var conv=c.conviction==='HIGH'?'<span class="pill hi">HIGH</span>':'<span class="pill med">MED</span>';
     var ord=c.order==='quota'?'<span class="pill">📣 rep need</span>':'';
     var g=c.grade?' <span class="pill '+(c.grade==='A'?'good':'')+'">📈 '+esc(c.grade)+'</span>':'';
-    return '<div class="item"><div><span class="tk">'+(i+1)+'. '+esc(c.ticker)+'</span> — '+esc(c.strategy)+(c.dir?' '+esc(c.dir):'')+g+conv+recPill(c.record)+ord+'</div>'+
+    return '<div class="item"><div><span class="tk">'+(i+1)+'. '+esc(c.ticker)+'</span> — '+esc(c.strategy)+(c.dir?' '+esc(c.dir):'')+g+bowPill(c)+conv+recPill(c.record)+ord+'</div>'+
       '<div style="margin:3px 0">'+contractLine(c)+(c.cost!=null?' <span class="muted">@ $'+Math.abs(c.cost)+'</span>':'')+'</div>'+
       glance(c)+caseFold(c,'the case — read · shape · evidence · exits')+
       (c.ticket?tbtnRaw(c.ticket,'📋 COPY TICKET'):tbtn(c,'the ideas window'))+
@@ -631,6 +656,7 @@ function ideasPanel(d){
   var out='<div class="card"><h2>🎯 IDEAS<span class="tag">'+(nh?'🔥 '+nh+' · ':'')+tk.length+' ticket'+(tk.length===1?'':'s')+(looks.length?' · '+looks.length+' looks':'')+' · '+when+'</span></h2>';
   if(I.red_folder)out+='<div class="item" style="color:#f85149;border:none;padding-top:0">🔴 '+esc(I.red_folder)+'</div>';
   out+=heatBlock(d);
+  out+=bowtieLine(d);
   /* 🧩 THE COUNT LINE (bar 6) + 🗑️ THE TRASH RATE (bar 7), 09-14: the line
      missing = the router did not run (say so); the rate is his one number */
   /* v6 (09-22): a router that did not run stays loud (couldn't-look ≠
@@ -658,7 +684,7 @@ function ideasPanel(d){
       (c.structure_reason?'<span class="why">🧩 '+esc(c.version_label||c.version||'')+' — '+esc(c.structure_reason)+'</span>':'')+
       (edge.length?'<span class="why">🌡️ '+edge.join(' · ')+'</span>':'')+
       (c.exits?'<span class="why">⛔ '+esc(c.exits)+'</span>':'');
-    return '<div class="item"><div><span class="tk">'+(i+1)+'. '+esc(c.ticker)+'</span> — '+esc(c.strategy)+(c.dir?' '+esc(c.dir):'')+(c.structure?' · '+esc(c.structure):'')+' '+g+recPill(c.record)+'</div>'+
+    return '<div class="item"><div><span class="tk">'+(i+1)+'. '+esc(c.ticker)+'</span> — '+esc(c.strategy)+(c.dir?' '+esc(c.dir):'')+(c.structure?' · '+esc(c.structure):'')+' '+g+bowPill(c)+recPill(c.record)+'</div>'+
       '<span class="why">👀 held: '+esc(c.why||'no reason stamped')+'</span>'+
       '<div style="margin:3px 0">'+contractLine(c)+(c.cost!=null?' <span class="muted">@ $'+Math.abs(c.cost)+'</span>':'')+'</div>'+
       glance(c)+
@@ -723,7 +749,7 @@ function copyCard(c){
     (c.opened?'<div class="why">opened '+esc(c.opened)+(c.version==='unversioned'?' · unversioned (pre-stamp)':'')+'</div>':'')+
     '<div class="why" style="color:'+(c.light==='green'?'#3fb950':(c.light==='black'?'#8b949e':'#d29922'))+'">'+esc(c.light_why||'')+'</div>';
   return '<div class="item">'+
-    '<div>'+(LIGHT[c.light]||'')+' <span class="tk">'+esc(c.ticker)+'</span> '+esc(c.strategy)+(c.direction==='bearish'?' 🔴':(c.direction==='bullish'?' 🟢':''))+v+(c.lab?'<span class="pill">🧪</span>':'')+((c.co||[]).length?'<span class="pill">👥 '+(c.co.length+1)+' seats</span>':'')+(c.grade?'<span class="pill '+(c.grade==='A'?'good':'')+'">📈 '+esc(c.grade)+'</span>':'')+'</div>'+
+    '<div>'+(LIGHT[c.light]||'')+' <span class="tk">'+esc(c.ticker)+'</span> '+esc(c.strategy)+(c.direction==='bearish'?' 🔴':(c.direction==='bullish'?' 🟢':''))+v+bowPill(c)+(c.lab?'<span class="pill">🧪</span>':'')+((c.co||[]).length?'<span class="pill">👥 '+(c.co.length+1)+' seats</span>':'')+(c.grade?'<span class="pill '+(c.grade==='A'?'good':'')+'">📈 '+esc(c.grade)+'</span>':'')+'</div>'+
     (c.legs?'<div style="margin:1px 0;font-size:13px">'+esc(c.legs)+'</div>':'')+
     '<span class="why">'+px+(simS?' · '+simS:'')+' · '+seat+'</span>'+
     (why?'<span class="why">💭 '+esc(why.length>90?why.slice(0,90)+'…':why)+'</span>':'')+
