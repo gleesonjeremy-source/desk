@@ -751,6 +751,7 @@ function copyCard(c){
   return '<div class="item">'+
     '<div>'+(LIGHT[c.light]||'')+' <span class="tk">'+esc(c.ticker)+'</span> '+esc(c.strategy)+(c.direction==='bearish'?' 🔴':(c.direction==='bullish'?' 🟢':''))+v+bowPill(c)+(c.lab?'<span class="pill">🧪</span>':'')+((c.co||[]).length?'<span class="pill">👥 '+(c.co.length+1)+' seats</span>':'')+(c.grade?'<span class="pill '+(c.grade==='A'?'good':'')+'">📈 '+esc(c.grade)+'</span>':'')+'</div>'+
     (c.legs?'<div style="margin:1px 0;font-size:13px">'+esc(c.legs)+'</div>':'')+
+    (c.iv&&c.iv.text?'<div class="why" style="color:'+({ok:'#3fb950',mid:'#d29922',warn:'#f85149'}[c.iv.verdict]||'#8b949e')+'">'+esc(c.iv.text)+'</div>':'')+
     '<span class="why">'+px+(simS?' · '+simS:'')+' · '+seat+'</span>'+
     (why?'<span class="why">💭 '+esc(why.length>90?why.slice(0,90)+'…':why)+'</span>':'')+
     '<details><summary style="cursor:pointer;list-style:none;padding:0" class="why">plan · sim · why the light <span class="pill">tap ▾</span></summary>'+more+'</details>'+
