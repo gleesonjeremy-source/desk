@@ -210,6 +210,17 @@ function accountPanel(d){
       (ex.per_wk?' · ~'+ex.per_wk+'/wk'+(ex.eta?' → ~'+esc(fmtDayS(ex.eta)):''):'')+' <span class="muted">(sim $)</span></span></div>';
   }
   rows+=gl;
+  /* 🎯 THE PROGRESS NUMBER (⚖️ REPS FIRST, Jeremy 09-23; built Sat 09-26):
+     sim real-fill reps per S2 focus strategy toward 20 + rungs climbed —
+     the build law's one number (core/progress.py owns the definition). */
+  var pg=d.progress;
+  if(pg&&pg.rows&&pg.rows.length){
+    rows+='<div class="row"><span>🎯 <b>Progress:</b> '+pg.rows.map(function(r){
+      return esc(r.icon||'')+' '+esc(r.label||r.strategy)+' <b>'+(r.lead_reps||0)+'/'+(pg.target||20)+'</b>'+
+        (r.closed_wk?' <span class="ok">+'+r.closed_wk+' this wk</span>':'');
+    }).join(' · ')+' · 🏦 '+(pg.climbed&&pg.climbed.length?esc(pg.climbed.length+' rung'+(pg.climbed.length>1?'s':'')+' climbed'):'no rung climbed yet')+
+      ' <span class="muted">(sim reps)</span></span></div>';
+  }
   var pos=positionsBlock(d),bk=d.book?bookStrip(d.book):'';
   if(!rows&&!h.length&&!pos&&!bk)return '';
   return '<div class="card"><h2>💼 YOUR ACCOUNT<span class="tag">score · positions · balance</span></h2>'+rows+
