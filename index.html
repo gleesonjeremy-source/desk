@@ -374,11 +374,12 @@ function tsSim(d){
   var byAg=Object.keys(cs.mirror_by_agent||{}).sort().map(function(a){return esc(a)+' '+cs.mirror_by_agent[a]}).join(' · ');
   var head='<div class="item"><b>the sim account holds '+npos+' position'+(npos===1?'':'s')+'</b>'+(nwork?' + '+nwork+' working order'+(nwork>1?'s':''):'')+
     '<span class="why">🧪 scanner twins '+(cs.rung_filled||0)+' (listed below) · 🪞 agent mirrors '+(cs.mirror_filled||0)+(byAg?' ('+byAg+')':'')+' → their cards are on the Copy Desk</span></div>';
-  /* ⚖️ 09-22 ('yes do both'): the week's fill rate — the number Saturday's fill
-     ladder is built to move (orders posted once at mid mostly died unfilled) */
+  /* ⚖️ 09-22 ('yes do both'): the week's fill rate — the number the fill
+     ladder is built to move. 09-27 (seam #21): the ladder is LIVE since 2a591e8
+     (Sat 09-26) — the line tells what the machine does now, never the old fix-to-come */
   var fw=s.fill_week;
   if(fw&&fw.attempted)head+='<div class="item"><b>this week: '+fw.filled+' of '+(fw.filled+fw.no_fill)+' sim orders filled</b>'+(fw.working?' · '+fw.working+' still working':'')+
-    '<span class="why">'+(fw.no_fill?fw.no_fill+' never filled — posted once at the mid and never adjusted · Saturday\'s fill ladder is the fix (start at mid, walk 2–3 steps toward the market)':'every attempted order filled')+'</span></div>';
+    '<span class="why">'+(fw.no_fill?fw.no_fill+' never filled · spreads now start at the mid and walk toward the market through the day (the fill ladder, live from S2), singles re-post once at the new mid':'every attempted order filled')+'</span></div>';
   if(s.pairs){
     head+='<div class="item"><div class="row"><span><b>the fill-truth gap</b> · '+s.pairs+' closed pair(s)</span>'+
       '<span class="num '+(gap>=0?'ok':'bad')+'">'+money(gap)+'</span></div>'+
@@ -714,8 +715,8 @@ function ideasPanel(d){
       '<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">open the '+looks.length+' with contract, read, edge and 📋 <span class="pill">tap ▾</span></summary>'+looks.map(lRow).join('')+'</details></div>';
   }
   if(waits.length)out+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none;padding:2px 0" class="why">🎯 <b style="color:#c9d1d9">WAITING FOR A LEVEL</b> · '+waits.length+' — '+waits.map(function(w){return esc(w.ticker)+(w.dir==='down'?'↓':'↑')}).join(' · ')+' <span class="pill">tap ▾</span></summary>'+
-    waits.map(function(w){return '<div class="item why" style="border:none;padding:2px 0 2px 10px"><b>'+esc(w.ticker)+'</b> '+(w.dir==='down'?'↓':'↑')+' rings at $'+esc(String(w.trigger))+(w.spot!=null?' (now $'+esc(String(w.spot))+')':'')+(w.grade?' · 📈 '+esc(w.grade):'')+' · '+esc(w.strategy||'')+'</div>'}).join('')+
-    '<div class="item why" style="border:none;padding:2px 0 0 10px">the 20 SMA is the trigger — the phone rings when the tape touches it</div></details></div>';
+    waits.map(function(w){return '<div class="item why" style="border:none;padding:2px 0 2px 10px"><b>'+esc(w.ticker)+'</b> '+(w.dir==='down'?'↓':'↑')+' trigger $'+esc(String(w.trigger))+(w.spot!=null?' (now $'+esc(String(w.spot))+')':'')+(w.grade?' · 📈 '+esc(w.grade):'')+' · '+esc(w.strategy||'')+'</div>'}).join('')+
+    '<div class="item why" style="border:none;padding:2px 0 0 10px">the 20 SMA is the trigger · ⚠️ not ringing yet — look at these yourself; the phone ring for a touched level is a dated build this week</div></details></div>';
   /* v5 (09-13 phone test): HELD and RADAR show three rows, the rest fold —
      with zero tickets a long held list pushed TODAY off the first screen */
   function hRow(h){return '<div class="item"><span class="tk">'+esc(h.ticker)+'</span> '+esc(h.strategy||'')+(h.grade?' 📈 '+esc(h.grade):'')+' <span class="why">'+esc(h.why||'')+'</span></div>'}
@@ -811,8 +812,13 @@ function tournament(d){
   if((t.bounties||[]).length)bits.push('🎯 bounties: '+t.bounties.map(function(b){return esc(b.strategy)+' $'+Math.round(b.reward/1000)+'k'}).join(', '));
   if((t.graduates||[]).length)bits.push('🏆 graduated: '+t.graduates.map(esc).join(', '));
   if(bits.length)body+='<div class="item why" style="border:none">'+bits.join(' · ')+'</div>';
-  body+='<div class="item why" style="border:none">⚖️ merit = equity − relegation tax, suspect marks excluded, lab losses shielded · 📉 = pays the tax if the week ends now · coach any agent: text “desk: tell &lt;name&gt; …”</div>';
-  var tag=(t.week!=null?'wk '+t.week:'')+(t.season_break?' · season breaks '+esc(String(t.season_break).slice(5)):'')+' · standings';
+  /* 🏁 09-27 (seam #3): the note tells THIS season's rule — no tax from S2 (⚖️ 09-24),
+     so 📉 means the bottom seat on merit, axed at the break if below par */
+  body+='<div class="item why" style="border:none">'+(t.tax_pct>0
+    ?'⚖️ merit = equity − relegation tax, suspect marks excluded, lab losses shielded · 📉 = pays the tax if the week ends now'
+    :'⚖️ merit = equity this season, suspect marks excluded, lab losses shielded · no tax this season · 📉 = bottom seat on merit — axed at the break if below par')+
+    ' · coach any agent: text “desk: tell &lt;name&gt; …”</div>';
+  var tag=(t.season?'S'+t.season+' ':'')+(t.wk_in!=null?'wk '+t.wk_in:(t.week!=null?'wk '+t.week:''))+(t.season_break?' · season breaks '+esc(String(t.season_break).slice(5)):'')+' · standings';
   return foldCard('🏟️ The tournament',tag,body,false);
 }
 
