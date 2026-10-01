@@ -256,8 +256,9 @@ function positionsBlock(d){
   var holds=p.rows.filter(function(r){return r.verdict==='HOLD'});
   var nocall=p.rows.filter(function(r){return r.verdict==='NO CALL'});
   function leg(r){return esc(r.ticker)+' '+esc(r.leg)+(r.kind&&r.kind.indexOf('long')===0?' long':'')}
-  function head(r){var h='<b>'+esc(r.verdict)+'</b> '+leg(r);if(r.verdict==='ROLL'&&r.roll&&r.roll.to)h+=' → '+esc(r.roll.to)+(r.roll.credit!=null?' for '+(r.roll.credit>=0?'+':'')+Number(r.roll.credit).toFixed(2)+' credit':'');return h}
-  var out='<div class="item why" style="border:none;padding-bottom:0">🩹 <b style="color:#c9d1d9">YOUR POSITIONS</b> — '+acts.length+' to decide · '+holds.length+' hold · as of '+esc(p.asof||'')+' · you act on 📱 Phone at your price</div>';
+  /* ⚡ Wed 09-30 (seam #10): a word the listener rang AFTER the evening read overlays it, marked */
+  function head(r){var h='<b>'+esc(r.verdict)+'</b> '+leg(r)+(r.live_word?' <span class="pill hi">⚡ live '+esc(r.live_word)+'</span>':'');if(r.verdict==='ROLL'&&r.roll&&r.roll.to)h+=' → '+esc(r.roll.to)+(r.roll.credit!=null?' for '+(r.roll.credit>=0?'+':'')+Number(r.roll.credit).toFixed(2)+' credit':'');return h}
+  var out='<div class="item why" style="border:none;padding-bottom:0">🩹 <b style="color:#c9d1d9">YOUR POSITIONS</b> — '+acts.length+' to decide · '+holds.length+' hold · read '+esc(p.date?String(p.date).slice(5)+' ':'')+esc(p.asof||'')+(p.live_n?' · ⚡ '+p.live_n+' word'+(p.live_n===1?'':'s')+' changed live (last '+esc(p.live_at||'')+' PT)':'')+' · you act on 📱 Phone at your price</div>';
   acts.forEach(function(r){out+='<div class="item warn"><details><summary style="cursor:pointer;list-style:none;padding:0;color:inherit;font-size:14px">'+head(r)+'</summary><div class="why">why: '+esc(r.why||'')+'</div>'+(r.alt?'<div class="why">or: '+esc(r.alt)+'</div>':'')+'</details></div>'});
   if(holds.length)out+='<div class="item"><details><summary style="cursor:pointer;list-style:none;padding:0;color:inherit;font-size:14px"><b>HOLD</b> '+holds.map(function(r){return esc(r.ticker)}).join(' · ')+' <span class="pill">tap ▾</span></summary>'+holds.map(function(r){return '<div class="why">'+leg(r)+' — '+esc(r.why||r.brief||'')+'</div>'}).join('')+'</details></div>';
   if(nocall.length)out+='<div class="item why" style="border:none"><b style="color:#c9d1d9">NO CALL</b> '+nocall.map(function(r){return leg(r)}).join(' · ')+' — '+esc(nocall[0].why||'')+'</div>';
@@ -644,14 +645,24 @@ function ideasPanel(d){
       (c.print_law?'<span class="why" style="color:#f85149">'+esc(c.print_law)+'</span>':'');
     return body?'<details><summary style="cursor:pointer;list-style:none;padding:2px 0" class="why">'+label+' <span class="pill">tap ▾</span></summary>'+body+'</details>':'';
   }
+  /* 🥇 LIVE CHECK EVERY HOUR (⚖️ Jeremy Mon 09-28 'yes wednesday' — "the gold
+     we create and not stale stuff", built Wed 09-30): every hourly pass
+     re-reads each ticket + look at the live tape (scanner/idea_live.py — the
+     bell's own signal + price reads). Spent = struck, its reason and time, NO
+     📋 (the payload drops the block); live = ✅ with the time of the read. */
+  function livePill(c){return c.live==='live'?'<span class="pill good">✅ live '+esc(c.live_at||'')+'</span>':''}
+  function liveSpent(c){return c.live==='spent'?'<span class="why" style="color:#f85149">⏱️ spent '+esc(c.live_at||'')+' — '+esc(c.live_why||'signal spent at the tape')+' · no 📋 — never copy a dead ticket</span>':''}
+  function nm(c,t){return c.live==='spent'?'<s style="opacity:.6">'+t+'</s>':t}
+  function cbtnLive(c,where){return c.live==='spent'?'':(c.ticket?tbtnRaw(c.ticket,'📋 COPY TICKET'):tbtn(c,where))}
   function tRow(c,i){
     var conv=c.conviction==='HIGH'?'<span class="pill hi">HIGH</span>':'<span class="pill med">MED</span>';
     var ord=c.order==='quota'?'<span class="pill">📣 rep need</span>':'';
     var g=c.grade?' <span class="pill '+(c.grade==='A'?'good':'')+'">📈 '+esc(c.grade)+'</span>':'';
-    return '<div class="item"><div><span class="tk">'+(i+1)+'. '+esc(c.ticker)+'</span> — '+esc(c.strategy)+(c.dir?' '+esc(c.dir):'')+g+bowPill(c)+conv+recPill(c.record)+ord+'</div>'+
-      '<div style="margin:3px 0">'+contractLine(c)+(c.cost!=null?' <span class="muted">@ $'+Math.abs(c.cost)+'</span>':'')+'</div>'+
+    return '<div class="item"><div>'+nm(c,'<span class="tk">'+(i+1)+'. '+esc(c.ticker)+'</span> — '+esc(c.strategy)+(c.dir?' '+esc(c.dir):''))+g+bowPill(c)+conv+recPill(c.record)+ord+livePill(c)+'</div>'+
+      liveSpent(c)+
+      '<div style="margin:3px 0">'+nm(c,contractLine(c)+(c.cost!=null?' <span class="muted">@ $'+Math.abs(c.cost)+'</span>':''))+'</div>'+
       glance(c)+caseFold(c,'the case — read · shape · evidence · exits')+
-      (c.ticket?tbtnRaw(c.ticket,'📋 COPY TICKET'):tbtn(c,'the ideas window'))+
+      cbtnLive(c,'the ideas window')+
       '</div>';
   }
   function sRow(c){
@@ -666,6 +677,8 @@ function ideasPanel(d){
   var when=(I.ts?esc(String(I.ts).slice(11))+' PT':(I.label&&I.label!=='morning'?esc(I.label):'07:00'));
   var nh=((d.heat||{}).hot||[]).length;
   var out='<div class="card"><h2>🎯 IDEAS<span class="tag">'+(nh?'🔥 '+nh+' · ':'')+tk.length+' ticket'+(tk.length===1?'':'s')+(looks.length?' · '+looks.length+' looks':'')+' · '+when+'</span></h2>';
+  var LV=I.live;
+  if(LV&&LV.at)out+='<div class="item why" style="border:none;padding-top:0">🥇 re-checked at the live tape '+esc(LV.at)+' PT · ✅ '+(LV.live||0)+' live · ⏱️ '+(LV.spent||0)+' spent (struck, no 📋) · the rest have no live rule or quote</div>';
   if(I.red_folder)out+='<div class="item" style="color:#f85149;border:none;padding-top:0">🔴 '+esc(I.red_folder)+'</div>';
   out+=heatBlock(d);
   out+=bowtieLine(d);
@@ -696,12 +709,13 @@ function ideasPanel(d){
       (c.structure_reason?'<span class="why">🧩 '+esc(c.version_label||c.version||'')+' — '+esc(c.structure_reason)+'</span>':'')+
       (edge.length?'<span class="why">🌡️ '+edge.join(' · ')+'</span>':'')+
       (c.exits?'<span class="why">⛔ '+esc(c.exits)+'</span>':'');
-    return '<div class="item"><div><span class="tk">'+(i+1)+'. '+esc(c.ticker)+'</span> — '+esc(c.strategy)+(c.dir?' '+esc(c.dir):'')+(c.structure?' · '+esc(c.structure):'')+' '+g+bowPill(c)+recPill(c.record)+'</div>'+
+    return '<div class="item"><div>'+nm(c,'<span class="tk">'+(i+1)+'. '+esc(c.ticker)+'</span> — '+esc(c.strategy)+(c.dir?' '+esc(c.dir):'')+(c.structure?' · '+esc(c.structure):''))+' '+g+bowPill(c)+recPill(c.record)+livePill(c)+'</div>'+
+      liveSpent(c)+
       '<span class="why">👀 held: '+esc(c.why||'no reason stamped')+'</span>'+
-      '<div style="margin:3px 0">'+contractLine(c)+(c.cost!=null?' <span class="muted">@ $'+Math.abs(c.cost)+'</span>':'')+'</div>'+
+      '<div style="margin:3px 0">'+nm(c,contractLine(c)+(c.cost!=null?' <span class="muted">@ $'+Math.abs(c.cost)+'</span>':''))+'</div>'+
       glance(c)+
       (body?'<details><summary style="cursor:pointer;list-style:none;padding:2px 0" class="why">the case — read · shape · edge · exits <span class="pill">tap ▾</span></summary>'+body+'</details>':'')+
-      (c.ticket?tbtnRaw(c.ticket,'📋 COPY TICKET'):tbtn(c,'the looks'))+
+      cbtnLive(c,'the looks')+
       '</div>';
   }
   /* ⚖️ Jeremy Tue 09-15 PM ("make the 20 ideas a drop down… make sure the key
@@ -709,7 +723,7 @@ function ideasPanel(d){
      the 20 cards with their 📋 buttons open on ONE tap. */
   if(looks.length){
     var gA=looks.filter(function(c){return c.grade==='A'}).length,gB=looks.length-gA;
-    var nstrip=looks.map(function(c){return '<b>'+esc(c.ticker)+'</b> '+esc(c.grade||'')+(c.dir?esc(c.dir):'')}).join(' · ');
+    var nstrip=looks.map(function(c){return nm(c,'<b>'+esc(c.ticker)+'</b> '+esc(c.grade||'')+(c.dir?esc(c.dir):''))}).join(' · ');
     out+='<div class="item why" style="border:none;padding-bottom:2px"><b style="color:#c9d1d9">👀 LOOKS</b> — '+looks.length+' A/B charts priced and held · '+gA+' A · '+gB+' B · your eye decides</div>'+
       '<div class="item why" style="border:none;padding:2px 0">'+nstrip+'</div>'+
       '<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">open the '+looks.length+' with contract, read, edge and 📋 <span class="pill">tap ▾</span></summary>'+looks.map(lRow).join('')+'</details></div>';
