@@ -653,12 +653,23 @@ function ideasPanel(d){
   function livePill(c){return c.live==='live'?'<span class="pill good">✅ live '+esc(c.live_at||'')+'</span>':''}
   function liveSpent(c){return c.live==='spent'?'<span class="why" style="color:#f85149">⏱️ spent '+esc(c.live_at||'')+' — '+esc(c.live_why||'signal spent at the tape')+' · no 📋 — never copy a dead ticket</span>':''}
   function nm(c,t){return c.live==='spent'?'<s style="opacity:.6">'+t+'</s>':t}
-  function cbtnLive(c,where){return c.live==='spent'?'':(c.ticket?tbtnRaw(c.ticket,'📋 COPY TICKET'):tbtn(c,where))}
+  /* 🎫 10-01 (⚖️ Jeremy 'LYV showed up this morning on desk somewhere then
+     disappeared'): Wednesday's 11:02 board sat on the Screen overnight with no
+     date and a live 📋. A board from a PAST day says so in red and carries NO
+     copy button — the next 07:00 pass brings today's. */
+  var bday=I.ts?String(I.ts).slice(0,10):(I.date||'');
+  var stale=!!bday&&bday<ptToday();
+  function cbtnLive(c,where){return (stale||c.live==='spent')?'':(c.ticket?tbtnRaw(c.ticket,'📋 COPY TICKET'):tbtn(c,where))}
+  function passPill(c){
+    var p=c.pass_ts&&I.ts&&c.pass_ts!==I.ts?'<span class="pill">'+esc(String(c.pass_ts).slice(11))+' board</span>':'';
+    if(c.paper_since&&c.paper_since<bday)p+='<span class="pill">📒 paper since '+esc(String(c.paper_since).slice(5))+'</span>';
+    return p;
+  }
   function tRow(c,i){
     var conv=c.conviction==='HIGH'?'<span class="pill hi">HIGH</span>':'<span class="pill med">MED</span>';
     var ord=c.order==='quota'?'<span class="pill">📣 rep need</span>':'';
     var g=c.grade?' <span class="pill '+(c.grade==='A'?'good':'')+'">📈 '+esc(c.grade)+'</span>':'';
-    return '<div class="item"><div>'+nm(c,'<span class="tk">'+(i+1)+'. '+esc(c.ticker)+'</span> — '+esc(c.strategy)+(c.dir?' '+esc(c.dir):''))+g+bowPill(c)+conv+recPill(c.record)+ord+livePill(c)+'</div>'+
+    return '<div class="item"><div>'+nm(c,'<span class="tk">'+(i+1)+'. '+esc(c.ticker)+'</span> — '+esc(c.strategy)+(c.dir?' '+esc(c.dir):''))+g+bowPill(c)+conv+recPill(c.record)+ord+livePill(c)+passPill(c)+'</div>'+
       liveSpent(c)+
       '<div style="margin:3px 0">'+nm(c,contractLine(c)+(c.cost!=null?' <span class="muted">@ $'+Math.abs(c.cost)+'</span>':''))+'</div>'+
       glance(c)+caseFold(c,'the case — read · shape · evidence · exits')+
@@ -674,9 +685,10 @@ function ideasPanel(d){
     return '<div class="item"><div><span class="tk">'+esc(c.ticker)+'</span> '+esc(c.strategy)+(c.dir?' '+esc(c.dir):'')+(c.grade?' 📈 '+esc(c.grade):'')+recPill(c.record)+'</div>'+
       '<span class="why">evidence '+((c.confirms||[]).length)+(c.need?'/'+c.need:'')+' · missing: '+esc(miss)+'</span></div>';
   }
-  var when=(I.ts?esc(String(I.ts).slice(11))+' PT':(I.label&&I.label!=='morning'?esc(I.label):'07:00'));
+  var when=(I.ts?(stale?fmtDayS(bday)+' ':'')+esc(String(I.ts).slice(11))+' PT':(I.label&&I.label!=='morning'?esc(I.label):'07:00'));
   var nh=((d.heat||{}).hot||[]).length;
   var out='<div class="card"><h2>🎯 IDEAS<span class="tag">'+(nh?'🔥 '+nh+' · ':'')+tk.length+' ticket'+(tk.length===1?'':'s')+(looks.length?' · '+looks.length+' looks':'')+' · '+when+'</span></h2>';
+  if(stale)out+='<div class="item" style="color:#f85149;border:none;padding-top:0">📅 '+esc(fmtDayS(bday))+'\'s board — not today\'s. No 📋 on a past day\'s ideas (the setups may have run); today\'s board lands at the 07:00 pass.</div>';
   var LV=I.live;
   if(LV&&LV.at)out+='<div class="item why" style="border:none;padding-top:0">🥇 re-checked at the live tape '+esc(LV.at)+' PT · ✅ '+(LV.live||0)+' live · ⏱️ '+(LV.spent||0)+' spent (struck, no 📋) · the rest have no live rule or quote</div>';
   if(I.red_folder)out+='<div class="item" style="color:#f85149;border:none;padding-top:0">🔴 '+esc(I.red_folder)+'</div>';
@@ -690,7 +702,7 @@ function ideasPanel(d){
   if(tk.length)out+='<div class="item why" style="border:none;padding-bottom:2px"><b style="color:#c9d1d9">TICKETS</b> — tap 📋, paste into Claude Phone</div>'+tk.map(tRow).join('');
   else{
     var n=I.near;
-    out+='<div class="item"><b>0 tickets on the Desk</b>'+(I.n_considered?' · '+I.n_considered+' setups considered':'')+
+    out+='<div class="item"><b>0 tickets on the Desk</b>'+(I.n_considered!=null?' · '+I.n_considered+' reached the ticket bar':'')+(looks.length?' · '+looks.length+' 👀 looks below':'')+
       (n?'<span class="why">closest: <b>'+esc(n.ticker)+'</b> '+esc(n.strategy)+(n.grade?' 📈 '+esc(n.grade):'')+' — held by: '+esc((n.missing||[]).join('; ')||'no independent confirmation fired')+'</span>':'')+'</div>';
   }
   /* 👀 THE LOOKS (⚖️ Jeremy Tue 09-15: "I should have at least 15 ideas on
@@ -746,6 +758,9 @@ function ideasPanel(d){
   var how=[];
   if(I.count_line)how.push('<div class="item why" style="border:none;padding:2px 0">🧩 '+esc(I.count_line)+'</div>');
   if(I.trash&&I.trash.line){var tr=I.trash;how.push('<div class="item why" style="border:none;padding:2px 0"><span class="pill '+(tr.trashed?'hi':'good')+'">'+esc(tr.line)+'</span>'+((tr.last||[]).length?' last: '+esc(tr.last.map(function(x){return x.ticker+' '+(x.date||'').slice(5)+(x.why?' — '+x.why:'')}).join(' · ')):'')+'</div>');}
+  /* 🩺 SCANNER VITALS (Thu 10-01): what each GATE killed this pass — the
+     funnel per scanner (in → its top killers → out), boing first */
+  if((I.vitals||[]).length)how.push('<div class="item why" style="border:none;padding:2px 0">🩺 <b style="color:#c9d1d9">scanner vitals</b>'+(I.vitals_at?' · '+esc(I.vitals_at)+' PT':'')+'</div>'+I.vitals.map(function(l){return '<div class="item why" style="border:none;padding:1px 0 1px 10px">'+esc(l)+'</div>'}).join(''));
   if(how.length)out+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">🧩 how this board was built '+(I.trash&&I.trash.trashed?'<span class="pill hi">trash rate</span> ':'')+'<span class="pill">tap ▾</span></summary>'+how.join('')+'</details></div>';
   out+='<div class="item why" style="border:none;padding-top:8px">scan prices are stale by design — the copy block reprices live on the phone</div></div>';
   return out;
