@@ -142,6 +142,19 @@ function fmtAge(ep){
    clock rendered in PT — never from the payload's generation date. */
 function ptToday(){try{return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Los_Angeles'}).format(new Date())}catch(x){return new Date().toISOString().slice(0,10)}}
 function ptHM(){try{return new Intl.DateTimeFormat('en-GB',{timeZone:'America/Los_Angeles',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date())}catch(x){var d=new Date();return ('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)}}
+/* 📋 ONE RULE, BOTH PANELS (⚖️ Jeremy Sat 10-03: "why does it drop the copy icon
+   but the other one has it through the weekend"): a 📋 rides the LATEST check
+   that called the trade enterable, labeled with when — until the next session
+   opens. The cut = the 06:30 PT open of the latest session started by the
+   VIEWER's clock (the payload's last_open, or next_open once it has passed).
+   No market block (an old payload) = no cut, the old behavior. */
+function sessionCut(d){var MK=(d&&d.market)||{},now=ptToday()+' '+ptHM();
+  if(MK.next_open&&now>=MK.next_open+' 06:30')return MK.next_open+' 06:30';
+  return MK.last_open?MK.last_open+' 06:30':''}
+function wkday(day){try{return new Date(day+'T12:00:00').toLocaleDateString('en-US',{weekday:'short'})}catch(x){return day}}
+function asofLabel(s){s=String(s||'').trim();if(!/^\d{4}-\d\d-\d\d \d/.test(s))return s;
+  var day=s.slice(0,10);return (day!==ptToday()?wkday(day)+' ':'')+s.slice(11,16)}
+var COPY_OK={fresh:true,label:''};
 /* PT-labeled human stamp from the payload EPOCH (the 08-21 one-clock ruling:
    times shown to Jeremy are PT, labeled, on point — never a raw machine
    string). Same-PT-day: time only; older: adds Mon Aug 20. Epoch-based, so
@@ -621,16 +634,27 @@ function ideasPanel(d){
      re-reads each ticket + look at the live tape (scanner/idea_live.py — the
      bell's own signal + price reads). Spent = struck, its reason and time, NO
      📋 (the payload drops the block); live = ✅ with the time of the read. */
-  function livePill(c){return c.live==='live'?'<span class="pill good">✅ live '+esc(c.live_at||'')+'</span>':''}
-  function liveSpent(c){return c.live==='spent'?'<span class="why" style="color:#f85149">⏱️ spent '+esc(c.live_at||'')+' — '+esc(c.live_why||'signal spent at the tape')+' · no 📋 — never copy a dead ticket</span>':''}
+  function readAt(c){return c.live_on&&c.live_at?c.live_on+' '+c.live_at:(c.live_at||'')}
+  function livePill(c){return c.live==='live'?'<span class="pill good">✅ live '+esc(asofLabel(readAt(c)))+'</span>':''}
+  function liveSpent(c){return c.live==='spent'?'<span class="why" style="color:#f85149">⏱️ spent '+esc(asofLabel(readAt(c)))+' — '+esc(c.live_why||'signal spent at the tape')+' · no 📋 — never copy a dead ticket</span>':''}
   function nm(c,t){return c.live==='spent'?'<s style="opacity:.6">'+t+'</s>':t}
   /* 🎫 10-01 (⚖️ Jeremy 'LYV showed up this morning on desk somewhere then
      disappeared'): Wednesday's 11:02 board sat on the Screen overnight with no
-     date and a live 📋. A board from a PAST day says so in red and carries NO
-     copy button — the next 07:00 pass brings today's. */
+     date and a live 📋. A board from a PAST day says its day.
+     📋 10-03 (one rule, both panels): the 📋 rides the row's latest check — the
+     hourly live read, else its board — labeled with when, and goes dark once
+     the next 06:30 open passes it (sessionCut). Friday's board keeps its 📋
+     all weekend; Monday 06:30 → 07:00 it has none. */
   var bday=I.ts?String(I.ts).slice(0,10):(I.date||'');
   var stale=!!bday&&bday<ptToday();
-  function cbtnLive(c,where){return (stale||c.live==='spent')?'':(c.ticket?tbtnRaw(c.ticket,'📋 COPY TICKET'):tbtn(c,where))}
+  var cut=sessionCut(d);
+  function rowAsof(c){var r=readAt(c),b=String(c.pass_ts||I.ts||'');return r>=b?[r,'checked ']:[b,'board ']}
+  function cbtnLive(c,where){
+    if(c.live==='spent')return '';
+    var a=rowAsof(c);
+    if(cut&&a[0]&&a[0]<cut)return '';
+    return c.ticket?tbtnRaw(c.ticket,'📋 COPY TICKET'+(a[0]?' · '+a[1]+asofLabel(a[0]):'')):tbtn(c,where);
+  }
   function passPill(c){
     var p=c.pass_ts&&I.ts&&c.pass_ts!==I.ts?'<span class="pill">'+esc(String(c.pass_ts).slice(11))+' board</span>':'';
     if(c.paper_since&&c.paper_since<bday)p+='<span class="pill">📒 paper since '+esc(String(c.paper_since).slice(5))+'</span>';
@@ -662,10 +686,11 @@ function ideasPanel(d){
   /* 🌙 v7 (10-03): on a closed day the old board is for READING, said once and calmly —
      the red 'not today's' line is for a trading day whose 07:00 pass hasn't landed */
   var MK=d.market||{},closed=MK.open_today===false&&String(d.asof||'').slice(0,10)===ptToday();
-  if(stale&&closed)out+='<div class="item why" style="border:none;padding-top:0">🌙 markets closed today — '+esc(fmtDayS(bday))+'\'s board below, for reading (no 📋 on a past day\'s ideas) · the next board lands '+esc(fmtDayS(MK.next_open||''))+' 07:00</div>';
-  else if(stale)out+='<div class="item" style="color:#f85149;border:none;padding-top:0">📅 '+esc(fmtDayS(bday))+'\'s board — not today\'s. No 📋 on a past day\'s ideas (the setups may have run); today\'s board lands at the 07:00 pass.</div>';
-  var LV=I.live;
-  if(LV&&LV.at)out+='<div class="item why" style="border:none;padding-top:0">🥇 re-checked at the live tape '+esc(LV.at)+' PT · ✅ '+(LV.live||0)+' live · ⏱️ '+(LV.spent||0)+' spent (struck, no 📋) · the rest have no live rule or quote</div>';
+  var LV=I.live,lastChk=(LV&&LV.at)?(LV.on?LV.on+' '+LV.at:LV.at):String(I.ts||''),bLive=!cut||String(lastChk)>=cut;
+  if(stale&&closed)out+='<div class="item why" style="border:none;padding-top:0">🌙 markets closed today — '+esc(fmtDayS(bday))+'\'s board below · 📋 rides its last check ('+esc(asofLabel(lastChk))+' PT) until '+esc(wkday(MK.next_open||''))+'\'s open · the next board lands '+esc(fmtDayS(MK.next_open||''))+' 07:00</div>';
+  else if(stale&&bLive)out+='<div class="item why" style="border:none;padding-top:0">📅 '+esc(fmtDayS(bday))+'\'s board — 📋 rides its last check ('+esc(asofLabel(lastChk))+' PT) until the 06:30 open; today\'s board lands at the 07:00 pass.</div>';
+  else if(stale)out+='<div class="item" style="color:#f85149;border:none;padding-top:0">📅 '+esc(fmtDayS(bday))+'\'s board — not today\'s. No 📋 since today\'s open (the setups may have run); today\'s board lands at the 07:00 pass.</div>';
+  if(LV&&LV.at)out+='<div class="item why" style="border:none;padding-top:0">🥇 re-checked at the live tape '+esc(asofLabel(lastChk))+' PT · ✅ '+(LV.live||0)+' live · ⏱️ '+(LV.spent||0)+' spent (struck, no 📋) · the rest have no live rule or quote</div>';
   if(I.red_folder)out+='<div class="item" style="color:#f85149;border:none;padding-top:0">🔴 '+esc(I.red_folder)+'</div>';
   out+=heatBlock(d);
   out+=bowtieLine(d);
@@ -771,18 +796,25 @@ function copyCard(c){
     '<span class="why">'+px+(simS?' · '+simS:'')+' · '+seat+'</span>'+
     (why?'<span class="why">💭 '+esc(why.length>90?why.slice(0,90)+'…':why)+'</span>':'')+
     '<details><summary style="cursor:pointer;list-style:none;padding:0" class="why">plan · sim · why the light <span class="pill">tap ▾</span></summary>'+more+'</details>'+
-    (c.copy?tbtnRaw(c.copy,'📋 COPY TICKET'):'')+
+    (c.copy&&COPY_OK.fresh?tbtnRaw(c.copy,'📋 COPY TICKET'+(COPY_OK.label?' · '+COPY_OK.label:'')):'')+
     '</div>';
 }
 function copyDesk(d){
   var cd=d.copy_desk;
   if(!cd||!(cd.cards||[]).length)return '<div class="card" style="padding:8px 14px"><span class="muted">🪞 Copy Desk — no open agent trades right now</span></div>';
   var C=cd.counts||{},cards=cd.cards||[];
+  /* 📋 10-03 (one rule, both panels): the cards' price was read at checked_at
+     (this pass in market hours, else the last close) — 📋 rides it until the
+     next 06:30 open, then waits for the first pass of the session */
+  var chk=String(cd.checked_at||''),cut=sessionCut(d),cday=chk.slice(0,10);
+  var clbl=cd.checked_close?((cday&&cday!==ptToday()?wkday(cday)+' ':'')+'close'):(chk?'checked '+asofLabel(chk):'');
+  COPY_OK={fresh:!cut||!chk||chk>=cut,label:clbl};
   var g=cards.filter(function(c){return c.light==='green'}),a=cards.filter(function(c){return c.light==='amber'}),k=cards.filter(function(c){return c.light==='black'});
   var seats=(cd.seats||[]).map(function(s){var bad=s.pf20!=null&&s.pf20<1;return '<b>'+esc(s.agent)+'</b> '+(s.chip||'')+s.w8+'/'+s.n8+' <span class="'+(bad?'bad':'ok')+'">'+esc(s.pf_txt)+'</span>'}).join(' · ');
   var anyHot=(cd.seats||[]).some(function(s){return s.pf20!=null&&s.pf20>=1});
   var out='<div class="card"><h2>🪞 COPY DESK<span class="tag">'+(C.open||0)+' open · 🟢'+(C.green||0)+' 🟡'+(C.amber||0)+' ⚫'+(C.black||0)+'</span></h2>';
   out+='<div class="item why" style="border:none;padding-top:0">the agents\' open trades · 🟢 near their price → 📋 · 🟡 moved, watch · ⚫ gone'+(C.signal_checked?' · signals checked live':' · signals re-check live in market hours')+'</div>';
+  if(!COPY_OK.fresh&&C.green)out+='<div class="item why" style="border:none;padding-top:0;color:#d29922">📋 off since today\'s 06:30 open — these prices are from '+esc(clbl)+'; the 📋 comes back at the first pass of the session (≈07:00)</div>';
   if(seats)out+='<div class="item why" style="border:none;padding-top:0">seat records (realistic, last 8 · trailing-20 PF): '+seats+(anyHot?'':' — <b style="color:#d29922">no seat is above PF 1.0 yet: copy on YOUR chart read, not the seat\'s record</b>')+'</div>';
   var vis=g.slice(0,3),gm=g.slice(3);
   out+=vis.map(copyCard).join('');
