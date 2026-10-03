@@ -890,6 +890,44 @@ function loadPlaybook(el){
     PB_CACHE=p;box.innerHTML=playbookBody(p);
   }).catch(function(e){box.innerHTML='<div class="item bad">could not load the playbook ('+esc(String(e))+')</div>'});
 }
+/* 📋 THE PHONE BRIEF, ONE TAP (⚖️ Jeremy Sat 10-03: "make it easier to copy from
+   phone its hard right now"): the claude.ai Trading Desk Project's brain used to
+   need a select-all of a 40 KB Obsidian note on the phone. It rides its own
+   locked node (phoneBrief), downloads when this fold opens, and the button
+   copies the WHOLE brief. If the phone refuses the clipboard, the text lands in
+   a box already selected — tap Copy. Never rendered here, only copied. */
+var BRIEF_TXT=null;
+function loadPhoneBrief(el){
+  if(!el||!el.open)return;
+  var box=el.querySelector('.brbody');if(!box||box.getAttribute('data-loaded'))return;
+  box.setAttribute('data-loaded','1');
+  box.innerHTML='<div class="item muted">loading the brief…</div>';
+  fetch(FB+'/p_'+KEY+'/'+(box.getAttribute('data-node')||'phoneBrief')+'.json').then(function(r){return r.json()}).then(function(b){
+    if(!b||!b.text){box.innerHTML='<div class="item bad">brief node empty — the mini\'s next pass republishes it</div>';return}
+    BRIEF_TXT=b.text;
+    box.innerHTML='<div class="item" style="border:none"><button class="cbtn" onclick="copyBrief(this)">📋 COPY PHONE BRIEF · '+esc(b.version||'')+'</button>'+
+      '<span class="why">then Claude app → the Trading Desk Project → delete the old brief → paste. '+Math.round(BRIEF_TXT.length/1024)+' KB</span>'+
+      '<textarea class="brta" style="display:none;width:100%;height:140px;margin-top:6px;font-size:12px"></textarea></div>';
+  }).catch(function(e){box.innerHTML='<div class="item bad">could not load the brief ('+esc(String(e))+')</div>'});
+}
+function copyBrief(b){
+  if(!BRIEF_TXT)return;
+  var ta=b.parentNode.querySelector('.brta');
+  function done(){b.textContent='✅ copied — paste into the Trading Desk Project';setTimeout(function(){b.textContent='📋 COPY PHONE BRIEF'},4000)}
+  function boxed(){if(!ta)return;ta.style.display='block';ta.value=BRIEF_TXT;ta.focus();ta.setSelectionRange(0,BRIEF_TXT.length);
+    try{if(document.execCommand('copy')){ta.blur();ta.style.display='none';done();return}}catch(x){}
+    b.textContent='👇 selected below — tap Copy'}
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(BRIEF_TXT).then(done,boxed);
+  else boxed();
+}
+function briefFold(d){
+  var m=d.phone_brief_meta;if(!m)return '';
+  var fresh=m.changed&&(Date.now()-new Date(m.changed+'T12:00:00').getTime())<7*864e5;
+  return '<details ontoggle="loadPhoneBrief(this)" style="margin-top:10px"><summary style="cursor:pointer;list-style:none" class="why">📱 <b style="color:#c9d1d9">PHONE BRIEF</b> · '+esc(m.version||'')+
+    (fresh?' <span class="pill">changed '+esc(String(m.changed).slice(5))+' — re-paste</span>':'')+' · copy for the Trading Desk Project <span class="pill">tap ▾</span></summary>'+
+    (fresh&&m.change?'<div class="item why" style="border:none">🆕 '+esc(m.change)+'</div>':'')+
+    '<div class="brbody" data-node="'+esc(m.node||'phoneBrief')+'"></div></details>';
+}
 function playbook(d){
   // 📖 THE HUMAN PLAYBOOK (Jeremy ruled 2026-08-12: "so i can really leverage
   // the machine to its max capabilities from my phone"). Renders playbook.yaml
@@ -899,11 +937,11 @@ function playbook(d){
   // ships `playbook` inline renders directly.
   var p=d.playbook,m=d.playbook_meta;
   if(p&&p.sections&&p.sections.length)return '<div class="card"><details><summary style="cursor:pointer;list-style:none">'+
-    '<h2 style="margin:0">📖 How to drive me<span class="tag">v'+esc(p.version)+' · '+esc(p.updated)+' · every new surface must update this</span></h2></summary>'+playbookBody(p)+'</details></div>';
-  if(!m)return '';
+    '<h2 style="margin:0">📖 How to drive me<span class="tag">v'+esc(p.version)+' · '+esc(p.updated)+' · every new surface must update this</span></h2></summary>'+playbookBody(p)+'</details>'+briefFold(d)+'</div>';
+  if(!m)return d.phone_brief_meta?'<div class="card">'+briefFold(d)+'</div>':'';
   return '<div class="card"><details ontoggle="loadPlaybook(this)"><summary style="cursor:pointer;list-style:none">'+
     '<h2 style="margin:0">📖 How to drive me<span class="tag">v'+esc(m.version)+' · '+esc(m.updated)+' · '+(m.n||0)+' entries · tap to load</span></h2></summary>'+
-    '<div class="pbbody" data-node="'+esc(m.node||'deskPlaybook')+'"></div></details></div>';
+    '<div class="pbbody" data-node="'+esc(m.node||'deskPlaybook')+'"></div></details>'+briefFold(d)+'</div>';
 }
 
 /* 📆 which calendar items are HIS (one filter for the calendar card and the
