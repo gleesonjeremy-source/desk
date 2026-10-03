@@ -60,7 +60,8 @@ footer{color:#6e7681;font-size:11px;margin:16px 0 8px;text-align:center}
 #lock button{background:#238636;border:none;border-radius:8px;color:#fff;padding:10px 22px;font-size:14px;cursor:pointer}
 </style></head><body><div class="wrap">
 <h1>🖥️ The Desk</h1>
-<p class="sub">The human window · <a href="obsidian://open?file=00-inbox%2FThe%20Desk" style="color:#58a6ff;text-decoration:none">📝 the Pad</a> · <span id="asof" class="muted">loading…</span></p>
+<p class="sub">The human window · <a href="obsidian://open?file=00-inbox%2FThe%20Desk" style="color:#58a6ff;text-decoration:none">📝 the Pad</a> · <a href="obsidian://open?file=02-strategies%2Foptions%20scanner%2FVersion%20Ledger" style="color:#58a6ff;text-decoration:none">📇 versions</a> · <a href="https://gleesonjeremy-source.github.io/option-tracker/" style="color:#58a6ff;text-decoration:none">💰 tracker</a> · <span id="asof" class="muted">loading…</span></p>
+<p class="sub" id="topline" style="margin-top:-6px"></p>
 <div id="stale"></div>
 <div id="panels"></div>
 
@@ -69,18 +70,23 @@ footer{color:#6e7681;font-size:11px;margin:16px 0 8px;text-align:center}
 morning hour. Everything here is read-only and machine-written; nothing is ever
 hand-edited. Depth lives in Obsidian; real dollars live in the
 <a href="https://gleesonjeremy-source.github.io/option-tracker/">tracker</a>.</p>
-<p><b>💼 YOUR ACCOUNT</b> — first, always: the score (account value, growth, closed P&amp;L
-vs the floor), 🎓 what's closest to real money (the sim exam), 🩹 the one-word verdict on every real position (ROLL · HOLD · BUY BACK ·
-LET GO · HARVEST · NO CALL — tap for the why), 💳 room against YOUR 50% margin ceiling (red past it),
-📒 your book's balance, one machine light.</p>
+<p><b>Top line</b> — the one progress number (sim reps toward 20 on your focus
+strategies) and one machine light. Money lives in the 💰 tracker: account value, growth,
+closed P&amp;L. TradeStation is the truth for live P&amp;L, so this page carries none.</p>
+<p><b>💼 YOUR POSITIONS</b> — what TradeStation can't tell you: the one-word call on each
+position (ROLL · HOLD · BUY BACK · LET GO · HARVEST · CUT · NO CALL), how long you've held it,
+and the price where your own rule changes the word. ⚡ act now · 👀 watch (a heads-up, or
+within 2% of its price) · 😴 steady · 💎 your base · 💳 room against your 50% margin ceiling.
+Telegram rings the moment a word changes in market hours; this card catches up within the hour.</p>
 <p><b>🎯 IDEAS</b> — the window (Telegram is only the bell): 🔥 HEATING UP first (a strategy
 winning right now on paper — the streak rare for it, the last 8 made money — with its
 setup to take), then tickets with chart grade and ONE 📋 COPY TICKET button each, then the
 👀 looks (names first, cards on a tap).</p>
 <p><b>🫵 TODAY</b> — only what needs you: a real alarm (a job down, suspect marks, tracker
-drift), your dated asks, and the <b>🗳️ decisions</b>. <b>📲 rows are answered in Telegram:
-reply the number and your pick ("3 park") or "all recs"</b>; silent past the date = the rec
-is taken for you. <b>🛠️ rows wait for a Mac Pro session.</b> Quiet day = one green line.</p>
+drift), your dated asks, and the <b>🗳️ decisions you answer from the phone</b> — reply the
+number and your pick in Telegram ("3 park") or "all recs"; silent past the date = the rec is
+taken for you. Questions that need a session (the dreamer's) open your next routine, in full
+with a rec — here they're one count line. Quiet day = one green line.</p>
 <p><b>🪞 COPY DESK</b> — every open agent trade, once: the agent's price vs now, whether the
 sim really filled it, the seat's REALISTIC record (last 8 · trailing-20 PF) and the why.
 🟢 near the agent's price and the signal not spent → 📋 · 🟡 moved, watch · ⚫ gone, no
@@ -103,7 +109,7 @@ key per device, asked once, kept in the browser (Telegram bot command
 <code>help</code> if you forget everything else).</p>
 </details></div>
 
-<footer>The Desk v6 · data via gen_hub → locked Firebase · auto-refresh 5 min ·
+<footer>The Desk v7 · data via gen_hub → locked Firebase · auto-refresh 5 min ·
 <a href="https://gleesonjeremy-source.github.io/option-tracker/">tracker</a></footer>
 </div>
 
@@ -161,71 +167,71 @@ function expandable(shortHtml,full){
    render "x of N closes · ~ETA" — never a date-lookalike. */
 function usd(v){if(v==null)return '—';var r=Math.round(v);return (r<0?'−$':'$')+Math.abs(r).toLocaleString()}
 function usdS(v){if(v==null)return '—';var r=Math.round(v);return (r>0?'+$':(r<0?'−$':'$'))+Math.abs(r).toLocaleString()}
-/* 💼 YOUR ACCOUNT (v6, ⚖️ Jeremy Tue 09-22 — the makeover: "the desk is not
-   making sense on its layout… only have stuff on desk that is relative to desk
-   and it needs to be easy to understand and navigate" · "i need desk to be an
-   elite trading hub"): the FIRST card is his money-state — 🏁 the score, 🩹 the
-   verdict on every real position, 📒 the book's balance, one machine light.
-   The proof line (a retired PAPER-PROVEN label), milestone chips (→ the
-   calendar) and the vault/dock dots (session state → the vault) are gone. */
-function accountPanel(d){
-  var rows='';
-  /* 🏁 THE SCORE — Jeremy's two numbers, in English, first (⚖️ 09-16 evening:
-     "put the account value and growth on desk … I need English on there").
-     The one named exception to the no-dollars law (see desk_data.score). */
-  var sc=d.score;
-  if(sc&&sc.value!=null){
-    var since=(sc.start_date||'').slice(5);
-    rows+='<div class="row"><span>🏁 <b>Account '+usd(sc.value)+'</b> · '+usdS(sc.growth)+(sc.growth_pct!=null?' ('+(sc.growth_pct>=0?'+':'')+sc.growth_pct+'%)':'')+' since '+esc(since)+', deposits out, marks in · <span class="muted">'+esc(sc.label||'')+(sc.resets?' · resets '+esc(String(sc.resets).slice(5))+(sc.resets_label?' = '+esc(sc.resets_label):''):'')+'</span></span></div>';
-    if(sc.closed!=null){
-      var yr=sc.closed_ann_pct;
-      rows+='<div class="row"><span>🏁 <b>Closed P&amp;L '+usdS(sc.closed)+'</b> since '+esc(since)+(sc.n_closes?' ('+sc.n_closes+' closes)':'')+(yr!=null?' = <b>'+(yr>=0?'+':'')+yr+'% a year</b> vs the '+(sc.floor_pct||18)+'% floor '+(sc.pass?'✅':'❌'):'')+(sc.floor_dollars_yr?' · the floor on this account '+usd(sc.floor_dollars_yr)+'/yr':'')+(sc.needed!=null?' · to reach it by '+esc(String(sc.year_end||'').slice(5))+': '+usdS(sc.needed)+(sc.needed_per_wk!=null?' (≈ '+usd(sc.needed_per_wk)+'/wk for '+Math.round(sc.weeks_left||0)+' wks)':''):'')+'</span></div>';
-    }else rows+='<div class="row"><span>🏁 Closed P&amp;L ⚪ '+esc(sc.why||'collecting')+'</span></div>';
-  }else if(sc&&sc.growth_pct!=null){
-    rows+='<div class="row"><span>🏁 '+esc(sc.label||'')+' · account '+(sc.growth_pct>=0?'+':'')+sc.growth_pct+'%'+(sc.closed_ann_pct!=null?' · closed '+(sc.closed_ann_pct>=0?'+':'')+sc.closed_ann_pct+'% a year vs the '+(sc.floor_pct||18)+'% floor '+(sc.pass?'✅':'❌'):'')+'</span></div>';
-  }
-  var h=[];
-  var rent=d.rent;if(rent&&rent.state==='live'){
-    /* English (Jeremy 09-16: "what does −4.25× bar mean") — closed P&L per
-       week over the last 4 weeks vs the $130/wk break-even bar */
-    if(rent.per_wk!=null)h.push('💼 closed P&amp;L last 4 wks <b>'+usdS(rent.per_wk)+'/wk</b> vs the $130/wk break-even bar '+rent.light);
-    else h.push('💼 closed P&amp;L last 4 wks '+rent.ratio+'× the $130/wk break-even bar '+rent.light);
-    var pz=(rent.cc_rows||[]).filter(function(r){return r.pause});
-    if(pz.length)h.push('💼⏸️ '+pz.map(function(r){return esc(r.ticker)}).join('/')+' pause-rule review');
-    if(rent.tripwire&&rent.tripwire.flag)h.push('<span class="bad">🚨 equity jump '+esc(String(rent.tripwire.x_typical))+'× typical — confirm deposits</span>');
-  }
-  /* ONE machine light: the jobs + any verdict/mode mismatch (detail in the 🖥️ fold) */
-  var mini=(d.schedule||{}).mini||[],red=mini.filter(function(j){return !j.ok}).length;
-  var mc=d.machine,mm=(mc&&mc.alarm_n)||0;
-  var light=mini.length?(red?'<span class="bad">🔴 machine: '+red+' job'+(red>1?'s':'')+' down</span>':(mm?'<span class="warn">🟡 machine running · '+mm+' mismatch'+(mm>1?'es':'')+' (🖥️ fold)</span>':'<span class="ok">🟢 machine running</span>')):'';
-  /* 🎓 CLOSEST TO REAL MONEY (⚖️ Jeremy 09-22 — replaces the retired PAPER-PROVEN
-     proof line): read from the sim exam (ts_sim.exam — real limit fills, sim
-     dollars); switches to the SIM-PROVEN rung when it lands (Sat 09-26). The
-     day a version graduates, THIS is where he sees it first. */
-  var ex=(d.ts_sim||{}).exam,gl='';
-  if(ex&&ex.strategy){
-    var nm=esc(String(ex.strategy).replace(/_/g,' '));
-    gl='<div class="row"><span>🎓 <b>Closest to real money:</b> '+(ex.met?'<span class="ok">'+nm+' has met its sim bar — the graduation note is due</span>':'nothing sim-proven yet · '+nm+'\'s sim exam — <b>'+(ex.have||0)+' of '+(ex.bar||20)+'</b> filled closes')+
-      (ex.pairs&&ex.real_net!=null?' · '+usdS(ex.real_net)+' at real fills vs '+usdS(ex.twin_net)+' paper on the same trades':'')+
-      (ex.per_wk?' · ~'+ex.per_wk+'/wk'+(ex.eta?' → ~'+esc(fmtDayS(ex.eta)):''):'')+' <span class="muted">(sim $)</span></span></div>';
-  }
-  rows+=gl;
-  /* 🎯 THE PROGRESS NUMBER (⚖️ REPS FIRST, Jeremy 09-23; built Sat 09-26):
-     sim real-fill reps per S2 focus strategy toward 20 + rungs climbed —
-     the build law's one number (core/progress.py owns the definition). */
+/* 🎯 THE TOP LINE (v7, ⚖️ Jeremy Sat 10-03 — organize day): the ONE progress
+   number (REPS FIRST, 09-23: sim real-fill reps per focus strategy toward 20)
+   and ONE machine light ride the header, under the timestamp. The money (account
+   value, growth, closed P&L) moved to the TRACKER — "tracker = the money"; the
+   Desk carries no dollars again (the 09-16 named exception ended 10-03). */
+function topLine(d){
+  var bits=[];
   var pg=d.progress;
   if(pg&&pg.rows&&pg.rows.length){
-    rows+='<div class="row"><span>🎯 <b>Progress:</b> '+pg.rows.map(function(r){
-      return esc(r.icon||'')+' '+esc(r.label||r.strategy)+' <b>'+(r.lead_reps||0)+'/'+(pg.target||20)+'</b>'+
-        (r.closed_wk?' <span class="ok">+'+r.closed_wk+' this wk</span>':'');
-    }).join(' · ')+' · 🏦 '+(pg.climbed&&pg.climbed.length?esc(pg.climbed.length+' rung'+(pg.climbed.length>1?'s':'')+' climbed'):'no rung climbed yet')+
-      ' <span class="muted">(sim reps)</span></span></div>';
+    bits.push('🎯 '+pg.rows.map(function(r){
+      return esc(r.icon||'')+' '+esc(r.label||r.strategy)+' <b>'+(r.lead_reps||0)+'/'+(pg.target||20)+'</b>'+(r.closed_wk?' <span class="ok">+'+r.closed_wk+'</span>':'');
+    }).join(' · ')+' <span class="muted">sim reps</span>');
   }
-  var pos=positionsBlock(d),bk=d.book?bookStrip(d.book):'';
-  if(!rows&&!h.length&&!pos&&!bk)return '';
-  return '<div class="card"><h2>💼 YOUR ACCOUNT<span class="tag">score · positions · balance</span></h2>'+rows+
-    (h.length?'<div class="why" style="margin-top:2px">'+h.join(' · ')+'</div>':'')+
-    pos+bk+(light?'<div class="why" style="margin-top:6px">'+light+'</div>':'')+'</div>';
+  var mini=(d.schedule||{}).mini||[],red=mini.filter(function(j){return !j.ok}).length;
+  var mm=(d.machine&&d.machine.alarm_n)||0;
+  if(mini.length)bits.push(red?'<span class="bad">🔴 '+red+' job'+(red>1?'s':'')+' down</span>':(mm?'<span class="warn">🟡 machine · '+mm+' mismatch'+(mm>1?'es':'')+'</span>':'<span class="ok">🟢 machine</span>'));
+  return bits.join(' · ');
+}
+/* 💼 YOUR POSITIONS (v7, ⚖️ Jeremy Sat 10-03: "positions but it needs to be
+   something that makes sense there. i look at my positions on TS. maybe the
+   positions can say hold or move up stop and been in position this many days.
+   it can give me tips … i dont need pnl from live account because i look at ts
+   for the truth" → layout "Act / Watch / Steady", tips = "Price that changes
+   the word"). What TS can't show: the WORD (scanner/repair_read.py — the same
+   engine the listener rings with), days held, and the price where his own rule
+   changes the word. No P&L. ⚡ ACT = any word to do · 👀 WATCH = a HOLD with a
+   heads-up or within 2% of its price · 😴 STEADY = one line. Live: a word the
+   listener rang after the evening read overlays it (⚡ live, 09-30). */
+var ACTION_VERBS=['ROLL','BUY BACK','LET GO','HARVEST','CUT','SELL CALL'];
+function positionsPanel(d){
+  var p=d.positions;if(!p||!(p.rows||[]).length)return '';
+  function tier(r){return ACTION_VERBS.indexOf(r.verdict)>=0?'act':(r.tier||(r.verdict==='NO CALL'&&r.brief==='base'?'base':'steady'))}
+  var act=[],watch=[],steady=[],base=[];
+  p.rows.forEach(function(r){var t=tier(r);(t==='act'?act:t==='watch'?watch:t==='base'?base:steady).push(r)});
+  function nm(r){return '<b>'+esc(r.ticker)+'</b> '+esc(r.leg||'')}
+  function held(r){return r.held_d!=null?' · held '+r.held_d+'d':''}
+  function live(r){return r.live_word?' <span class="pill hi">⚡ live '+esc(r.live_word)+'</span>':''}
+  function roll(r){return (r.verdict==='ROLL'&&r.roll&&r.roll.to)?' → '+esc(r.roll.to)+(r.roll.credit!=null?' for '+(r.roll.credit>=0?'+':'')+Number(r.roll.credit).toFixed(2)+' credit':''):''}
+  /* soonest thing to watch = the WATCH row nearest its price */
+  var nx=watch.filter(function(r){return r.dist_pct!=null}).sort(function(a,b){return Math.abs(a.dist_pct)-Math.abs(b.dist_pct)})[0];
+  var out='<div class="card"><h2>💼 YOUR POSITIONS<span class="tag">'+act.length+' to act · '+watch.length+' to watch · '+steady.length+' steady</span></h2>';
+  out+='<div class="item why" style="border:none;padding-top:0">read '+esc(p.date?String(p.date).slice(5)+' ':'')+esc(String(p.asof||'').replace(/\s*PT$/,''))+' PT'+(p.live_n?' · ⚡ '+p.live_n+' word'+(p.live_n===1?'':'s')+' changed live':'')+' · Telegram rings the moment a word changes · you act on 📱 Phone</div>';
+  if(act.length){
+    out+='<div class="item why" style="border:none;padding-bottom:0">⚡ <b style="color:#c9d1d9">ACT NOW</b></div>';
+    act.forEach(function(r){out+='<div class="item warn"><details><summary style="cursor:pointer;list-style:none;padding:0;color:inherit;font-size:14px"><b>'+esc(r.verdict)+'</b> '+nm(r)+roll(r)+live(r)+' <span class="pill">why ▾</span></summary><div class="why">'+esc(r.why||'')+'</div>'+(r.alt?'<div class="why">or: '+esc(r.alt)+'</div>':'')+'</details></div>'});
+  }
+  if(watch.length){
+    out+='<div class="item why" style="border:none;padding-bottom:0">👀 <b style="color:#c9d1d9">WATCH</b></div>';
+    watch.forEach(function(r){
+      var heads=String(r.why||'').indexOf('heads-up')>=0?' ⚠️':'';
+      out+='<div class="item"><details><summary style="cursor:pointer;list-style:none;padding:0;color:inherit;font-size:14px">'+nm(r)+held(r)+' · <b>'+esc(r.verdict)+'</b>'+heads+live(r)+'</summary><div class="why">'+esc(r.why||'')+'</div></details>'+
+        (r.text?'<div class="why">→ '+esc(r.text)+(r.dist_pct!=null?' <span class="muted">(now '+(r.dist_pct>0?'+':'')+r.dist_pct+'% from it)</span>':'')+'</div>':'')+'</div>';
+    });
+  }
+  if(steady.length){
+    out+='<div class="item"><details><summary style="cursor:pointer;list-style:none;padding:0;color:inherit;font-size:14px">😴 <b>STEADY</b> '+steady.map(function(r){return esc(r.ticker)+(r.held_d!=null?' <span class="muted">'+r.held_d+'d</span>':'')}).join(' · ')+' <span class="pill">tap ▾</span></summary>'+
+      steady.map(function(r){return '<div class="why">'+nm(r)+held(r)+' · '+esc(r.verdict)+(r.text?' — '+esc(r.text):'')+'</div>'}).join('')+'</details></div>';
+  }
+  if(base.length){
+    /* the NO CALL reasons, each its OWN (v6 printed the first row's why for every name) */
+    var whys={};base.forEach(function(r){var w=r.text||r.why||'';(whys[w]=whys[w]||[]).push(esc(r.ticker)+' '+esc(r.leg||''))});
+    out+='<div class="item why" style="border:none">💎 <b style="color:#c9d1d9">BASE</b> '+Object.keys(whys).map(function(w){return whys[w].join(' · ')+' — '+esc(w)}).join(' · ')+'</div>';
+  }
+  if(p.room)out+='<div class="item '+(p.room_over?'bad':'why')+'" style="border:none">💳 room: '+esc(p.room)+'</div>';   /* ⚖️ 09-22: HIS 50% ceiling, red past it */
+  return out+'</div>';
 }
 
 function nyRow(cls,head,arr,hint){
@@ -243,29 +249,6 @@ function fmtDayS(s){try{return new Date(s+'T12:00:00').toLocaleDateString('en-US
    the date = rec taken; 🛠️ rows wait for a session, never auto-taken) · the
    🤖 batch that never asks. Replaces 🗳️ the lane + 📥 needs-Jeremy.
    "today" is the VIEWER's PT date, never the payload's (08-15 repair). */
-/* 🩹 YOUR POSITIONS (09-20 PM, the placement rule: Telegram gets the DELTA with a
-   clock, the Desk shows the CURRENT VERDICT on every real position). Fed by
-   scanner/repair_read.py → desk_data.positions every evening pass. One verdict
-   word per position, the why and the one alternative on a tap; per-share prices
-   only, never account dollars; ROOM against HIS margin ceiling (09-22). Lives in
-   💼 YOUR ACCOUNT since v6 (09-22 — it was the third phone screen inside TODAY). */
-var ACTION_VERBS=['ROLL','BUY BACK','LET GO','HARVEST','CUT','SELL CALL'];
-function positionsBlock(d){
-  var p=d.positions;if(!p||!(p.rows||[]).length)return '';
-  var acts=p.rows.filter(function(r){return ACTION_VERBS.indexOf(r.verdict)>=0});
-  var holds=p.rows.filter(function(r){return r.verdict==='HOLD'});
-  var nocall=p.rows.filter(function(r){return r.verdict==='NO CALL'});
-  function leg(r){return esc(r.ticker)+' '+esc(r.leg)+(r.kind&&r.kind.indexOf('long')===0?' long':'')}
-  /* ⚡ Wed 09-30 (seam #10): a word the listener rang AFTER the evening read overlays it, marked */
-  function head(r){var h='<b>'+esc(r.verdict)+'</b> '+leg(r)+(r.live_word?' <span class="pill hi">⚡ live '+esc(r.live_word)+'</span>':'');if(r.verdict==='ROLL'&&r.roll&&r.roll.to)h+=' → '+esc(r.roll.to)+(r.roll.credit!=null?' for '+(r.roll.credit>=0?'+':'')+Number(r.roll.credit).toFixed(2)+' credit':'');return h}
-  var out='<div class="item why" style="border:none;padding-bottom:0">🩹 <b style="color:#c9d1d9">YOUR POSITIONS</b> — '+acts.length+' to decide · '+holds.length+' hold · read '+esc(p.date?String(p.date).slice(5)+' ':'')+esc(p.asof||'')+(p.live_n?' · ⚡ '+p.live_n+' word'+(p.live_n===1?'':'s')+' changed live (last '+esc(p.live_at||'')+' PT)':'')+' · you act on 📱 Phone at your price</div>';
-  acts.forEach(function(r){out+='<div class="item warn"><details><summary style="cursor:pointer;list-style:none;padding:0;color:inherit;font-size:14px">'+head(r)+'</summary><div class="why">why: '+esc(r.why||'')+'</div>'+(r.alt?'<div class="why">or: '+esc(r.alt)+'</div>':'')+'</details></div>'});
-  if(holds.length)out+='<div class="item"><details><summary style="cursor:pointer;list-style:none;padding:0;color:inherit;font-size:14px"><b>HOLD</b> '+holds.map(function(r){return esc(r.ticker)}).join(' · ')+' <span class="pill">tap ▾</span></summary>'+holds.map(function(r){return '<div class="why">'+leg(r)+' — '+esc(r.why||r.brief||'')+'</div>'}).join('')+'</details></div>';
-  if(nocall.length)out+='<div class="item why" style="border:none"><b style="color:#c9d1d9">NO CALL</b> '+nocall.map(function(r){return leg(r)}).join(' · ')+' — '+esc(nocall[0].why||'')+'</div>';
-  if((p.week||[]).length)out+='<div class="item why" style="border:none">📆 this week: '+esc(p.week.join(' · '))+'</div>';
-  if(p.room)out+='<div class="item '+(p.room_over?'bad':'why')+'" style="border:none">💳 room: '+esc(p.room)+'</div>';   /* ⚖️ 09-22: measured against HIS 50% ceiling (registry), red past it */
-  return out;
-}
 function todayPanel(d){
   var t=d.today||{},items=t.items||[],dec=d.decisions||{},ny=d.needs_you||{};
   var vt=ptToday(),dayLabel=esc(fmtDayS(vt));
@@ -284,6 +267,7 @@ function todayPanel(d){
   var act=[],deck=[],fold=[];
   items.forEach(function(e){
     var dt=String(e.date||'');
+    if(String(e.text||'').indexOf('DREAMER QUESTION')>=0)return;   /* v7: the routine owns these */
     if(e.kind==='board')return;   /* v6: "on the board today" = the machine's build day, not his ask */
     if(dt>vt)deck.push(e);
     else if(dt===vt)act.push(e);
@@ -316,7 +300,11 @@ function todayPanel(d){
   if(deck.length)asks+='<div class="item why" style="border:none;padding:6px 0 2px">on deck '+esc(fmtDayS(deck[0].date))+' ↓</div>'+deck.map(function(e){return row(e,true)}).join('');
   if(fold.length)asks+='<div class="item" style="border:none;padding:2px 0 0"><details><summary style="cursor:pointer;list-style:none;padding:2px 0" class="why">🌒 from '+esc(fmtDayS(fold[0].date))+' — data hasn\'t rebuilt yet <span class="pill">tap ▾</span></summary>'+fold.map(function(e){return '<div class="item why" style="padding:3px 0;border:none">• '+esc(e.text)+'</div>'}).join('')+'</details></div>';
   /* 3 · the decisions ledger */
-  var dopen=dec.open||[],dtaken=dec.taken||[],batch=dec.batch||[];
+  /* v7 (⚖️ Jeremy Sat 10-03: "yes the dreamer questions off desk"): the Desk shows only what
+     he can answer from the phone — session questions open the routine (session brief
+     'answer first', in full, with a rec) + the evening brief; one count line remains */
+  var dsess=(dec.open||[]).filter(function(r){return r.cls==='session'});
+  var dopen=(dec.open||[]).filter(function(r){return r.cls!=='session'}),dtaken=dec.taken||[],batch=dec.batch||[];
   /* 🖥️ 09-15 PM neat-and-organized: ONE glance line per decision (number ·
      question · how to answer), the rec/options/why open on a tap */
   function drow(r){
@@ -333,7 +321,7 @@ function todayPanel(d){
   if(dopen.length){
     decs+='<div class="item why" style="border:none;padding-bottom:0">🗳️ <b style="color:#c9d1d9">'+dopen.length+' DECISION'+(dopen.length>1?'S':'')+'</b> — '+
       (dec.n_telegram?dec.n_telegram+' to answer in Telegram (reply the number + your pick, or “all recs”)':'')+
-      (dec.n_telegram&&dec.n_session?' · ':'')+(dec.n_session?dec.n_session+' for the next session':'')+
+
       (dec.oldest_d?' · oldest '+dec.oldest_d+'d':'')+'</div>'+dopen.map(drow).join('');
   }
   /* v6 (09-22): the answered/taken audit trail and the machine-fix batch are
@@ -342,13 +330,14 @@ function todayPanel(d){
   var dtk=dtaken.filter(function(r){return r.state==='default_taken'&&!r.executed});
   if(dtk.length)dfoot.push(dtk.length+' taken for you by default — “'+dtk[0].n+' no — why” reverses one');
   if(dtaken.length)dfoot.push('✅ '+dtaken.length+' answered this week');
+  if(dsess.length)dfoot.push('🛠️ '+dsess.length+' question'+(dsess.length>1?'s':'')+' wait for your next session — the routine opens with them, in full');
   if(dec.batch_n)dfoot.push('🤖 '+dec.batch_n+' machine fix'+(dec.batch_n>1?'es':'')+' queued (never asks you)');
   var foot=dfoot.length?'<div class="item why" style="border:none">'+dfoot.join(' · ')+' — the rows live in the vault Home</div>':'';
   var body=bells.join('')+asks+decs;
   if(!body)return '<div class="card" style="padding:8px 14px"><span class="ok">🫵 nothing needs you '+dayLabel+' ✓</span><span class="why"> — alarms, day asks and decisions land here first</span>'+staleTag+(foot?'<div class="why" style="margin-top:2px">'+dfoot.join(' · ')+'</div>':'')+'</div>';
   body+=foot;
   return '<div class="card"><h2>🫵 TODAY — '+dayLabel+'<span class="tag">'+(bells.length?bells.length+' alarm'+(bells.length>1?'s':'')+' · ':'')+(act.length?act.length+' ask'+(act.length>1?'s':'')+' · ':'')+dopen.length+' decision'+(dopen.length===1?'':'s')+'</span>'+staleTag+'</h2>'+body+
-    '<div class="item why" style="border:none;padding-top:8px">📲 answer in Telegram by number · 🛠️ the next session answers it · tap a row for the why</div></div>';
+    '<div class="item why" style="border:none;padding-top:8px">📲 answer in Telegram by number · tap a row for the why</div></div>';
 }
 
 function foldCard(title,tag,body,open){
@@ -534,24 +523,6 @@ function tbtnRaw(text,label){
   var id='t'+(++TID);TICKETS[id]=text;
   return '<div><button class="cbtn" data-tid="'+id+'">'+esc(label||'📋 COPY TICKET')+'</button></div>';
 }
-function bookStrip(b){
-  if(!b)return '<div class="item why" style="border:none">📒 your book: no TradeStation read yet</div>';
-  var dirs=b.by_dir||{},bs=b.by_sector||{},heavy=b.heavy_sectors||[];
-  var secs=Object.keys(bs).sort(function(x,y){return (bs[y]||0)-(bs[x]||0)}).map(function(s){return esc(s)+' '+bs[s]+(heavy.indexOf(s)>=0?' ⚠️ heavy':'')}).join(' · ');
-  var so=b.shapes_on||{};
-  var on=Object.keys(so).map(function(s){return esc(s)+(so[s]>1?' ×'+so[s]:'')}).join(' · ');
-  var miss=(b.shapes_missing||[]).join(' · ');
-  var pay=(b.payers_not_on||[]).join(' · ');
-  /* 🖥️ 09-15 PM: one glance line (counts by direction + heavy sectors), the
-     sector/shape/missing/payer detail on a tap */
-  return '<div class="item" style="border-bottom:1px solid #30363d;padding-bottom:6px"><details><summary style="cursor:pointer;list-style:none;padding:0;color:inherit;font-size:14px">📒 <b>YOUR BOOK</b>'+(b.stale?' <span class="pill hi">stale read</span>':'')+' · '+(b.n_trading||0)+' trading'+(b.n_conviction?' + '+b.n_conviction+' 💎':'')+
-    ' · 🟢 '+(dirs.bull||0)+' · 🔴 '+(dirs.bear||0)+' · 🟣 '+(dirs.neutral||0)+(heavy.length?' · <span class="warn">⚠️ '+esc(heavy.join('/'))+' heavy</span>':'')+' <span class="pill">tap ▾</span></summary>'+
-    '<span class="why">sectors: '+(secs||'—')+'</span>'+
-    '<span class="why">shapes on: '+(on||'—')+'</span>'+
-    '<span class="why">missing: '+esc(miss||'—')+(pay?' · <b>payers not on: '+esc(pay)+'</b>':'')+'</span>'+
-    ((b.holds_100||[]).length?'<span class="why">100+ shares (covered-call line opens): '+esc(b.holds_100.join(' '))+'</span>':'')+
-    '<span class="why">read '+esc(b.asof||'')+' PT</span></details></div>';
-}
 /* 🔥 HEATING UP (⚖️ Jeremy Tue 09-22: "if something is working right now on
    paper … one that appears after its won 4 in a row … if a strategy is
    heating up not only do i want to know i might want to take it"): the top of
@@ -688,7 +659,11 @@ function ideasPanel(d){
   var when=(I.ts?(stale?fmtDayS(bday)+' ':'')+esc(String(I.ts).slice(11))+' PT':(I.label&&I.label!=='morning'?esc(I.label):'07:00'));
   var nh=((d.heat||{}).hot||[]).length;
   var out='<div class="card"><h2>🎯 IDEAS<span class="tag">'+(nh?'🔥 '+nh+' · ':'')+tk.length+' ticket'+(tk.length===1?'':'s')+(looks.length?' · '+looks.length+' looks':'')+' · '+when+'</span></h2>';
-  if(stale)out+='<div class="item" style="color:#f85149;border:none;padding-top:0">📅 '+esc(fmtDayS(bday))+'\'s board — not today\'s. No 📋 on a past day\'s ideas (the setups may have run); today\'s board lands at the 07:00 pass.</div>';
+  /* 🌙 v7 (10-03): on a closed day the old board is for READING, said once and calmly —
+     the red 'not today's' line is for a trading day whose 07:00 pass hasn't landed */
+  var MK=d.market||{},closed=MK.open_today===false&&String(d.asof||'').slice(0,10)===ptToday();
+  if(stale&&closed)out+='<div class="item why" style="border:none;padding-top:0">🌙 markets closed today — '+esc(fmtDayS(bday))+'\'s board below, for reading (no 📋 on a past day\'s ideas) · the next board lands '+esc(fmtDayS(MK.next_open||''))+' 07:00</div>';
+  else if(stale)out+='<div class="item" style="color:#f85149;border:none;padding-top:0">📅 '+esc(fmtDayS(bday))+'\'s board — not today\'s. No 📋 on a past day\'s ideas (the setups may have run); today\'s board lands at the 07:00 pass.</div>';
   var LV=I.live;
   if(LV&&LV.at)out+='<div class="item why" style="border:none;padding-top:0">🥇 re-checked at the live tape '+esc(LV.at)+' PT · ✅ '+(LV.live||0)+' live · ⏱️ '+(LV.spent||0)+' spent (struck, no 📋) · the rest have no live rule or quote</div>';
   if(I.red_folder)out+='<div class="item" style="color:#f85149;border:none;padding-top:0">🔴 '+esc(I.red_folder)+'</div>';
@@ -907,6 +882,7 @@ function calIsHis(d){
   var HIS={JEREMY:1,deadman:1,input:1,rider:1,ritual:1,season:1,macro:1};
   var held={};((d.positions||{}).rows||[]).forEach(function(r){if(r.ticker)held[r.ticker]=1});
   return function(i){var tx=String(i.text||''),t0=tx.split(' ')[0];
+    if(tx.indexOf('DREAMER QUESTION')>=0)return false;   /* v7 (10-03): session questions live in the routine */
     if(i.cls==='expiry')return tx.indexOf('paper')<0&&!!held[t0];
     if(i.cls==='earnings')return !!held[t0];
     return !!HIS[i.cls]};
@@ -944,7 +920,7 @@ function forwardCal(d){
   var nx=days.slice(2).filter(function(x){return x.items.length})[0];
   if(nx)top+=glance(nx,'next of yours: ');
   var ms=c.next_milestone,msl='';
-  if(ms){var p=ms.progress;msl='<div class="item" style="border:none;padding:2px 0">🏁 next milestone <b>'+esc(ms.id)+'</b> '+esc(String(ms.date).slice(5))+' — '+esc(ms.title)+(p?' <span class="muted">· '+p.have+' of '+p.bar+' '+esc(p.label)+' closes'+(p.eta?' · pace says ~'+esc(p.eta):'')+'</span>':'')+'</div>';}
+  if(ms&&String(ms.date||'')>=vt){   /* v7: a milestone dated in the past is not 'next' (M2 08-20 sat there 43 days) */var p=ms.progress;msl='<div class="item" style="border:none;padding:2px 0">🏁 next milestone <b>'+esc(ms.id)+'</b> '+esc(String(ms.date).slice(5))+' — '+esc(ms.title)+(p?' <span class="muted">· '+p.have+' of '+p.bar+' '+esc(p.label)+' closes'+(p.eta?' · pace says ~'+esc(p.eta):'')+'</span>':'')+'</div>';}
   return '<div class="card"><h2>📆 Your calendar<span class="tag">from tomorrow · '+nMine+' yours</span></h2>'+top+msl+
     '<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">open the next '+days.length+' days <span class="pill">tap ▾</span></summary>'+
     days.map(day).join('')+'</details></div>'+
@@ -1032,7 +1008,7 @@ function whatsOn(d){
     var tr=s.trade;if(!tr||!tr.contracts)return '';
     return '<div style="margin:2px 0 2px 10px">'+contractLine(tr)+(tr.cost!=null?' <span class="muted">@ $'+Math.round(Math.abs(tr.cost))+'</span>':'')+(tr.opened?' <span class="muted">· opened '+esc(tr.opened)+'</span>':'')+(s.grade?' <span class="pill '+(s.grade==='A'?'good':'')+'">📈 '+esc(s.grade)+'</span>':'')+
       (tr.enterable?'<span class="pill good">still enterable — near their price</span>':'<span class="pill">moved &gt;10% — watch only</span>')+
-      tbtn(tr,'📰 '+s.line)+'</div>';
+      ' <span class="muted">· 📋 on the 🪞 Copy Desk</span></div>';
   }
   var body='<div class="item" style="border-left:3px solid #58a6ff;padding-left:10px"><b>'+esc(top.line)+'</b><span class="why">'+esc(dayName(top.day||vt))+' · top story</span>'+tradeBits(top)+'</div>';
   var shown=0,more='';
@@ -1050,6 +1026,7 @@ function whatsOn(d){
 function render(d){
   TICKETS={};TID=0;   // fresh ticket registry each render (5-min refresh)
   $('#asof').textContent='machine-written '+fmtAge(d.asof_epoch)+' · '+ptStamp(d.asof_epoch);
+  try{$('#topline').innerHTML=topLine(d)}catch(e){}
   var age_h=(Date.now()/1000-d.asof_epoch)/3600;
   /* 14h banner (was 26h, 08-15): worst NORMAL gap is now Fri 20:00 → Sat 7:00
      = 11h — a missed morning-gen alarms the same morning instead of never.
@@ -1070,7 +1047,7 @@ function render(d){
   /* ⚖️ Jeremy Tue 09-15 PM ("where did the engine go, I like monitoring that"):
      the engine strip rides FIRST — proof line · milestone chips · ⏰ jobs ·
      vault · realized/growth · mismatches — then his morning order. */
-  var PANELS=[['account',accountPanel],['ideas',ideasPanel],['today',todayPanel],['copyDesk',copyDesk],['whatsOn',whatsOn],['calendar',forwardCal],['machine',machinePanel],['tsSim',tsSim],['tournament',tournament],['playbook',playbook]];
+  var PANELS=[['positions',positionsPanel],['ideas',ideasPanel],['today',todayPanel],['copyDesk',copyDesk],['whatsOn',whatsOn],['calendar',forwardCal],['machine',machinePanel],['tsSim',tsSim],['tournament',tournament],['playbook',playbook]];
   var html='';
   for(var i=0;i<PANELS.length;i++){
     try{html+=PANELS[i][1](d)||''}
