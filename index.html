@@ -218,25 +218,27 @@ function positionsPanel(d){
   function held(r){return r.held_d!=null?' · held '+r.held_d+'d':''}
   function live(r){return r.live_word?' <span class="pill hi">⚡ live '+esc(r.live_word)+'</span>':''}
   function roll(r){return (r.verdict==='ROLL'&&r.roll&&r.roll.to)?' → '+esc(r.roll.to)+(r.roll.credit!=null?' for '+(r.roll.credit>=0?'+':'')+Number(r.roll.credit).toFixed(2)+' credit':''):''}
+  /* 📵 10-05 the earnings exit on a real long (the LEN ask) + a GTC that outlives it */
+  function xl(r){return (r.exit_line?'<div class="why">'+esc(r.exit_line)+'</div>':'')+(r.order_flag?'<div class="why" style="color:#d29922">'+esc(r.order_flag)+'</div>':'')}
   /* soonest thing to watch = the WATCH row nearest its price */
   var nx=watch.filter(function(r){return r.dist_pct!=null}).sort(function(a,b){return Math.abs(a.dist_pct)-Math.abs(b.dist_pct)})[0];
   var out='<div class="card"><h2>💼 YOUR POSITIONS<span class="tag">'+act.length+' to act · '+watch.length+' to watch · '+steady.length+' steady</span></h2>';
   out+='<div class="item why" style="border:none;padding-top:0">read '+esc(p.date?String(p.date).slice(5)+' ':'')+esc(String(p.asof||'').replace(/\s*PT$/,''))+' PT'+(p.live_n?' · ⚡ '+p.live_n+' word'+(p.live_n===1?'':'s')+' changed live':'')+' · Telegram rings the moment a word changes · you act on 📱 Phone</div>';
   if(act.length){
     out+='<div class="item why" style="border:none;padding-bottom:0">⚡ <b style="color:#c9d1d9">ACT NOW</b></div>';
-    act.forEach(function(r){out+='<div class="item warn"><details><summary style="cursor:pointer;list-style:none;padding:0;color:inherit;font-size:14px"><b>'+esc(r.verdict)+'</b> '+nm(r)+roll(r)+live(r)+' <span class="pill">why ▾</span></summary><div class="why">'+esc(r.why||'')+'</div>'+(r.alt?'<div class="why">or: '+esc(r.alt)+'</div>':'')+'</details></div>'});
+    act.forEach(function(r){out+='<div class="item warn"><details><summary style="cursor:pointer;list-style:none;padding:0;color:inherit;font-size:14px"><b>'+esc(r.verdict)+'</b> '+nm(r)+roll(r)+live(r)+' <span class="pill">why ▾</span></summary><div class="why">'+esc(r.why||'')+'</div>'+(r.alt?'<div class="why">or: '+esc(r.alt)+'</div>':'')+'</details>'+xl(r)+'</div>'});
   }
   if(watch.length){
     out+='<div class="item why" style="border:none;padding-bottom:0">👀 <b style="color:#c9d1d9">WATCH</b></div>';
     watch.forEach(function(r){
       var heads=String(r.why||'').indexOf('heads-up')>=0?' ⚠️':'';
       out+='<div class="item"><details><summary style="cursor:pointer;list-style:none;padding:0;color:inherit;font-size:14px">'+nm(r)+held(r)+' · <b>'+esc(r.verdict)+'</b>'+heads+live(r)+'</summary><div class="why">'+esc(r.why||'')+'</div></details>'+
-        (r.text?'<div class="why">→ '+esc(r.text)+(r.dist_pct!=null?' <span class="muted">(now '+(r.dist_pct>0?'+':'')+r.dist_pct+'% from it)</span>':'')+'</div>':'')+'</div>';
+        (r.text?'<div class="why">→ '+esc(r.text)+(r.dist_pct!=null?' <span class="muted">(now '+(r.dist_pct>0?'+':'')+r.dist_pct+'% from it)</span>':'')+'</div>':'')+xl(r)+'</div>';
     });
   }
   if(steady.length){
     out+='<div class="item"><details><summary style="cursor:pointer;list-style:none;padding:0;color:inherit;font-size:14px">😴 <b>STEADY</b> '+steady.map(function(r){return esc(r.ticker)+(r.held_d!=null?' <span class="muted">'+r.held_d+'d</span>':'')}).join(' · ')+' <span class="pill">tap ▾</span></summary>'+
-      steady.map(function(r){return '<div class="why">'+nm(r)+held(r)+' · '+esc(r.verdict)+(r.text?' — '+esc(r.text):'')+'</div>'}).join('')+'</details></div>';
+      steady.map(function(r){return '<div class="why">'+nm(r)+held(r)+' · '+esc(r.verdict)+(r.text?' — '+esc(r.text):'')+'</div>'+xl(r)}).join('')+'</details></div>';
   }
   if(base.length){
     /* the NO CALL reasons, each its OWN (v6 printed the first row's why for every name) */
@@ -812,7 +814,7 @@ function copyDesk(d){
   var g=cards.filter(function(c){return c.light==='green'}),a=cards.filter(function(c){return c.light==='amber'}),k=cards.filter(function(c){return c.light==='black'});
   var seats=(cd.seats||[]).map(function(s){var bad=s.pf20!=null&&s.pf20<1;return '<b>'+esc(s.agent)+'</b> '+(s.chip||'')+s.w8+'/'+s.n8+' <span class="'+(bad?'bad':'ok')+'">'+esc(s.pf_txt)+'</span>'}).join(' · ');
   var anyHot=(cd.seats||[]).some(function(s){return s.pf20!=null&&s.pf20>=1});
-  var out='<div class="card"><h2>🪞 COPY DESK<span class="tag">'+(C.open||0)+' open · 🟢'+(C.green||0)+' 🟡'+(C.amber||0)+' ⚫'+(C.black||0)+'</span></h2>';
+  var out='<div class="card"><h2>🪞 COPY DESK<span class="tag">'+(C.open||0)+' open · 🟢'+(C.green||0)+' 🟡'+(C.amber||0)+' ⚫'+(C.black||0)+(clbl?' · '+esc(clbl)+(cd.checked_close?'':' PT'):'')+'</span></h2>';   /* 🕐 10-05 his ask: the panel always says when it was checked */
   out+='<div class="item why" style="border:none;padding-top:0">the agents\' open trades · 🟢 near their price → 📋 · 🟡 moved, watch · ⚫ gone'+(C.signal_checked?' · signals checked live':' · signals re-check live in market hours')+'</div>';
   if(!COPY_OK.fresh&&C.green)out+='<div class="item why" style="border:none;padding-top:0;color:#d29922">📋 off since today\'s 06:30 open — these prices are from '+esc(clbl)+'; the 📋 comes back at the first pass of the session (≈07:00)</div>';
   if(seats)out+='<div class="item why" style="border:none;padding-top:0">seat records (realistic, last 8 · trailing-20 PF): '+seats+(anyHot?'':' — <b style="color:#d29922">no seat is above PF 1.0 yet: copy on YOUR chart read, not the seat\'s record</b>')+'</div>';
