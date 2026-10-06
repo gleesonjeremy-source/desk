@@ -1013,7 +1013,7 @@ function goalsBody(d){
     if(x.reading)body+='<div class="why">'+esc(x.reading)+'</div>';
     if(x.gap)body+='<div class="why">→ '+esc(x.gap)+'</div>';
     if(x.ladder){var L=x.ladder;
-      body+='<div class="why">🪜 '+esc(L.rung1.label)+': '+(L.rung1.per_wk!=null?usdS(L.rung1.per_wk)+'/wk':(L.rung1.ratio==null?'—':esc(String(L.rung1.ratio))+'× the bar'))+(L.rung1["pass"]?' ✅':' ❌')
+      body+='<div class="why">🪜 break-even pace (4 wks): '+(L.rung1.ratio==null?'—':(L.rung1["pass"]?'on pace':'behind')+' · '+esc(String(L.rung1.ratio))+'×')+(L.rung1["pass"]?' ✅':' ❌')+' <span class="muted">(dollars on the 💰 tracker)</span>'
         +' · '+esc(L.rung2.label)+': '+(L.rung2.pct==null?'—':esc(String(L.rung2.pct))+'%')+' vs '+esc(String(L.rung2.bar_pct))+'%'+(L.rung2["pass"]?' ✅':' ❌')+'</div>';
       if(L.companion_troi_pct!=null)body+='<div class="why">📈 companion: True-ROI (marks incl.) '+esc(String(L.companion_troi_pct))+'% — labeled, never fused</div>';
       body+='<div class="why">🔄 '+esc(L.ratchet)+' · '+esc(L.window)+'</div>';}
