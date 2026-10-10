@@ -78,10 +78,12 @@ position (ROLL · HOLD · BUY BACK · LET GO · HARVEST · CUT · NO CALL), how 
 and the price where your own rule changes the word. ⚡ act now · 👀 watch (a heads-up, or
 within 2% of its price) · 😴 steady · 💎 your base · 💳 room against your 50% margin ceiling.
 Telegram rings the moment a word changes in market hours; this card catches up within the hour.</p>
-<p><b>🎯 IDEAS</b> — the window (Telegram is only the bell): 🔥 HEATING UP first (a strategy
-winning right now on paper — the streak rare for it, the last 8 made money — with its
-setup to take), then tickets with chart grade and ONE 📋 COPY TICKET button each, then the
-👀 looks (names first, cards on a tap).</p>
+<p><b>🎯 IDEAS</b> — the window (Telegram is only the bell), five lanes, every card with its 📋:
+🎫 TICKETS (passed the bar today; 🧊 = sent before and still passes) · 🔥 HOT HAND (a strategy
+winning right now — the streak rare for it, the last 8 made money — its last five closes, and
+why a warm one isn't hot yet) · 🏇 RIDE (a machine trade ≤5 days old, up or flat, still in the
+chart shape it was bought in) · 📻 RADAR (best that missed, the one missing piece named; the
+👀 looks fold under it) · 📚 STUDY (a developing strategy for your eye, never a ticket).</p>
 <p><b>🫵 TODAY</b> — only what needs you: a real alarm (a job down, suspect marks, tracker
 drift), your dated asks, and the <b>🗳️ decisions you answer from the phone</b> — reply the
 number and your pick in Telegram ("3 park") or "all recs"; silent past the date = the rec is
@@ -211,7 +213,10 @@ function topLine(d){
 var ACTION_VERBS=['ROLL','BUY BACK','LET GO','HARVEST','CUT','SELL CALL'];
 function positionsPanel(d){
   var p=d.positions;if(!p||!(p.rows||[]).length)return '';
-  function tier(r){return ACTION_VERBS.indexOf(r.verdict)>=0?'act':(r.tier||(r.verdict==='NO CALL'&&r.brief==='base'?'base':'steady'))}
+  /* 🩹 10-10 (the MARA rider): a leg the listener has no word for today was rolled
+     or closed today — its old word is not shown as current, it waits for 17:00 */
+  function tier(r){if(r.changed_today)return 'steady';return ACTION_VERBS.indexOf(r.verdict)>=0?'act':(r.tier||(r.verdict==='NO CALL'&&r.brief==='base'?'base':'steady'))}
+  function vword(r){return r.changed_today?'changed today — fresh read 17:00':esc(r.verdict)}
   var act=[],watch=[],steady=[],base=[];
   p.rows.forEach(function(r){var t=tier(r);(t==='act'?act:t==='watch'?watch:t==='base'?base:steady).push(r)});
   function nm(r){return '<b>'+esc(r.ticker)+'</b> '+esc(r.leg||'')}
@@ -237,8 +242,8 @@ function positionsPanel(d){
     });
   }
   if(steady.length){
-    out+='<div class="item"><details><summary style="cursor:pointer;list-style:none;padding:0;color:inherit;font-size:14px">😴 <b>STEADY</b> '+steady.map(function(r){return esc(r.ticker)+(r.held_d!=null?' <span class="muted">'+r.held_d+'d</span>':'')}).join(' · ')+' <span class="pill">tap ▾</span></summary>'+
-      steady.map(function(r){return '<div class="why">'+nm(r)+held(r)+' · '+esc(r.verdict)+(r.text?' — '+esc(r.text):'')+'</div>'+xl(r)}).join('')+'</details></div>';
+    out+='<div class="item"><details><summary style="cursor:pointer;list-style:none;padding:0;color:inherit;font-size:14px">😴 <b>STEADY</b> '+steady.map(function(r){return esc(r.ticker)+(r.changed_today?' <span class="muted">changed today</span>':(r.held_d!=null?' <span class="muted">held '+r.held_d+'d</span>':''))}).join(' · ')+' <span class="pill">tap ▾</span></summary>'+
+      steady.map(function(r){return '<div class="why">'+nm(r)+(r.changed_today?'':held(r))+' · '+vword(r)+(r.text&&!r.changed_today?' — '+esc(r.text):'')+'</div>'+xl(r)}).join('')+'</details></div>';
   }
   if(base.length){
     /* the NO CALL reasons, each its OWN (v6 printed the first row's why for every name) */
@@ -384,7 +389,7 @@ function tsSim(d){
      (Sat 09-26) — the line tells what the machine does now, never the old fix-to-come */
   var fw=s.fill_week;
   if(fw&&fw.attempted)head+='<div class="item"><b>this week: '+fw.filled+' of '+(fw.filled+fw.no_fill)+' sim orders filled</b>'+(fw.working?' · '+fw.working+' still working':'')+
-    '<span class="why">'+(fw.no_fill?fw.no_fill+' never filled · spreads now start at the mid and walk toward the market through the day (the fill ladder, live from S2), singles re-post once at the new mid':'every attempted order filled')+'</span></div>';
+    '<span class="why">'+(fw.no_fill?fw.no_fill+' never filled · spreads now start at the mid and walk toward the market through the day (the fill ladder, live from S2), singles re-post once at the new mid (a focus single short of 20 reps pays the ask at the bell — #120)':'every attempted order filled')+'</span></div>';
   if(s.pairs){
     head+='<div class="item"><div class="row"><span><b>the fill-truth gap</b> · '+s.pairs+' closed pair(s)</span>'+
       '<span class="num '+(gap>=0?'ok':'bad')+'">'+money(gap)+'</span></div>'+
@@ -546,7 +551,12 @@ function tbtnRaw(text,label){
    carries the takeable part — today's ticket/look or an open agent trade. */
 function heatBlock(d){
   var h=d.heat;if(!h)return '';
-  var hdr='<b style="color:#c9d1d9">HEATING UP</b>';
+  var hdr='<b style="color:#c9d1d9">HOT HAND</b> · heating up';
+  /* 🔥 LANES v2 (10-10, the 09-20 design 'the five closes shown' + his 10-06/10-08
+     'is heating up stale?'): every card shows its last five closes and, when it's
+     not hot yet, WHY — the panel moves when the record moves, never a frozen line */
+  function last5(x){var l=x.last5||[];if(!l.length)return '';
+    return '<span class="why">last 5: '+l.map(function(z){return (z.usd>0?'🟢':'🔴')}).join('')+' <span class="muted">'+l.map(function(z){return esc(z.d||'')+' '+usdS(z.usd)}).join(' · ')+'</span></span>'}
   if(h.error)return '<div class="item why" style="border:none;padding-top:0">🔥 '+hdr+' — <span class="warn">couldn\'t look: '+esc(h.error)+'</span></div>';
   var hot=h.hot||[],warm=h.warming||[];
   function take(x){
@@ -554,18 +564,20 @@ function heatBlock(d){
     if(!su.length)return 'no setup right now — its next one lands here'+(x.book==='agent'?' or on the 🪞 Copy Desk':'');
     return 'take it: '+su.map(function(z){
       if(z.kind==='agent')return '<b>'+esc(z.ticker)+'</b> ('+esc(z.agent)+' '+(LIGHT[z.light]||'')+' 🪞 Copy Desk)';
-      return '<b>'+esc(z.ticker)+'</b> ('+(z.kind==='ticket'?'📋 ticket':'👀 look')+(z.grade?' 📈 '+esc(z.grade):'')+' ↓)';
+      return '<b>'+esc(z.ticker)+'</b> ('+(z.kind==='ticket'?'📋 ticket':(z.kind==='radar'?'📻 radar':'👀 look'))+(z.grade?' 📈 '+esc(z.grade):'')+' ↓)';
     }).join(' · ');
   }
   function card(x,icon){
     return '<div class="item"><div>'+icon+' <b>'+esc(x.label)+'</b>'+(x.version?' <span class="pill">'+esc(x.version)+'</span>':'')+bowPill(x)+'<span class="pill">'+esc(x.book_label)+'</span></div>'+
       '<span class="why"><b style="color:#c9d1d9">'+x.streak+' straight · '+usdS(x.streak_usd)+'</b>'+(icon==='🌡️'?' — one more win and it heats up':'')+' · rare for it (needs '+x.need+' at '+x.win_pct+'% wins)</span>'+
       '<span class="why">record '+x.wins+'-'+(x.n-x.wins)+' · last-20 PF '+(x.pf20!=null?x.pf20:'—')+' · last 8 '+usdS(x.last8)+(x.sim?' · 🏦 sim '+x.sim.wins+' of '+x.sim.n+' green':' · not yet in the sim')+(x.agents?' · by '+esc(x.agents.join(' / ')):'')+'</span>'+
+      last5(x)+(x.why_not?'<span class="why">🌡️ not hot yet: '+esc(x.why_not)+'</span>':'')+
       '<span class="why" style="color:#3fb950">'+take(x)+'</span></div>';
   }
+  function nearRow(x){return '<div class="item why" style="border:none;padding:2px 0 2px 10px"><b>'+esc(x.label)+'</b>'+(x.version?' <span class="pill">'+esc(x.version)+'</span>':'')+' ('+esc(x.book_label)+') '+x.streak+' straight · not yet: '+esc(x.not_yet||'')+last5(x)+'</div>'}
   if(!hot.length&&!warm.length){
-    var c=h.closest;
-    return '<div class="item why" style="border:none;padding-top:0">🔥 '+hdr+' — nothing right now'+(c?' · closest: '+esc(c.label)+' ('+esc(c.book_label)+') '+c.streak+' straight, but '+esc(c.not_yet||''):'')+'</div>';
+    var nr=h.near||(h.closest?[h.closest]:[]);
+    return '<div class="item why" style="border:none;padding-bottom:2px">🔥 '+hdr+' — nothing hot right now'+(nr.length?' · on the way:':'')+'</div>'+nr.map(nearRow).join('');
   }
   return '<div class="item why" style="border:none;padding-bottom:2px">🔥 '+hdr+' — winning right now: the streak is rare for it and the last 8 made money (realistic prices)</div>'+
     hot.map(function(x){return card(x,'🔥')}).join('')+warm.map(function(x){return card(x,'🌡️')}).join('');
@@ -598,7 +610,7 @@ function bowtieLine(d){
 function ideasPanel(d){
   var I=d.ideas;
   if(!I)return '';
-  var tk=I.tickets||[],held=I.held||[],radar=I.radar||[],study=I.study||[],looks=I.looks||[],waits=I.waits||[];
+  var tk=I.tickets||[],rep=I.repeats||[],ride=I.ride||[],held=I.held||[],radar=I.radar||[],study=I.study||[],looks=I.looks||[],waits=I.waits||[];
   function recPill(r){if(!r)return '';var cls=r.indexOf('✅')>=0?'good':(r.indexOf('⚠️')>=0?'hi':'');return '<span class="pill '+cls+'">'+esc(r)+'</span>'}
   function gradeLine(c){return c.grade?'<span class="why">📈 chart '+esc(c.grade)+(c.chart_dir?' ('+esc(c.chart_dir)+')':'')+(c.chart_read?' — '+esc(c.chart_read):'')+'</span>':''}
   /* 🧩 router (09-14): every ticket names its version, shape + why, the
@@ -651,12 +663,18 @@ function ideasPanel(d){
   var stale=!!bday&&bday<ptToday();
   var cut=sessionCut(d);
   function rowAsof(c){var r=readAt(c),b=String(c.pass_ts||I.ts||'');return r>=b?[r,'checked ']:[b,'board ']}
-  function cbtnLive(c,where){
+  function cbtnLive(c,where,label){
     if(c.live==='spent')return '';
     var a=rowAsof(c);
     if(cut&&a[0]&&a[0]<cut)return '';
-    return c.ticket?tbtnRaw(c.ticket,'📋 COPY TICKET'+(a[0]?' · '+a[1]+asofLabel(a[0]):'')):tbtn(c,where);
+    if(!c.ticket&&label)return '';            /* a lane row without its block never falls back to a hand-built one */
+    return c.ticket?tbtnRaw(c.ticket,(label||'📋 COPY TICKET')+(a[0]?' · '+a[1]+asofLabel(a[0]):'')):tbtn(c,where);
   }
+  /* 🎯 LANES v2 (Sat 10-10, his 09-20 design): every lane opens with one header line;
+     an empty lane says so in one muted line — never a silent gap */
+  function laneHead(icon,name,sub){return '<div class="item why" style="border:none;padding-bottom:2px">'+icon+' <b style="color:#c9d1d9">'+name+'</b>'+(sub?' — '+sub:'')+'</div>'}
+  function laneNone(t){return '<div class="item why" style="border:none;padding-top:0;opacity:.7">'+t+'</div>'}
+  function capped(rows,fn,label){var v=rows.slice(0,3),m=rows.slice(3);return v.map(fn).join('')+(m.length?'<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">+'+m.length+' more '+label+' <span class="pill">tap ▾</span></summary>'+m.map(fn).join('')+'</details></div>':'')}
   function passPill(c){
     var p=c.pass_ts&&I.ts&&c.pass_ts!==I.ts?'<span class="pill">'+esc(String(c.pass_ts).slice(11))+' board</span>':'';
     if(c.paper_since&&c.paper_since<bday)p+='<span class="pill">📒 paper since '+esc(String(c.paper_since).slice(5))+'</span>';
@@ -666,7 +684,8 @@ function ideasPanel(d){
     var conv=c.conviction==='HIGH'?'<span class="pill hi">HIGH</span>':'<span class="pill med">MED</span>';
     var ord=c.order==='quota'?'<span class="pill">📣 rep need</span>':'';
     var g=c.grade?' <span class="pill '+(c.grade==='A'?'good':'')+'">📈 '+esc(c.grade)+'</span>':'';
-    return '<div class="item"><div>'+nm(c,'<span class="tk">'+(i+1)+'. '+esc(c.ticker)+'</span> — '+esc(c.strategy)+(c.dir?' '+esc(c.dir):''))+g+bowPill(c)+conv+recPill(c.record)+ord+livePill(c)+passPill(c)+'</div>'+
+    var rp=c.cooled_sent?'<span class="pill">🧊 sent '+esc(String(c.cooled_sent).slice(5))+' · still passes today</span>':'';
+    return '<div class="item"><div>'+nm(c,'<span class="tk">'+(i+1)+'. '+esc(c.ticker)+'</span> — '+esc(c.strategy)+(c.dir?' '+esc(c.dir):''))+g+bowPill(c)+conv+recPill(c.record)+ord+rp+livePill(c)+passPill(c)+'</div>'+
       liveSpent(c)+
       '<div style="margin:3px 0">'+nm(c,contractLine(c)+(c.cost!=null?' <span class="muted">@ $'+Math.abs(c.cost)+'</span>':''))+'</div>'+
       glance(c)+caseFold(c,'the case — read · shape · evidence · exits')+
@@ -674,17 +693,38 @@ function ideasPanel(d){
       '</div>';
   }
   function sRow(c){
-    return '<div class="item"><div><span class="tk">'+esc(c.ticker)+'</span> — '+esc(c.strategy)+(c.dir?' '+esc(c.dir):'')+' <span class="pill">🔧 study card · not a ticket</span></div>'+
-      gradeLine(c)+(c.line?'<span class="why">'+esc(c.line)+'</span>':'')+'</div>';
+    return '<div class="item"><div>'+nm(c,'<span class="tk">'+esc(c.ticker)+'</span> — '+esc(c.strategy)+(c.dir?' '+esc(c.dir):''))+' <span class="pill">🔧 study · your eye, never a ticket</span>'+livePill(c)+passPill(c)+'</div>'+
+      liveSpent(c)+gradeLine(c)+
+      (c.contracts?'<div style="margin:3px 0">'+contractLine(c)+(c.cost!=null?' <span class="muted">@ $'+Math.abs(c.cost)+'</span>':'')+'</div>':'')+
+      cbtnLive(c,'the study lane','📋 COPY STUDY — your eye')+'</div>';
   }
+  /* 📻 RADAR (LANES v2): the best that missed, the ONE missing piece named, WITH
+     its 📋 (the 10-06 ADBE/CVNA long puts never reached the Desk) — a sink keeps
+     its row, never a block */
   function rRow(c){
     var miss=(c.missing||[])[0]||'no confirmation fired';
-    return '<div class="item"><div><span class="tk">'+esc(c.ticker)+'</span> '+esc(c.strategy)+(c.dir?' '+esc(c.dir):'')+(c.grade?' 📈 '+esc(c.grade):'')+recPill(c.record)+'</div>'+
-      '<span class="why">evidence '+((c.confirms||[]).length)+(c.need?'/'+c.need:'')+' · missing: '+esc(miss)+'</span></div>';
+    var g=c.grade?' <span class="pill '+(c.grade==='A'?'good':'')+'">📈 '+esc(c.grade)+'</span>':'';
+    return '<div class="item"><div>'+nm(c,'<span class="tk">'+esc(c.ticker)+'</span> — '+esc(c.strategy)+(c.dir?' '+esc(c.dir):''))+g+bowPill(c)+recPill(c.record)+livePill(c)+'</div>'+
+      liveSpent(c)+
+      '<span class="why">📻 missing: '+esc(miss)+'</span>'+
+      (c.contracts?'<div style="margin:3px 0">'+nm(c,contractLine(c)+(c.cost!=null?' <span class="muted">@ $'+Math.abs(c.cost)+'</span>':''))+'</div>':'')+
+      glance(c)+
+      (c.sink?'<span class="why">📣 a sink by rep need — no 📋 (sinks never ticket)</span>':cbtnLive(c,'the radar','📋 COPY RADAR'))+'</div>';
+  }
+  /* 🏇 RIDE (LANES v2): a machine trade ≤5 trading days old, up or flat, still in
+     the chart state it was bought in at the last close, signal alive — the copy
+     block is priced at today's value (agent trades live on the 🪞 Copy Desk) */
+  function rideRow(c){
+    var g=c.grade_now?' <span class="pill '+(c.grade_now==='A'?'good':'')+'">📈 '+esc(c.grade_now)+'</span>':'';
+    var pass=!cut||String(d.asof||'')>=cut;
+    return '<div class="item"><div><span class="tk">'+esc(c.ticker)+'</span> — '+esc(c.strategy)+(c.dir?' '+esc(c.dir):'')+g+'<span class="pill">'+esc(c.book||'paper')+'</span>'+(c.version?'<span class="pill">'+esc(c.version)+'</span>':'')+bowPill(c)+'</div>'+
+      '<span class="why">🏇 '+esc(c.why||'')+(c.sim_fill!=null?' · 🏦 sim filled '+esc(String(c.sim_fill)):'')+'</span>'+
+      '<div style="margin:3px 0">'+contractLine(c)+(c.cost!=null?' <span class="muted">≈ $'+Math.abs(c.cost)+' now</span>':'')+'</div>'+
+      (c.ticket&&pass?tbtnRaw(c.ticket,'📋 COPY RIDE · '+asofLabel(String(d.asof||'').slice(0,16))):'')+'</div>';
   }
   var when=(I.ts?(stale?fmtDayS(bday)+' ':'')+esc(String(I.ts).slice(11))+' PT':(I.label&&I.label!=='morning'?esc(I.label):'07:00'));
   var nh=((d.heat||{}).hot||[]).length;
-  var out='<div class="card"><h2>🎯 IDEAS<span class="tag">'+(nh?'🔥 '+nh+' · ':'')+tk.length+' ticket'+(tk.length===1?'':'s')+(looks.length?' · '+looks.length+' looks':'')+' · '+when+'</span></h2>';
+  var out='<div class="card"><h2>🎯 IDEAS<span class="tag">'+(nh?'🔥 '+nh+' · ':'')+tk.length+' ticket'+(tk.length===1?'':'s')+(rep.length?' +'+rep.length+' 🧊':'')+(ride.length?' · 🏇 '+ride.length:'')+(radar.length?' · 📻 '+radar.length:'')+' · '+when+'</span></h2>';
   /* 🌙 v7 (10-03): on a closed day the old board is for READING, said once and calmly —
      the red 'not today's' line is for a trading day whose 07:00 pass hasn't landed */
   var MK=d.market||{},closed=MK.open_today===false&&String(d.asof||'').slice(0,10)===ptToday();
@@ -694,19 +734,27 @@ function ideasPanel(d){
   else if(stale)out+='<div class="item" style="color:#f85149;border:none;padding-top:0">📅 '+esc(fmtDayS(bday))+'\'s board — not today\'s. No 📋 since today\'s open (the setups may have run); today\'s board lands at the 07:00 pass.</div>';
   if(LV&&LV.at)out+='<div class="item why" style="border:none;padding-top:0">🥇 re-checked at the live tape '+esc(asofLabel(lastChk))+' PT · ✅ '+(LV.live||0)+' live · ⏱️ '+(LV.spent||0)+' spent (struck, no 📋) · the rest have no live rule or quote</div>';
   if(I.red_folder)out+='<div class="item" style="color:#f85149;border:none;padding-top:0">🔴 '+esc(I.red_folder)+'</div>';
-  out+=heatBlock(d);
   out+=bowtieLine(d);
   /* 🧩 THE COUNT LINE (bar 6) + 🗑️ THE TRASH RATE (bar 7), 09-14: the line
      missing = the router did not run (say so); the rate is his one number */
   /* v6 (09-22): a router that did not run stays loud (couldn't-look ≠
      no-setups, the 08-25 law); the count line + trash rate fold to the foot */
   if(!I.count_line)out+='<div class="item why" style="border:none;padding-top:0;color:#f0883e">🧩 no count line — the router did not stamp this pass (fallback board)</div>';
-  if(tk.length)out+='<div class="item why" style="border:none;padding-bottom:2px"><b style="color:#c9d1d9">TICKETS</b> — tap 📋, paste into Claude Phone</div>'+tk.map(tRow).join('');
+  /* 🎫 TICKETS lane — today's tickets, then the repeats that still pass (🧊 dated) */
+  if(tk.length||rep.length)out+=laneHead('🎫','TICKETS','passed the bar · tap 📋, paste into Claude Phone'+(rep.length?' · 🧊 = sent before, still passes today':''))+tk.concat(rep).map(tRow).join('');
   else{
     var n=I.near;
-    out+='<div class="item"><b>0 tickets on the Desk</b>'+(I.n_considered!=null?' · '+I.n_considered+' reached the ticket bar':'')+(looks.length?' · '+looks.length+' 👀 looks below':'')+
+    out+=laneHead('🎫','TICKETS','')+'<div class="item"><b>0 tickets on the Desk</b>'+(I.n_considered!=null?' · '+I.n_considered+' reached the ticket bar':'')+(looks.length?' · '+looks.length+' 👀 looks below':'')+
       (n?'<span class="why">closest: <b>'+esc(n.ticker)+'</b> '+esc(n.strategy)+(n.grade?' 📈 '+esc(n.grade):'')+' — held by: '+esc((n.missing||[]).join('; ')||'no independent confirmation fired')+'</span>':'')+'</div>';
   }
+  /* 🔥 HOT HAND lane (the heat engine, ruled 09-22) — moved under the tickets */
+  out+=heatBlock(d);
+  /* 🏇 RIDE lane */
+  out+=laneHead('🏇','RIDE','machine trades still in the shape they were bought in'+(I.ride_close?' (re-read at the '+esc(String(I.ride_close).slice(5))+' close)':''));
+  out+=ride.length?ride.map(rideRow).join(''):laneNone('no ride right now'+(I.ride_note?' — '+esc(I.ride_note):''));
+  /* 📻 RADAR lane — the best that missed, then the looks and the levels fold under it */
+  out+=laneHead('📻','RADAR','best that missed the bar — the one missing piece named');
+  out+=radar.length?capped(radar,rRow,'on the radar'):laneNone('nothing near the bar this pass');
   /* 👀 THE LOOKS (⚖️ Jeremy Tue 09-15: "I should have at least 15 ideas on
      desk so I can maybe finally take one" · "how do I trade it? for what
      contract?"): every A/B chart the machine priced and then HELD — one per
@@ -747,17 +795,17 @@ function ideasPanel(d){
     '<div class="item why" style="border:none;padding:2px 0 0 10px">the 20 SMA is the trigger · ⚠️ not ringing yet — look at these yourself (the ring is a dated build on the calendar)</div></details></div>';
   /* v5 (09-13 phone test): HELD and RADAR show three rows, the rest fold —
      with zero tickets a long held list pushed TODAY off the first screen */
+  /* 📚 STUDY lane — developing strategies, his eye, never a ticket, WITH the 📋 (09-20 design) */
+  out+=laneHead('📚','STUDY','developing strategies · your eye');
+  out+=study.length?study.map(sRow).join(''):laneNone('no study card on this board — a developing strategy (the diagonal, your eye) shows here when a scanner prices one on an A/B chart');
+  /* v5 (09-13): HELD is board-building detail — it folds into "how this board was built" (10-10) */
   function hRow(h){return '<div class="item"><span class="tk">'+esc(h.ticker)+'</span> '+esc(h.strategy||'')+(h.grade?' 📈 '+esc(h.grade):'')+' <span class="why">'+esc(h.why||'')+'</span></div>'}
-  function capped(rows,fn,label){var v=rows.slice(0,3),m=rows.slice(3);return v.map(fn).join('')+(m.length?'<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">+'+m.length+' more '+label+' <span class="pill">tap ▾</span></summary>'+m.map(fn).join('')+'</details></div>':'')}
-  if(held.length)out+='<div class="item why" style="border:none;padding-bottom:2px"><b style="color:#c9d1d9">HELD</b> — chart passed, something else didn\'t · '+held.length+'</div>'+capped(held,hRow,'held');
-  if(radar.length)out+='<div class="item why" style="border:none;padding-bottom:2px"><b style="color:#c9d1d9">RADAR</b> — best of the rest, no ticket · '+radar.length+'</div>'+capped(radar,rRow,'on the radar');
-  if(study.length)out+='<div class="item why" style="border:none;padding-bottom:2px"><b style="color:#c9d1d9">STUDY CARD</b> — human eye only</div>'+study.map(sRow).join('');
-  if((I.cooled||[]).length)out+='<div class="item why" style="border:none">🧊 on cooldown: '+esc(I.cooled.join(' · '))+'</div>';
   /* v5 (09-13 re-cut): the 💡 best-trades panel is retired — the board's
      next rows fold here as one line, no second ticket format */
   /* v6 (09-22): the board's next rows (never a ticket) live in the vault;
      how the board was built folds here — the count line + the trash rate */
   var how=[];
+  if(held.length)how.push('<div class="item why" style="border:none;padding:2px 0"><b style="color:#c9d1d9">HELD</b> — chart passed, something else didn\'t · '+held.length+'</div>'+held.map(hRow).join(''));
   if(I.count_line)how.push('<div class="item why" style="border:none;padding:2px 0">🧩 '+esc(I.count_line)+'</div>');
   if(I.trash&&I.trash.line){var tr=I.trash;how.push('<div class="item why" style="border:none;padding:2px 0"><span class="pill '+(tr.trashed?'hi':'good')+'">'+esc(tr.line)+'</span>'+((tr.last||[]).length?' last: '+esc(tr.last.map(function(x){return x.ticker+' '+(x.date||'').slice(5)+(x.why?' — '+x.why:'')}).join(' · ')):'')+'</div>');}
   /* 🩺 SCANNER VITALS (Thu 10-01): what each GATE killed this pass — the
