@@ -41,6 +41,11 @@ h1{font-size:21px;margin:4px 0 0}.sub{color:#8b949e;font-size:12px;margin:2px 0 
 .bar>div.part{background:#d29922}
 .row{display:flex;gap:8px;align-items:baseline;justify-content:space-between}
 .num{font-variant-numeric:tabular-nums}
+/* 🏟️ 10-13 the plain standings table (his 'its looks good on here') — fits 375px */
+.stbl{width:100%;border-collapse:collapse;font-size:14px}
+.stbl th{color:#8b949e;font-weight:500;font-size:11px;text-align:right;padding:2px 4px;line-height:1.2}
+.stbl td{text-align:right;padding:6px 4px;font-variant-numeric:tabular-nums;border-top:1px solid #21262d;white-space:nowrap}
+.stbl th:first-child,.stbl td:first-child{text-align:left}
 .tk{font-weight:700}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
 .chip{border:1px solid #30363d;border-radius:8px;padding:2px 9px;font-size:12px;white-space:nowrap}
@@ -884,37 +889,37 @@ function copyDesk(d){
    older payloads (no trading_real) fall back to the booked figure */
 function seatTr(s){return s.trading_real!=null?s.trading_real:s.trading}
 function tournament(d){
+  /* 🏟️ 10-13 (⚖️ Jeremy: "i dont understand the scoreboard at all … its looks good
+     on here mac pro"): ONE plain table — seat · this season at REALISTIC prices ·
+     record · PF — best trader on top (his pick). 👑/📉 stay as the merit marks (the
+     payload's order IS merit, the game's crown/axe rule). Money that is not trading
+     (a bounty, a fade) is named under the table, never inside it. */
   var t=d.tournament;
   if(!t||!(t.seats||[]).length)return '';
-  var body='';
-  var top=t.seats[0];
-  body+='<div class="item"><div class="row"><span>👑 <b>'+esc(top.agent)+'</b> leads on merit'+(top.streak?' · 🔥W'+top.streak:'')+'</span>'+
-    '<span class="num">$'+(top.merit!=null?top.merit.toLocaleString():'—')+(seatTr(top)!=null?' · trading <span class="'+(seatTr(top)>0?'ok':(seatTr(top)<0?'bad':'muted'))+'">'+money(seatTr(top))+'</span> realistic':'')+'</span></div></div>';
-  if(t.drama)body+='<div class="item">📉 <b>'+esc(t.drama.payer)+'</b> pays $'+t.drama.amount.toLocaleString()+' to '+esc(t.drama.payee)+' if the week ends now</div>';
-  body+=t.seats.map(function(s,i){
-    var wd=s.week_delta,r8=s.record8||[0,0];
-    var tr=seatTr(s),q=s.s2,inj=s.injections||{};
-    var injTxt=Object.keys(inj).map(function(k){return (k==='bounty'?'💰 ':(k==='fade'?'🎯 ':'⚖️ '))+money(inj[k])+' '+esc(k.replace('_',' '))}).join(' · ');
-    var trLine=(s.reset_date?'this season (since '+esc(String(s.reset_date).slice(5))+') · ':'')+'trading <b class="'+(tr>0?'ok':(tr<0?'bad':'muted'))+'">'+money(tr)+' realistic</b>'+
-      (s.trading!=null&&s.trading_real!=null?' ('+money(s.trading)+' booked'+(q?': closes '+money(q.booked)+' · open '+money(q.opens_swing):'')+')':'')+
-      (injTxt?' · '+injTxt+' — <b>not trading</b>':'');
-    var recLine=(q&&q.n?'this season '+q.w+'W-'+q.l+'L · <span class="'+(q.pf_real!=null&&q.pf_real<1?'bad':'ok')+'">PF '+(q.no_losses?'∞ (no losses)':(q.pf_real!=null?q.pf_real.toFixed(2):'—'))+' realistic</span>'+(q.pf_booked!=null?' ('+q.pf_booked.toFixed(2)+' booked)':''):'no closes this season yet')+
-      (s.pf_txt?' · last 20'+(s.pf_since?' from '+esc(String(s.pf_since).slice(5)):'')+': '+esc(s.pf_txt):'')+' · '+s.open_n+' open → on the 🪞 Copy Desk';
-    return '<div class="item"><div class="row"><span>'+(i===0?'👑 ':(i===(t.seats.length-1)&&t.seats.length>2?'📉 ':''))+'<b>'+esc(s.agent)+'</b>'+(s.heat?' '+s.heat:'')+'</span>'+
-      '<span class="num">merit $'+(s.merit!=null?s.merit.toLocaleString():'—')+(wd!=null?' · wk '+money(wd):'')+'</span></div>'+
-      '<span class="why">'+trLine+'</span><span class="why">'+recLine+'</span></div>';
+  var seats=t.seats.slice(),n=seats.length;
+  var crown=seats[0].agent,axe=n>2?seats[n-1].agent:null;
+  seats.sort(function(a,b){return (seatTr(b)||0)-(seatTr(a)||0)});
+  var reset=seats[0].reset_date?String(seats[0].reset_date).slice(5):'';
+  var rows=seats.map(function(s){
+    var tr=seatTr(s),q=s.s2||{};
+    var pf=q.no_losses?'∞':(q.pf_real!=null?q.pf_real.toFixed(2):'—');
+    var rec=q.n?(q.w||0)+'W-'+(q.l||0)+'L':'—';
+    var mark=s.agent===crown?' 👑':(s.agent===axe?' 📉':'');
+    return '<tr><td><b>'+esc(s.agent)+'</b>'+mark+'</td><td class="'+(tr>0?'ok':(tr<0?'bad':'muted'))+'">'+money(tr)+'</td><td>'+rec+'</td>'+
+      '<td class="'+(!q.no_losses&&q.pf_real!=null&&q.pf_real<1?'bad':(q.pf_real!=null||q.no_losses?'ok':'muted'))+'">'+pf+'</td></tr>';
   }).join('');
+  var body='<div class="item" style="border:none;padding-top:0"><table class="stbl"><thead><tr><th>seat</th><th>this season<br>realistic</th><th>record</th><th>PF</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  var inj=[];
+  seats.forEach(function(s){var m=s.injections||{};Object.keys(m).forEach(function(k){inj.push((k==='bounty'?'💰 ':(k==='fade'?'🎯 ':'⚖️ '))+esc(s.agent)+' '+money(m[k])+' '+esc(k.replace('_',' ')))})});
+  if(inj.length)body+='<div class="item why" style="border:none">'+inj.join(' · ')+' — <b>not trading</b>, kept out of the table</div>';
+  if(t.drama)body+='<div class="item">📉 <b>'+esc(t.drama.payer)+'</b> pays $'+t.drama.amount.toLocaleString()+' to '+esc(t.drama.payee)+' if the week ends now</div>';
   var bits=[];
-  if((t.bounties||[]).length)bits.push('🎯 bounties: '+t.bounties.map(function(b){return esc(b.strategy)+' $'+Math.round(b.reward/1000)+'k'}).join(', '));
+  if((t.bounties||[]).length)bits.push('🎯 bounties on offer: '+t.bounties.map(function(b){return esc(b.strategy)+' $'+Math.round(b.reward/1000)+'k'}).join(', '));
   if((t.graduates||[]).length)bits.push('🏆 graduated: '+t.graduates.map(esc).join(', '));
   if(bits.length)body+='<div class="item why" style="border:none">'+bits.join(' · ')+'</div>';
-  /* 🏁 09-27 (seam #3): the note tells THIS season's rule — no tax from S2 (⚖️ 09-24),
-     so 📉 means the bottom seat on merit, axed at the break if below par */
-  body+='<div class="item why" style="border:none">'+(t.tax_pct>0
-    ?'⚖️ merit = equity − relegation tax, suspect marks excluded, lab losses shielded · 📉 = pays the tax if the week ends now'
-    :'⚖️ merit = equity this season, suspect marks excluded, lab losses shielded · no tax this season · 📉 = bottom seat on merit — axed at the break if below par')+
-    ' · 🏟️ <b>is a seat trading well?</b> read its <b>realistic trading</b> and <b>this season\'s PF</b> — trading = equity − par since the reset, minus bounties, fades and tax (shown apart, never trading); realistic = the same at realistic close prices, what copying it would have paid; the last-20 PF can reach back into last season (its start date shown)'+
-    ' · coach any agent: text “desk: tell &lt;name&gt; …”</div>';
+  body+='<div class="item why" style="border:none">this season = since the '+(reset?esc(reset)+' ':'')+'reset, when every seat restarted at par · realistic = at realistic fill prices — what copying it would have paid · '+
+    (t.tax_pct>0?'👑 leads / 📉 bottom on merit (📉 pays the tax if the week ends now)':'👑 leads / 📉 bottom on merit — the game\'s crown/axe ranking, which still counts bounties; 📉 is axed at the break if below par')+
+    ' · their open trades live on the 🪞 Copy Desk · every detail: Tournament in Obsidian · coach any agent: text “desk: tell &lt;name&gt; …”</div>';
   var tag=(t.season?'S'+t.season+' ':'')+(t.wk_in!=null?'wk '+t.wk_in:(t.week!=null?'wk '+t.week:''))+(t.season_break?' · season breaks '+esc(String(t.season_break).slice(5)):'')+' · standings';
   return foldCard('🏟️ The tournament',tag,body,false);
 }
