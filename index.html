@@ -908,19 +908,18 @@ function tournament(d){
     var mark=s.agent===crown?' 👑':(s.agent===axe?' 📉':'');
     var ou=s.open_unreal,on=s.open_n||0;
     var openCell=on?'<span class="'+(ou>0?'ok':(ou<0?'bad':'muted'))+'">'+money(ou)+'</span><small>'+(s.open_green||0)+'/'+on+' green</small>':'<span class="muted">flat</span>';
-    return '<tr><td><b>'+esc(s.agent)+'</b>'+mark+'</td><td class="'+(tr>0?'ok':(tr<0?'bad':'muted'))+'">'+money(tr)+'</td><td>'+openCell+'</td><td>'+rec+'</td>'+
+    var at=s.all_time_real;
+    return '<tr><td><b>'+esc(s.agent)+'</b>'+mark+'</td><td class="'+(tr>0?'ok':(tr<0?'bad':'muted'))+'">'+money(tr)+'</td>'+
+      '<td class="'+(at>0?'ok':(at<0?'bad':'muted'))+'">'+(at!=null?money(at):'—')+'</td><td>'+openCell+'</td><td>'+rec+'</td>'+
       '<td class="'+(!q.no_losses&&q.pf_real!=null&&q.pf_real<1?'bad':(q.pf_real!=null||q.no_losses?'ok':'muted'))+'">'+pf+'</td></tr>';
   }).join('');
-  var body='<div class="item" style="border:none;padding-top:0"><table class="stbl"><thead><tr><th>seat</th><th>this season<br>realistic</th><th>open<br>now</th><th>record</th><th>PF</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
-  var inj=[];
-  seats.forEach(function(s){var m=s.injections||{};Object.keys(m).forEach(function(k){inj.push((k==='bounty'?'💰 ':(k==='fade'?'🎯 ':'⚖️ '))+esc(s.agent)+' '+money(m[k])+' '+esc(k.replace('_',' ')))})});
-  if(inj.length)body+='<div class="item why" style="border:none">'+inj.join(' · ')+' — <b>not trading</b>, kept out of the table</div>';
+  var body='<div class="item" style="border:none;padding-top:0"><table class="stbl"><thead><tr><th>seat</th><th>this<br>season</th><th>all<br>time</th><th>open<br>now</th><th>record</th><th>PF</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
   if(t.drama)body+='<div class="item">📉 <b>'+esc(t.drama.payer)+'</b> pays $'+t.drama.amount.toLocaleString()+' to '+esc(t.drama.payee)+' if the week ends now</div>';
   var bits=[];
-  if((t.bounties||[]).length)bits.push('🎯 bounties on offer: '+t.bounties.map(function(b){return esc(b.strategy)+' $'+Math.round(b.reward/1000)+'k'}).join(', '));
+  /* 🗓️ 10-13 'take off the bounty': the bounties-on-offer line lives in Obsidian's engine room only */
   if((t.graduates||[]).length)bits.push('🏆 graduated: '+t.graduates.map(esc).join(', '));
   if(bits.length)body+='<div class="item why" style="border:none">'+bits.join(' · ')+'</div>';
-  body+='<div class="item why" style="border:none">this season = since the '+(reset?esc(reset)+' ':'')+'reset, when every seat restarted at par · realistic = at realistic fill prices — what copying it would have paid · open now = what its open trades are worth right now at mid marks, NOT banked (realistic exits come in a bit lower) · green = open trades in profit · '+
+  body+='<div class="item why" style="border:none">this season = since the '+(reset?esc(reset)+' ':'')+'reset, when every seat restarted at par · all time = every trade it ever closed (S1 + S2) · both at realistic fill prices — what copying it would have paid · bounties and fades never count · open now = what its open trades are worth right now at mid marks, NOT banked (realistic exits come in a bit lower) · green = open trades in profit · '+
     (t.tax_pct>0?'👑 leads / 📉 bottom on merit (📉 pays the tax if the week ends now)':'👑 leads / 📉 bottom on merit — the game\'s crown/axe ranking, which still counts bounties; 📉 is axed at the break if below par')+
     ' · their open trades live on the 🪞 Copy Desk · every detail: Tournament in Obsidian · coach any agent: text “desk: tell &lt;name&gt; …”</div>';
   var tag=(t.season?'S'+t.season+' ':'')+(t.wk_in!=null?'wk '+t.wk_in:(t.week!=null?'wk '+t.week:''))+(t.season_break?' · season breaks '+esc(String(t.season_break).slice(5)):'')+' · standings';
