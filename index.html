@@ -167,7 +167,7 @@ function ptStamp(ep){try{var d=new Date(ep*1000);
   if(day===ptToday())return t+' PT';
   return new Intl.DateTimeFormat('en-US',{timeZone:'America/Los_Angeles',weekday:'short',month:'short',day:'numeric'}).format(d)+' '+t+' PT';
 }catch(x){return ''}}
-function money(v){if(v==null)return '—';var r=Math.round(v);return (r>0?'+$':(r<0?'-$':'$'))+Math.abs(r)}
+function money(v){if(v==null)return '—';var r=Math.round(v);return (r>0?'+$':(r<0?'-$':'$'))+Math.abs(r).toLocaleString('en-US')}
 /* 👆 tap-to-expand (2026-08-16 — Jeremy 08-14: "sometimes I want or need to
    see the whole thing"): server clips ship a `full` twin whenever they cut;
    wrap the clipped html in the house <details>/tap ▾ fold. No full = no fold. */
@@ -860,12 +860,12 @@ function copyDesk(d){
   var clbl=cd.checked_close?((cday&&cday!==ptToday()?wkday(cday)+' ':'')+'close'):(chk?'checked '+asofLabel(chk):'');
   COPY_OK={fresh:!cut||!chk||chk>=cut,label:clbl};
   var g=cards.filter(function(c){return c.light==='green'}),a=cards.filter(function(c){return c.light==='amber'}),k=cards.filter(function(c){return c.light==='black'});
-  var seats=(cd.seats||[]).map(function(s){var bad=s.pf20!=null&&s.pf20<1;return '<b>'+esc(s.agent)+'</b> '+(s.chip||'')+s.w8+'/'+s.n8+' <span class="'+(bad?'bad':'ok')+'">'+esc(s.pf_txt)+'</span>'}).join(' · ');
+  var seats=(cd.seats||[]).map(function(s){var bad=s.pf20!=null&&s.pf20<1;return '<b>'+esc(s.agent)+'</b> '+(s.chip||'')+s.w8+'/'+s.n8+' <span class="'+(bad?'bad':'ok')+'">'+esc(s.pf_txt)+'</span>'+(s.since?' <span class="muted">from '+esc(String(s.since).slice(5))+'</span>':'')}).join(' · ');
   var anyHot=(cd.seats||[]).some(function(s){return s.pf20!=null&&s.pf20>=1});
   var out='<div class="card"><h2>🪞 COPY DESK<span class="tag">'+(C.open||0)+' open · 🟢'+(C.green||0)+' 🟡'+(C.amber||0)+' ⚫'+(C.black||0)+(clbl?' · '+esc(clbl)+(cd.checked_close?'':' PT'):'')+'</span></h2>';   /* 🕐 10-05 his ask: the panel always says when it was checked */
   out+='<div class="item why" style="border:none;padding-top:0">the agents\' open trades · 🟢 near their price → 📋 · 🟡 moved, watch · ⚫ gone'+(C.signal_checked?' · signals checked live':' · signals re-check live in market hours')+'</div>';
   if(!COPY_OK.fresh&&C.green)out+='<div class="item why" style="border:none;padding-top:0;color:#d29922">📋 off since today\'s 06:30 open — these prices are from '+esc(clbl)+'; the 📋 comes back at the first pass of the session (≈07:00)</div>';
-  if(seats)out+='<div class="item why" style="border:none;padding-top:0">seat records (realistic, last 8 · trailing-20 PF): '+seats+(anyHot?'':' — <b style="color:#d29922">no seat is above PF 1.0 yet: copy on YOUR chart read, not the seat\'s record</b>')+'</div>';
+  if(seats)out+='<div class="item why" style="border:none;padding-top:0">seat records (realistic · last 8 · last-20 PF, its window start shown — it can cross the season break; this season alone is on the 🏟️ standings): '+seats+(anyHot?'':' — <b style="color:#d29922">no seat is above PF 1.0 yet: copy on YOUR chart read, not the seat\'s record</b>')+'</div>';
   var vis=g.slice(0,3),gm=g.slice(3);
   out+=vis.map(copyCard).join('');
   if(!g.length)out+='<div class="item muted">no 🟢 copyable trade right now — every open trade has moved or is gone</div>';
@@ -880,19 +880,29 @@ function copyDesk(d){
    thing — every open agent trade lives on the 🪞 Copy Desk; this fold is the
    league table). Ranked on MERIT (the engine's judgment basis); the record
    reads realistic-first (the 08-25 law, same arithmetic as the Copy Desk). */
+/* 🏟️ 10-13 seat truth: the headline is the REALISTIC season trading (his pick) —
+   older payloads (no trading_real) fall back to the booked figure */
+function seatTr(s){return s.trading_real!=null?s.trading_real:s.trading}
 function tournament(d){
   var t=d.tournament;
   if(!t||!(t.seats||[]).length)return '';
   var body='';
   var top=t.seats[0];
   body+='<div class="item"><div class="row"><span>👑 <b>'+esc(top.agent)+'</b> leads on merit'+(top.streak?' · 🔥W'+top.streak:'')+'</span>'+
-    '<span class="num">$'+(top.merit!=null?top.merit.toLocaleString():'—')+(top.trading!=null?' · trading <span class="'+(top.trading>0?'ok':(top.trading<0?'bad':'muted'))+'">'+money(top.trading)+'</span>':'')+'</span></div></div>';
+    '<span class="num">$'+(top.merit!=null?top.merit.toLocaleString():'—')+(seatTr(top)!=null?' · trading <span class="'+(seatTr(top)>0?'ok':(seatTr(top)<0?'bad':'muted'))+'">'+money(seatTr(top))+'</span> realistic':'')+'</span></div></div>';
   if(t.drama)body+='<div class="item">📉 <b>'+esc(t.drama.payer)+'</b> pays $'+t.drama.amount.toLocaleString()+' to '+esc(t.drama.payee)+' if the week ends now</div>';
   body+=t.seats.map(function(s,i){
     var wd=s.week_delta,r8=s.record8||[0,0];
+    var tr=seatTr(s),q=s.s2,inj=s.injections||{};
+    var injTxt=Object.keys(inj).map(function(k){return (k==='bounty'?'💰 ':(k==='fade'?'🎯 ':'⚖️ '))+money(inj[k])+' '+esc(k.replace('_',' '))}).join(' · ');
+    var trLine=(s.reset_date?'this season (since '+esc(String(s.reset_date).slice(5))+') · ':'')+'trading <b class="'+(tr>0?'ok':(tr<0?'bad':'muted'))+'">'+money(tr)+' realistic</b>'+
+      (s.trading!=null&&s.trading_real!=null?' ('+money(s.trading)+' booked'+(q?': closes '+money(q.booked)+' · open '+money(q.opens_swing):'')+')':'')+
+      (injTxt?' · '+injTxt+' — <b>not trading</b>':'');
+    var recLine=(q&&q.n?'this season '+q.w+'W-'+q.l+'L · <span class="'+(q.pf_real!=null&&q.pf_real<1?'bad':'ok')+'">PF '+(q.no_losses?'∞ (no losses)':(q.pf_real!=null?q.pf_real.toFixed(2):'—'))+' realistic</span>'+(q.pf_booked!=null?' ('+q.pf_booked.toFixed(2)+' booked)':''):'no closes this season yet')+
+      (s.pf_txt?' · last 20'+(s.pf_since?' from '+esc(String(s.pf_since).slice(5)):'')+': '+esc(s.pf_txt):'')+' · '+s.open_n+' open → on the 🪞 Copy Desk';
     return '<div class="item"><div class="row"><span>'+(i===0?'👑 ':(i===(t.seats.length-1)&&t.seats.length>2?'📉 ':''))+'<b>'+esc(s.agent)+'</b>'+(s.heat?' '+s.heat:'')+'</span>'+
-      '<span class="num">merit $'+(s.merit!=null?s.merit.toLocaleString():'—')+' · trading <span class="'+(s.trading>0?'ok':(s.trading<0?'bad':'muted'))+'">'+money(s.trading)+'</span>'+(wd!=null?' · wk '+money(wd):'')+'</span></div>'+
-      '<span class="why">last '+r8[1]+' closes: '+r8[0]+' green'+(s.pf_txt?' · trailing-20 '+esc(s.pf_txt):'')+' · '+s.open_n+' open → on the 🪞 Copy Desk</span></div>';
+      '<span class="num">merit $'+(s.merit!=null?s.merit.toLocaleString():'—')+(wd!=null?' · wk '+money(wd):'')+'</span></div>'+
+      '<span class="why">'+trLine+'</span><br><span class="why">'+recLine+'</span></div>';
   }).join('');
   var bits=[];
   if((t.bounties||[]).length)bits.push('🎯 bounties: '+t.bounties.map(function(b){return esc(b.strategy)+' $'+Math.round(b.reward/1000)+'k'}).join(', '));
@@ -903,6 +913,7 @@ function tournament(d){
   body+='<div class="item why" style="border:none">'+(t.tax_pct>0
     ?'⚖️ merit = equity − relegation tax, suspect marks excluded, lab losses shielded · 📉 = pays the tax if the week ends now'
     :'⚖️ merit = equity this season, suspect marks excluded, lab losses shielded · no tax this season · 📉 = bottom seat on merit — axed at the break if below par')+
+    ' · 🏟️ <b>is a seat trading well?</b> read its <b>realistic trading</b> and <b>this season\'s PF</b> — trading = equity − par since the reset, minus bounties, fades and tax (shown apart, never trading); realistic = the same at realistic close prices, what copying it would have paid; the last-20 PF can reach back into last season (its start date shown)'+
     ' · coach any agent: text “desk: tell &lt;name&gt; …”</div>';
   var tag=(t.season?'S'+t.season+' ':'')+(t.wk_in!=null?'wk '+t.wk_in:(t.week!=null?'wk '+t.week:''))+(t.season_break?' · season breaks '+esc(String(t.season_break).slice(5)):'')+' · standings';
   return foldCard('🏟️ The tournament',tag,body,false);
