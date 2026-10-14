@@ -42,9 +42,10 @@ h1{font-size:21px;margin:4px 0 0}.sub{color:#8b949e;font-size:12px;margin:2px 0 
 .row{display:flex;gap:8px;align-items:baseline;justify-content:space-between}
 .num{font-variant-numeric:tabular-nums}
 /* 🏟️ 10-13 the plain standings table (his 'its looks good on here') — fits 375px */
-.stbl{width:100%;border-collapse:collapse;font-size:14px}
+.stbl{width:100%;border-collapse:collapse;font-size:13px}
 .stbl th{color:#8b949e;font-weight:500;font-size:11px;text-align:right;padding:2px 4px;line-height:1.2}
-.stbl td{text-align:right;padding:6px 4px;font-variant-numeric:tabular-nums;border-top:1px solid #21262d;white-space:nowrap}
+.stbl td{text-align:right;padding:6px 3px;font-variant-numeric:tabular-nums;border-top:1px solid #21262d;white-space:nowrap}
+.stbl td small{display:block;color:#8b949e;font-size:10px;line-height:1.1}
 .stbl th:first-child,.stbl td:first-child{text-align:left}
 .tk{font-weight:700}
 .chips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0}
@@ -905,10 +906,12 @@ function tournament(d){
     var pf=q.no_losses?'∞':(q.pf_real!=null?q.pf_real.toFixed(2):'—');
     var rec=q.n?(q.w||0)+'W-'+(q.l||0)+'L':'—';
     var mark=s.agent===crown?' 👑':(s.agent===axe?' 📉':'');
-    return '<tr><td><b>'+esc(s.agent)+'</b>'+mark+'</td><td class="'+(tr>0?'ok':(tr<0?'bad':'muted'))+'">'+money(tr)+'</td><td>'+rec+'</td>'+
+    var ou=s.open_unreal,on=s.open_n||0;
+    var openCell=on?'<span class="'+(ou>0?'ok':(ou<0?'bad':'muted'))+'">'+money(ou)+'</span><small>'+(s.open_green||0)+'/'+on+' green</small>':'<span class="muted">flat</span>';
+    return '<tr><td><b>'+esc(s.agent)+'</b>'+mark+'</td><td class="'+(tr>0?'ok':(tr<0?'bad':'muted'))+'">'+money(tr)+'</td><td>'+openCell+'</td><td>'+rec+'</td>'+
       '<td class="'+(!q.no_losses&&q.pf_real!=null&&q.pf_real<1?'bad':(q.pf_real!=null||q.no_losses?'ok':'muted'))+'">'+pf+'</td></tr>';
   }).join('');
-  var body='<div class="item" style="border:none;padding-top:0"><table class="stbl"><thead><tr><th>seat</th><th>this season<br>realistic</th><th>record</th><th>PF</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  var body='<div class="item" style="border:none;padding-top:0"><table class="stbl"><thead><tr><th>seat</th><th>this season<br>realistic</th><th>open<br>now</th><th>record</th><th>PF</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
   var inj=[];
   seats.forEach(function(s){var m=s.injections||{};Object.keys(m).forEach(function(k){inj.push((k==='bounty'?'💰 ':(k==='fade'?'🎯 ':'⚖️ '))+esc(s.agent)+' '+money(m[k])+' '+esc(k.replace('_',' ')))})});
   if(inj.length)body+='<div class="item why" style="border:none">'+inj.join(' · ')+' — <b>not trading</b>, kept out of the table</div>';
@@ -917,7 +920,7 @@ function tournament(d){
   if((t.bounties||[]).length)bits.push('🎯 bounties on offer: '+t.bounties.map(function(b){return esc(b.strategy)+' $'+Math.round(b.reward/1000)+'k'}).join(', '));
   if((t.graduates||[]).length)bits.push('🏆 graduated: '+t.graduates.map(esc).join(', '));
   if(bits.length)body+='<div class="item why" style="border:none">'+bits.join(' · ')+'</div>';
-  body+='<div class="item why" style="border:none">this season = since the '+(reset?esc(reset)+' ':'')+'reset, when every seat restarted at par · realistic = at realistic fill prices — what copying it would have paid · '+
+  body+='<div class="item why" style="border:none">this season = since the '+(reset?esc(reset)+' ':'')+'reset, when every seat restarted at par · realistic = at realistic fill prices — what copying it would have paid · open now = what its open trades are worth right now at mid marks, NOT banked (realistic exits come in a bit lower) · green = open trades in profit · '+
     (t.tax_pct>0?'👑 leads / 📉 bottom on merit (📉 pays the tax if the week ends now)':'👑 leads / 📉 bottom on merit — the game\'s crown/axe ranking, which still counts bounties; 📉 is axed at the break if below par')+
     ' · their open trades live on the 🪞 Copy Desk · every detail: Tournament in Obsidian · coach any agent: text “desk: tell &lt;name&gt; …”</div>';
   var tag=(t.season?'S'+t.season+' ':'')+(t.wk_in!=null?'wk '+t.wk_in:(t.week!=null?'wk '+t.week:''))+(t.season_break?' · season breaks '+esc(String(t.season_break).slice(5)):'')+' · standings';
