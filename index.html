@@ -791,8 +791,8 @@ function ideasPanel(d){
       '<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">open the '+looks.length+' with contract, read, edge and 📋 <span class="pill">tap ▾</span></summary>'+looks.map(lRow).join('')+'</details></div>';
   }
   if(waits.length)out+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none;padding:2px 0" class="why">🎯 <b style="color:#c9d1d9">WAITING FOR A LEVEL</b> · '+waits.length+' — '+waits.map(function(w){return esc(w.ticker)+(w.dir==='down'?'↓':'↑')}).join(' · ')+' <span class="pill">tap ▾</span></summary>'+
-    waits.map(function(w){return '<div class="item why" style="border:none;padding:2px 0 2px 10px"><b>'+esc(w.ticker)+'</b> '+(w.dir==='down'?'↓':'↑')+' trigger $'+esc(String(w.trigger))+(w.spot!=null?' (now $'+esc(String(w.spot))+')':'')+(w.grade?' · 📈 '+esc(w.grade):'')+' · '+esc(w.strategy||'')+'</div>'}).join('')+
-    '<div class="item why" style="border:none;padding:2px 0 0 10px">the 20 SMA is the trigger · ⚠️ not ringing yet — look at these yourself (the ring is a dated build on the calendar)</div></details></div>';
+    waits.map(function(w){return '<div class="item why" style="border:none;padding:2px 0 2px 10px"><b>'+esc(w.ticker)+'</b> '+(w.dir==='down'?'↓':'↑')+' rings at $'+esc(String(w.trigger))+(w.spot!=null?' (now $'+esc(String(w.spot))+')':'')+(w.grade?' · 📈 '+esc(w.grade):'')+' · '+esc(w.strategy||'')+'</div>'}).join('')+
+    '<div class="item why" style="border:none;padding:2px 0 0 10px">the 20 SMA is the trigger — the phone rings once when the tape touches it (market hours, a paste block for 📱 Claude Phone)'+(I.waits_date?' · set '+esc(String(I.waits_date).slice(5)):'')+'</div></details></div>';
   /* v5 (09-13 phone test): HELD and RADAR show three rows, the rest fold —
      with zero tickets a long held list pushed TODAY off the first screen */
   /* 📚 STUDY lane — developing strategies, his eye, never a ticket, WITH the 📋 (09-20 design) */
