@@ -902,7 +902,7 @@ function tournament(d){
       (s.pf_txt?' · last 20'+(s.pf_since?' from '+esc(String(s.pf_since).slice(5)):'')+': '+esc(s.pf_txt):'')+' · '+s.open_n+' open → on the 🪞 Copy Desk';
     return '<div class="item"><div class="row"><span>'+(i===0?'👑 ':(i===(t.seats.length-1)&&t.seats.length>2?'📉 ':''))+'<b>'+esc(s.agent)+'</b>'+(s.heat?' '+s.heat:'')+'</span>'+
       '<span class="num">merit $'+(s.merit!=null?s.merit.toLocaleString():'—')+(wd!=null?' · wk '+money(wd):'')+'</span></div>'+
-      '<span class="why">'+trLine+'</span><br><span class="why">'+recLine+'</span></div>';
+      '<span class="why">'+trLine+'</span><span class="why">'+recLine+'</span></div>';
   }).join('');
   var bits=[];
   if((t.bounties||[]).length)bits.push('🎯 bounties: '+t.bounties.map(function(b){return esc(b.strategy)+' $'+Math.round(b.reward/1000)+'k'}).join(', '));
