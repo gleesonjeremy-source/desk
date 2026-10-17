@@ -389,7 +389,7 @@ function tsSim(d){
   var npos=(cs.rung_filled||0)+(cs.mirror_filled||0),nwork=(cs.rung_working||0)+(cs.mirror_working||0);
   var byAg=Object.keys(cs.mirror_by_agent||{}).sort().map(function(a){return esc(a)+' '+cs.mirror_by_agent[a]}).join(' · ');
   var head='<div class="item"><b>the sim account holds '+npos+' position'+(npos===1?'':'s')+'</b>'+(nwork?' + '+nwork+' working order'+(nwork>1?'s':''):'')+
-    '<span class="why">🧪 scanner twins '+(cs.rung_filled||0)+' (listed below) · 🪞 agent mirrors '+(cs.mirror_filled||0)+(byAg?' ('+byAg+')':'')+' → their cards are on the Copy Desk</span></div>';
+    '<span class="why">🧪 scanner twins '+(cs.rung_filled||0)+' (listed below'+(cs.yours?' — 🖐️ '+cs.yours+' of them yours, SIM IT FOR ME':'')+') · 🪞 agent mirrors '+(cs.mirror_filled||0)+(byAg?' ('+byAg+')':'')+' → their cards are on the Copy Desk</span></div>';
   /* ⚖️ 09-22 ('yes do both'): the week's fill rate — the number the fill
      ladder is built to move. 09-27 (seam #21): the ladder is LIVE since 2a591e8
      (Sat 09-26) — the line tells what the machine does now, never the old fix-to-come */
@@ -674,8 +674,13 @@ function ideasPanel(d){
     var a=rowAsof(c);
     if(cut&&a[0]&&a[0]<cut)return '';
     if(!c.ticket&&label)return '';            /* a lane row without its block never falls back to a hand-built one */
-    return c.ticket?tbtnRaw(c.ticket,(label||'📋 COPY TICKET')+(a[0]?' · '+a[1]+asofLabel(a[0]):'')):tbtn(c,where);
+    return c.ticket?tbtnRaw(c.ticket,(label||'📋 COPY TICKET')+(a[0]?' · '+a[1]+asofLabel(a[0]):''))+simBtn(c):tbtn(c,where);
   }
+  /* 🖐️ SIM IT FOR ME (⚖️ Jeremy Sun 10-04 'trades ideas look good but i can put them live because
+     of margin' → built Sat 10-17): beside a live 📋, one line he copies to the bot — the machine
+     places it on the SIM account at its next pass, on the machine's own rules, and it counts as
+     a rep, shown apart as his. Change the word after the id to say why (margin · size · time). */
+  function simBtn(c){return (c.sid&&!stale)?tbtnRaw('sim '+c.sid+' margin','🖐️ SIM IT — copy, send to the bot'):''}   /* same-day only: a past board never offers it */
   /* 🎯 LANES v2 (Sat 10-10, his 09-20 design): every lane opens with one header line;
      an empty lane says so in one muted line — never a silent gap */
   function laneHead(icon,name,sub){return '<div class="item why" style="border:none;padding-bottom:2px">'+icon+' <b style="color:#c9d1d9">'+name+'</b>'+(sub?' — '+sub:'')+'</div>'}
