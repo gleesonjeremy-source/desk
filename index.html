@@ -566,8 +566,12 @@ function heatBlock(d){
   if(h.error)return '<div class="item why" style="border:none;padding-top:0">🔥 '+hdr+' — <span class="warn">couldn\'t look: '+esc(h.error)+'</span></div>';
   var hot=h.hot||[],warm=h.warming||[];
   function take(x){
-    var su=x.setups||[];
-    if(!su.length)return 'no setup right now — its next one lands here'+(x.book==='agent'?' or on the 🪞 Copy Desk':'');
+    var su=x.setups||[],st=x.study||{};
+    /* 🔥 10-20 (his 'it needs to say and then say once one appears'): a setup = a 📋 ticket of the
+       SAME version on today's board; an old recipe / no version never gets one */
+    if(st.kind==='old'||st.kind==='unversioned'||!x.version)
+      return 'old recipe — the machine no longer makes these, so nothing will appear to take'+(st.verdict?' · '+esc(st.verdict):'');
+    if(!su.length)return 'nothing on today\'s board yet — the phone rings once when a ticket of this version prints';
     return 'take it: '+su.map(function(z){
       if(z.kind==='agent')return '<b>'+esc(z.ticker)+'</b> ('+esc(z.agent)+' '+(LIGHT[z.light]||'')+' 🪞 Copy Desk)';
       return '<b>'+esc(z.ticker)+'</b> ('+(z.kind==='ticket'?'📋 ticket':(z.kind==='radar'?'📻 radar':'👀 look'))+(z.grade?' 📈 '+esc(z.grade):'')+' ↓)';
@@ -577,8 +581,20 @@ function heatBlock(d){
     return '<div class="item"><div>'+icon+' <b>'+esc(x.label)+'</b>'+(x.version?' <span class="pill">'+esc(x.version)+'</span>':'')+bowPill(x)+'<span class="pill">'+esc(x.book_label)+'</span></div>'+
       '<span class="why"><b style="color:#c9d1d9">'+x.streak+' straight · '+usdS(x.streak_usd)+'</b>'+(icon==='🌡️'?' — one more win and it heats up':'')+' · rare for it (needs '+x.need+' at '+x.win_pct+'% wins)</span>'+
       '<span class="why">record '+x.wins+'-'+(x.n-x.wins)+' · last-20 PF '+(x.pf20!=null?x.pf20:'—')+' · last 8 '+usdS(x.last8)+(x.sim?' · 🏦 sim '+x.sim.wins+' of '+x.sim.n+' green':' · not yet in the sim')+(x.agents?' · by '+esc(x.agents.join(' / ')):'')+'</span>'+
-      last5(x)+(x.why_not?'<span class="why">🌡️ not hot yet: '+esc(x.why_not)+'</span>':'')+
+      last5(x)+(x.why_not?'<span class="why">🌡️ not hot yet: '+esc(x.why_not)+'</span>':'')+studyLines(x)+
       '<span class="why" style="color:#3fb950">'+take(x)+'</span></div>';
+  }
+  function studyLines(x){
+    /* 🔥 10-20 THE STUDY (his 'what is it? is it a version we currently have or is it something we
+       can add or is it luck?'): what it is · version? · luck? · the verdict */
+    var st=x.study||{},o='';
+    if(st.what)o+='<span class="why">🔬 what it is: '+esc(st.what)+'</span>';
+    if(st.version)o+='<span class="why">🧩 version: '+esc(st.version)+'</span>';
+    if(st.luck)o+='<span class="why">🎲 luck? '+esc(st.luck)+'</span>';
+    if(st.verdict)o+='<span class="why"><b style="color:#c9d1d9">→ '+esc(st.verdict)+'</b></span>';
+    var rl=x.related||[];
+    if(rl.length)o+='<span class="why muted">related (not rung): '+rl.map(function(z){return esc(z.ticker)+' '+(z.kind==='agent'?'🪞 '+esc(z.agent):(z.kind==='radar'?'📻':'👀'))}).join(' · ')+'</span>';
+    return o;
   }
   function nearRow(x){return '<div class="item why" style="border:none;padding:2px 0 2px 10px"><b>'+esc(x.label)+'</b>'+(x.version?' <span class="pill">'+esc(x.version)+'</span>':'')+' ('+esc(x.book_label)+') '+x.streak+' straight · not yet: '+esc(x.not_yet||'')+last5(x)+'</div>'}
   if(!hot.length&&!warm.length){
