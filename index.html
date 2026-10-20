@@ -639,10 +639,25 @@ function ideasPanel(d){
     if(c.p_wall!=null&&c.wall_px!=null)bits.push('p(wall $'+esc(String(c.wall_px))+') '+Math.round(c.p_wall*100)+'%');
     if(c.rr!=null)bits.push('R:R 1:'+esc(String(c.rr)));
     if(c.ivr!=null)bits.push('IVR '+Math.round(c.ivr));
-    return bits.length?'<span class="why">'+bits.join(' · ')+'</span>':'';
+    /* 🧮 10-20 (his 'not one Greek on NTAP … I want to know risk reward'): the Greeks and
+       the judged R:R ride ON the card, always visible — never only inside the 📋 text */
+    var gl=[];
+    if(c.greeks_text)gl.push('🧮 '+esc(c.greeks_text));
+    if(c.rr_text)gl.push('⚖️ '+esc(c.rr_text));
+    return (bits.length?'<span class="why">'+bits.join(' · ')+'</span>':'')+
+      (gl.length?'<span class="why" style="color:#c9d1d9">'+gl.join(' · ')+'</span>':'');
+  }
+  function legTable(c){
+    var L=(c.greeks&&c.greeks.legs)||[];
+    if(!L.length)return '';
+    function f(x,d){return x==null?'—':Number(x).toFixed(d)}
+    return '<span class="why">🧮 per leg: '+L.map(function(l){
+      return (l.side==='long'?'+':'−')+esc(String(l.strike))+esc(l.right||'')+' Δ '+f(l.delta,2)+' Γ '+f(l.gamma,3)+' θ '+f(l.theta,2)+
+        ' vega '+f(l.vega,2)+' IV '+(l.iv!=null?Math.round(l.iv*100)+'%':'—')+' OI '+(l.oi!=null?esc(String(l.oi)):'—')+
+        (l.width!=null?' width '+Math.round(l.width*100)+'%':'')}).join(' / ')+'</span>';
   }
   function caseFold(c,label){
-    var body=(c.chart_read?'<span class="why">📈 '+esc(c.chart_read)+'</span>':'')+routerLine(c)+
+    var body=(c.chart_read?'<span class="why">📈 '+esc(c.chart_read)+'</span>':'')+legTable(c)+routerLine(c)+
       (c.line?'<span class="why">'+esc(c.line)+'</span>':'')+
       ((c.confirms||[]).length?'<span class="why">'+esc(c.confirms.join(' · '))+'</span>':'')+
       (c.exits?'<span class="why">⛔ '+esc(c.exits)+'</span>':'')+
@@ -778,7 +793,7 @@ function ideasPanel(d){
     if(c.iv_vs_hv!=null)edge.push('IV vs HV '+Math.round(c.iv_vs_hv)+'th');
     if(c.kit)edge.push(esc(String(c.kit)));
     if(c.book_balance)edge.push('📒 '+esc(c.book_balance));
-    var body=(c.chart_read?'<span class="why">📈 '+esc(c.chart_read)+'</span>':'')+
+    var body=(c.chart_read?'<span class="why">📈 '+esc(c.chart_read)+'</span>':'')+legTable(c)+
       (c.structure_reason?'<span class="why">🧩 '+esc(c.version_label||c.version||'')+' — '+esc(c.structure_reason)+'</span>':'')+
       (edge.length?'<span class="why">🌡️ '+edge.join(' · ')+'</span>':'')+
       (c.exits?'<span class="why">⛔ '+esc(c.exits)+'</span>':'');
