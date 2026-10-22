@@ -886,6 +886,12 @@ function copyCard(c){
     (c.legs?'<div style="margin:1px 0;font-size:13px">'+esc(c.legs)+'</div>':'')+
     (c.iv&&c.iv.text?'<div class="why" style="color:'+({ok:'#3fb950',mid:'#d29922',warn:'#f85149'}[c.iv.verdict]||'#8b949e')+'">'+esc(c.iv.text)+'</div>':'')+
     '<span class="why">'+px+(simS?' · '+simS:'')+' · '+seat+'</span>'+
+    /* 🪞 10-21 SEAT TRUTH v2 (⚖️ Jeremy: streak + record, open winners beside the
+       closes, what copying paid — information for HIS copy call, never a gate) */
+    (c.seat_rec?'<div class="why">📊 '+esc(c.agent)+': '+esc(c.seat_rec)+'</div>':'')+
+    (c.ver_rec&&c.version!=='unversioned'?'<div class="why">📊 '+esc(c.version)+': '+esc(c.ver_rec)+'</div>':'')+
+    (c.copies?'<div class="why">🏦 '+esc(c.copies)+'</div>':'')+
+    (c.joins?'<div class="why">🤝 '+esc(c.joins)+'</div>':'')+
     (why?'<span class="why">💭 '+esc(why.length>90?why.slice(0,90)+'…':why)+'</span>':'')+
     '<details><summary style="cursor:pointer;list-style:none;padding:0" class="why">plan · sim · why the light <span class="pill">tap ▾</span></summary>'+more+'</details>'+
     (c.copy&&COPY_OK.fresh?tbtnRaw(c.copy,'📋 COPY TICKET'+(COPY_OK.label?' · '+COPY_OK.label:'')):'')+
@@ -908,6 +914,7 @@ function copyDesk(d){
   out+='<div class="item why" style="border:none;padding-top:0">the agents\' open trades · 🟢 near their price → 📋 · 🟡 moved, watch · ⚫ gone'+(C.signal_checked?' · signals checked live':' · signals re-check live in market hours')+'</div>';
   if(!COPY_OK.fresh&&C.green)out+='<div class="item why" style="border:none;padding-top:0;color:#d29922">📋 off since today\'s 06:30 open — these prices are from '+esc(clbl)+'; the 📋 comes back at the first pass of the session (≈07:00)</div>';
   if(seats)out+='<div class="item why" style="border:none;padding-top:0">seat records (realistic · last 8 · last-20 PF, its window start shown — it can cross the season break; this season alone is on the 🏟️ standings): '+seats+(anyHot?'':' — <b style="color:#d29922">no seat is above PF 1.0 yet: copy on YOUR chart read, not the seat\'s record</b>')+'</div>';
+  /* 🪞 10-21: every card says the seat's streak, this version's streak and what copying it paid — read them before 📋 */
   var vis=g.slice(0,3),gm=g.slice(3);
   out+=vis.map(copyCard).join('');
   if(!g.length)out+='<div class="item muted">no 🟢 copyable trade right now — every open trade has moved or is gone</div>';
@@ -922,42 +929,40 @@ function copyDesk(d){
    thing — every open agent trade lives on the 🪞 Copy Desk; this fold is the
    league table). Ranked on MERIT (the engine's judgment basis); the record
    reads realistic-first (the 08-25 law, same arithmetic as the Copy Desk). */
-/* 🏟️ 10-13 seat truth: the headline is the REALISTIC season trading (his pick) —
-   older payloads (no trading_real) fall back to the booked figure */
-function seatTr(s){return s.trading_real!=null?s.trading_real:s.trading}
+/* 🏟️ 10-13 seat truth → 🪞 10-21 SEAT TRUTH v2 (⚖️ Jeremy: "who is trading
+   profitably and where they are at … cut your losers and let your winners run"):
+   the headline is WHERE IT'S AT = closed (realistic) + open now — closed-only
+   reads cut losers and hides the winners still riding. Older payloads (no book)
+   fall back to the 10-13 realistic season trading. */
+function seatTr(s){return s.book?s.book.total:(s.trading_real!=null?s.trading_real:s.trading)}
 function tournament(d){
-  /* 🏟️ 10-13 (⚖️ Jeremy: "i dont understand the scoreboard at all … its looks good
-     on here mac pro"): ONE plain table — seat · this season at REALISTIC prices ·
-     record · PF — best trader on top (his pick). 👑/📉 stay as the merit marks (the
-     payload's order IS merit, the game's crown/axe rule). Money that is not trading
-     (a bounty, a fade) is named under the table, never inside it. */
+  /* one plain table — seat · where it's at · closed (streak + record) · open now ·
+     what copying it on the TS sim paid. Best on top. No 👑/📉 here: merit counts
+     bounties (a game score, not trading) — the crown/axe lives in Obsidian's engine room. */
   var t=d.tournament;
   if(!t||!(t.seats||[]).length)return '';
-  var seats=t.seats.slice(),n=seats.length;
-  var crown=seats[0].agent,axe=n>2?seats[n-1].agent:null;
+  var seats=t.seats.slice();
   seats.sort(function(a,b){return (seatTr(b)||0)-(seatTr(a)||0)});
   var reset=seats[0].reset_date?String(seats[0].reset_date).slice(5):'';
+  function cls(v){return v>0?'ok':(v<0?'bad':'muted')}
   var rows=seats.map(function(s){
-    var tr=seatTr(s),q=s.s2||{};
-    var pf=q.no_losses?'∞':(q.pf_real!=null?q.pf_real.toFixed(2):'—');
-    var rec=q.n?(q.w||0)+'W-'+(q.l||0)+'L':'—';
-    var mark=s.agent===crown?' 👑':(s.agent===axe?' 📉':'');
-    var ou=s.open_unreal,on=s.open_n||0;
-    var openCell=on?'<span class="'+(ou>0?'ok':(ou<0?'bad':'muted'))+'">'+money(ou)+'</span><small>'+(s.open_green||0)+'/'+on+' green</small>':'<span class="muted">flat</span>';
-    var at=s.all_time_real;
-    return '<tr><td><b>'+esc(s.agent)+'</b>'+mark+'</td><td class="'+(tr>0?'ok':(tr<0?'bad':'muted'))+'">'+money(tr)+'</td>'+
-      '<td class="'+(at>0?'ok':(at<0?'bad':'muted'))+'">'+(at!=null?money(at):'—')+'</td><td>'+openCell+'</td><td>'+rec+'</td>'+
-      '<td class="'+(!q.no_losses&&q.pf_real!=null&&q.pf_real<1?'bad':(q.pf_real!=null||q.no_losses?'ok':'muted'))+'">'+pf+'</td></tr>';
+    var b=s.book||{},c=b.closed||{},o=b.open||{},m=b.copies||{},tr=seatTr(s);
+    var on=o.n!=null?o.n:(s.open_n||0),ou=o.unreal!=null?o.unreal:s.open_unreal,og=o.green!=null?o.green:(s.open_green||0);
+    var openCell=on?'<span class="'+cls(ou)+'">'+money(ou)+'</span><small>'+og+'/'+on+' green</small>':'<span class="muted">flat</span>';
+    var closedCell=c.n?'<span class="'+cls(c.net)+'">'+money(c.net)+'</span><small>'+(c.chip?c.chip+' ':'')+esc(c.streak||'')+' · '+c.w+'W-'+c.l+'L</small>':'<span class="muted">—</span>';
+    var copyTxt=m.n?money(m.net)+' · '+esc(m.streak||'')+' · '+m.w+'W-'+m.l+'L'+(m.open?' · '+m.open+' open':''):(m.open?m.open+' open, none closed yet':'none yet');
+    var row='<tr><td><b>'+esc(s.agent)+'</b></td><td class="'+cls(tr)+'"><b>'+money(tr)+'</b></td><td style="white-space:normal">'+closedCell+'</td><td>'+openCell+'</td></tr>';
+    /* 🪞 10-21: copies + joins ride a full-width line under the seat — five columns ran off a phone */
+    row+='<tr><td></td><td colspan="3" style="text-align:left;white-space:normal;border-top:none;padding-top:0"><small>🏦 copies (TS sim): <span class="'+cls(m.n?m.net:0)+'">'+copyTxt+'</span>'+(b.joins?'<br>🤝 '+esc(b.joins)+' — counted on the finder\'s record':'')+'</small></td></tr>';
+    return row;
   }).join('');
-  var body='<div class="item" style="border:none;padding-top:0"><table class="stbl"><thead><tr><th>seat</th><th>this<br>season</th><th>all<br>time</th><th>open<br>now</th><th>record</th><th>PF</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  var body='<div class="item" style="border:none;padding-top:0"><table class="stbl"><thead><tr><th>seat</th><th>where<br>it\'s at</th><th>closed</th><th>open<br>now</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
   if(t.drama)body+='<div class="item">📉 <b>'+esc(t.drama.payer)+'</b> pays $'+t.drama.amount.toLocaleString()+' to '+esc(t.drama.payee)+' if the week ends now</div>';
   var bits=[];
   /* 🗓️ 10-13 'take off the bounty': the bounties-on-offer line lives in Obsidian's engine room only */
   if((t.graduates||[]).length)bits.push('🏆 graduated: '+t.graduates.map(esc).join(', '));
   if(bits.length)body+='<div class="item why" style="border:none">'+bits.join(' · ')+'</div>';
-  body+='<div class="item why" style="border:none">this season = since the '+(reset?esc(reset)+' ':'')+'reset, when every seat restarted at par · all time = every trade it ever closed (S1 + S2) · both at realistic fill prices — what copying it would have paid · bounties and fades never count · open now = what its open trades are worth right now at mid marks, NOT banked (realistic exits come in a bit lower) · green = open trades in profit · '+
-    (t.tax_pct>0?'👑 leads / 📉 bottom on merit (📉 pays the tax if the week ends now)':'👑 leads / 📉 bottom on merit — the game\'s crown/axe ranking, which still counts bounties; 📉 is axed at the break if below par')+
-    ' · their open trades live on the 🪞 Copy Desk · every detail: Tournament in Obsidian · coach any agent: text “desk: tell &lt;name&gt; …”</div>';
+  body+='<div class="item why" style="border:none">this season = since the '+(reset?esc(reset)+' ':'')+'reset · where it\'s at = closed + open now (good traders cut losers and let winners run, so the closes alone read low) · closed = realistic fill prices, the streak in words, the record · open now = mid marks, NOT banked (realistic exits come in a bit lower) · copies = the same trades on the TS sim, 1 lot, real fills — what copying actually paid · a join counts for the seat that found it · bounties and fades never count · every open trade lives on the 🪞 Copy Desk · crown/axe + every detail: Tournament in Obsidian · coach any agent: text “desk: tell &lt;name&gt; …”</div>';
   var tag=(t.season?'S'+t.season+' ':'')+(t.wk_in!=null?'wk '+t.wk_in:(t.week!=null?'wk '+t.week:''))+(t.season_break?' · season breaks '+esc(String(t.season_break).slice(5)):'')+' · standings';
   return foldCard('🏟️ The tournament',tag,body,false);
 }
