@@ -764,9 +764,48 @@ function ideasPanel(d){
       '<div style="margin:3px 0">'+contractLine(c)+(c.cost!=null?' <span class="muted">≈ $'+Math.abs(c.cost)+' now</span>':'')+'</div>'+
       (c.ticket&&pass?tbtnRaw(c.ticket,'📋 COPY RIDE · '+asofLabel(String(d.asof||'').slice(0,16))):'')+'</div>';
   }
+  function bCard(c,i){
+    var g=c.grade?'<span class="pill '+(c.grade==='A'?'good':'')+'">📈 '+esc(c.grade)+'</span>':'';
+    var bd='<span class="pill '+(c.badge==='🟢'?'good':(c.badge==='🔴'?'hi':''))+'">'+esc(c.badge||'🟡')+' '+esc(c.version||'')+'</span>';
+    var nd=c.net_delta_signed!=null?'<span class="pill">net Δ '+(c.net_delta_signed>0?'+':'')+esc(String(c.net_delta_signed))+(c.delta_short!=null?' · short Δ '+Math.abs(Number(c.delta_short)).toFixed(2):'')+'</span>':'';
+    return '<div class="item"><div>'+nm(c,'<span class="tk">'+(i+1)+'. '+esc(c.ticker)+'</span> — '+esc(c.strategy)+(c.structure?' · '+esc(c.structure):''))+' '+bd+g+nd+livePill(c)+passPill(c)+'</div>'+
+      liveSpent(c)+
+      '<span class="why">🏷️ '+esc(c.badge_line||'')+'</span>'+
+      (c.chart_note?'<span class="why">📈 '+esc(c.chart_note)+'</span>':'')+
+      (c.flags||[]).map(function(f){return '<span class="why" style="color:#f0883e">'+esc(f)+'</span>'}).join('')+
+      '<div style="margin:3px 0">'+nm(c,contractLine(c)+(c.cost!=null?' <span class="muted">@ $'+Math.abs(c.cost)+'</span>':''))+'</div>'+
+      glance(c)+caseFold(c,'the case — read · legs · shape · exits')+
+      cbtnLive(c,'the board')+'</div>';
+  }
+  function bSection(s){
+    var rows=s.rows||[],v=rows.slice(0,4),m=rows.slice(4),nms=s.names||[],more=m.length+nms.length;
+    return '<div class="item why" style="border:none;padding-bottom:2px">'+esc(s.dir)+' <b style="color:#c9d1d9">'+esc(s.label)+'</b> · '+(s.n||rows.length)+'</div>'+
+      v.map(bCard).join('')+
+      (more?'<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">+'+more+' more '+esc(String(s.label).toLowerCase())+' <span class="pill">tap ▾</span></summary>'+
+        m.map(function(c,i){return bCard(c,i+4)}).join('')+
+        (nms.length?'<div class="item why" style="border:none">'+nms.map(function(x){return esc(x.badge||'🟡')+' <b>'+esc(x.ticker)+'</b> '+esc(x.version||'')}).join(' · ')+'</div>':'')+
+        '</details></div>':'');
+  }
+  function boardBlock(B){
+    var h='',quiet=[],G={'📈':'BULLISH','📉':'BEARISH','⚪':'NEUTRAL'};
+    ['📈','📉','⚪'].forEach(function(dr){
+      var ss=(B.sections||[]).filter(function(s){return s.dir===dr});
+      var full=ss.filter(function(s){return (s.rows||[]).length});
+      ss.forEach(function(s){if(!(s.rows||[]).length)quiet.push(esc(s.dir)+' <b>'+esc(s.label)+'</b> — '+esc(s.quiet||'nothing this pass'))});
+      if(full.length)h+='<div class="item" style="border:none;padding:8px 0 0"><b>'+dr+' '+G[dr]+'</b></div>'+full.map(bSection).join('');
+    });
+    var fw=B.fwatch||[];
+    if(fw.length)h+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">🔭 <b style="color:#c9d1d9">F-WATCH</b> · '+fw.length+' — F charts from versions whose F ideas won · graded, never ranked · promoting F is your call <span class="pill">tap ▾</span></summary>'+
+      fw.map(function(f){return '<div class="item why" style="border:none;padding:2px 0 2px 10px"><b>'+esc(f.ticker)+'</b> '+esc(f.strategy||'')+' · '+esc(f.version||'')+' — '+esc(f.f_record||'')+(f.line?'<br>'+esc(f.line):'')+'</div>'}).join('')+'</details></div>';
+    if(quiet.length)h+='<div class="item why" style="border:none;padding-top:6px">🤫 <b style="color:#c9d1d9">quiet today</b></div>'+quiet.map(function(q){return '<div class="item why" style="border:none;padding:1px 0 1px 10px">'+q+'</div>'}).join('');
+    h+='<div class="item why" style="border:none;padding-top:4px">🏷️ badges = each version\'s own ideas, graded (judged '+esc(String(B.badges_judged_on||'—'))+', re-judged Fridays) · 🟢 most beat the market · 🟡 young or mixed · 🔴 mostly lost — never the pooled strategy record</div>';
+    return h;
+  }
   var when=(I.ts?(stale?fmtDayS(bday)+' ':'')+esc(String(I.ts).slice(11))+' PT':(I.label&&I.label!=='morning'?esc(I.label):'07:00'));
   var nh=((d.heat||{}).hot||[]).length;
-  var out='<div class="card"><h2>🎯 IDEAS<span class="tag">'+(nh?'🔥 '+nh+' · ':'')+tk.length+' ticket'+(tk.length===1?'':'s')+(rep.length?' +'+rep.length+' 🧊':'')+(ride.length?' · 🏇 '+ride.length:'')+(radar.length?' · 📻 '+radar.length:'')+' · '+when+'</span></h2>';
+  var B=(I.board&&(I.board.sections||[]).length)?I.board:null;
+  var BC=(B&&B.counts)||{};
+  var out='<div class="card"><h2>🎯 IDEAS<span class="tag">'+(nh?'🔥 '+nh+' · ':'')+(B?(B.n||0)+' ideas · 📈 '+(BC['📈']||0)+' · 📉 '+(BC['📉']||0)+' · ⚪ '+(BC['⚪']||0):tk.length+' ticket'+(tk.length===1?'':'s')+(rep.length?' +'+rep.length+' 🧊':'')+(ride.length?' · 🏇 '+ride.length:'')+(radar.length?' · 📻 '+radar.length:''))+' · '+when+'</span></h2>';
   /* 🌙 v7 (10-03): on a closed day the old board is for READING, said once and calmly —
      the red 'not today's' line is for a trading day whose 07:00 pass hasn't landed */
   var MK=d.market||{},closed=MK.open_today===false&&String(d.asof||'').slice(0,10)===ptToday();
@@ -782,6 +821,12 @@ function ideasPanel(d){
   /* v6 (09-22): a router that did not run stays loud (couldn't-look ≠
      no-setups, the 08-25 law); the count line + trash rate fold to the foot */
   if(!I.count_line)out+='<div class="item why" style="border:none;padding-top:0;color:#f0883e">🧩 no count line — the router did not stamp this pass (fallback board)</div>';
+  /* 🎯 THE IDEAS BOARD (⚖️ Jeremy Thu 10-29: "i want good trade ideas on the desk … ranking and
+     fixed order"): his layout, direction first then structure, every CLEAN idea ranked by its
+     VERSION's badge (🟢 most of its ideas beat the market · 🟡 young or mixed · 🔴 mostly lost),
+     top 4 a section, greeks on every card, calendars with their SIGNED lean. The lanes below
+     fold into 🗂 the old view while the board rides; no board = the lanes render as before. */
+  var lanes=out;out='';
   /* 🎫 TICKETS lane — today's tickets, then the repeats that still pass (🧊 dated) */
   if(tk.length||rep.length)out+=laneHead('🎫','TICKETS','passed the bar · tap 📋, paste into Claude Phone'+(rep.length?' · 🧊 = sent before, still passes today':''))+tk.concat(rep).map(tRow).join('');
   else{
@@ -789,11 +834,13 @@ function ideasPanel(d){
     out+=laneHead('🎫','TICKETS','')+'<div class="item"><b>0 tickets on the Desk</b>'+(I.n_considered!=null?' · '+I.n_considered+' reached the ticket bar':'')+(looks.length?' · '+looks.length+' 👀 looks below':'')+
       (n?'<span class="why">closest: <b>'+esc(n.ticker)+'</b> '+esc(n.strategy)+(n.grade?' 📈 '+esc(n.grade):'')+' — held by: '+esc((n.missing||[]).join('; ')||'no independent confirmation fired')+'</span>':'')+'</div>';
   }
+  var tkHtml=out;out='';
   /* 🔥 HOT HAND lane (the heat engine, ruled 09-22) — moved under the tickets */
   out+=heatBlock(d);
   /* 🏇 RIDE lane */
   out+=laneHead('🏇','RIDE','machine trades still in the shape they were bought in'+(I.ride_close?' (re-read at the '+esc(String(I.ride_close).slice(5))+' close)':''));
   out+=ride.length?ride.map(rideRow).join(''):laneNone('no ride right now'+(I.ride_note?' — '+esc(I.ride_note):''));
+  var heatRide=out;out='';
   /* 📻 RADAR lane — the best that missed, then the looks and the levels fold under it */
   out+=laneHead('📻','RADAR','best that missed the bar — the one missing piece named');
   out+=radar.length?capped(radar,rRow,'on the radar'):laneNone('nothing near the bar this pass');
@@ -832,14 +879,21 @@ function ideasPanel(d){
       '<div class="item why" style="border:none;padding:2px 0">'+nstrip+'</div>'+
       '<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">open the '+looks.length+' with contract, read, edge and 📋 <span class="pill">tap ▾</span></summary>'+looks.map(lRow).join('')+'</details></div>';
   }
+  var radarLooks=out;out='';
   if(waits.length)out+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none;padding:2px 0" class="why">🎯 <b style="color:#c9d1d9">WAITING FOR A LEVEL</b> · '+waits.length+' — '+waits.map(function(w){return esc(w.ticker)+(w.dir==='down'?'↓':'↑')}).join(' · ')+' <span class="pill">tap ▾</span></summary>'+
     waits.map(function(w){return '<div class="item why" style="border:none;padding:2px 0 2px 10px"><b>'+esc(w.ticker)+'</b> '+(w.dir==='down'?'↓':'↑')+' rings at $'+esc(String(w.trigger))+(w.spot!=null?' (now $'+esc(String(w.spot))+')':'')+(w.grade?' · 📈 '+esc(w.grade):'')+' · '+esc(w.strategy||'')+'</div>'}).join('')+
     '<div class="item why" style="border:none;padding:2px 0 0 10px">the 20 SMA is the trigger — the phone rings once when the tape touches it (market hours, a paste block for 📱 Claude Phone)'+(I.waits_date?' · set '+esc(String(I.waits_date).slice(5)):'')+'</div></details></div>';
+  var waitsHtml=out;out='';
   /* v5 (09-13 phone test): HELD and RADAR show three rows, the rest fold —
      with zero tickets a long held list pushed TODAY off the first screen */
   /* 📚 STUDY lane — developing strategies, his eye, never a ticket, WITH the 📋 (09-20 design) */
   out+=laneHead('📚','STUDY','developing strategies · your eye');
   out+=study.length?study.map(sRow).join(''):laneNone('no study card on this board — a developing strategy (the diagonal, your eye) shows here when a scanner prices one on an A/B chart');
+  var studyHtml=out;out=lanes;
+  if(B){
+    out+=boardBlock(B)+heatRide+waitsHtml;
+    out+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">🗂 the old view — tickets · radar · looks · study (retires Fri 11-06 after the first weekly check) <span class="pill">tap ▾</span></summary>'+tkHtml+radarLooks+studyHtml+'</details></div>';
+  }else out+=tkHtml+heatRide+radarLooks+waitsHtml+studyHtml;
   /* v5 (09-13): HELD is board-building detail — it folds into "how this board was built" (10-10) */
   function hRow(h){return '<div class="item"><span class="tk">'+esc(h.ticker)+'</span> '+esc(h.strategy||'')+(h.grade?' 📈 '+esc(h.grade):'')+' <span class="why">'+esc(h.why||'')+'</span></div>'}
   /* v5 (09-13 re-cut): the 💡 best-trades panel is retired — the board's
@@ -852,6 +906,8 @@ function ideasPanel(d){
   if(I.trash&&I.trash.line){var tr=I.trash;how.push('<div class="item why" style="border:none;padding:2px 0"><span class="pill '+(tr.trashed?'hi':'good')+'">'+esc(tr.line)+'</span>'+((tr.last||[]).length?' last: '+esc(tr.last.map(function(x){return x.ticker+' '+(x.date||'').slice(5)+(x.why?' — '+x.why:'')}).join(' · ')):'')+'</div>');}
   /* 🩺 SCANNER VITALS (Thu 10-01): what each GATE killed this pass — the
      funnel per scanner (in → its top killers → out), boing first */
+  /* 🔎 EXPLAIN THE ZERO (Wed 10-28): every scanner that found nothing says why — rules · off · broken */
+  if((I.zero||[]).length)how.push('<div class="item why" style="border:none;padding:2px 0">🔎 <b style="color:#c9d1d9">why zero</b></div>'+I.zero.map(function(l){return '<div class="item why" style="border:none;padding:1px 0 1px 10px">'+esc(l)+'</div>'}).join(''));
   if((I.vitals||[]).length)how.push('<div class="item why" style="border:none;padding:2px 0">🩺 <b style="color:#c9d1d9">scanner vitals</b>'+(I.vitals_at?' · '+esc(I.vitals_at)+' PT':'')+'</div>'+I.vitals.map(function(l){return '<div class="item why" style="border:none;padding:1px 0 1px 10px">'+esc(l)+'</div>'}).join(''));
   if(how.length)out+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">🧩 how this board was built '+(I.trash&&I.trash.trashed?'<span class="pill hi">trash rate</span> ':'')+'<span class="pill">tap ▾</span></summary>'+how.join('')+'</details></div>';
   out+='<div class="item why" style="border:none;padding-top:8px">scan prices are stale by design — the copy block reprices live on the phone</div></div>';
@@ -1144,6 +1200,8 @@ function machinePanel(d){
     var rows=B[b]||[];
     body+='<div class="item"><b>'+names[b]+'</b> · '+(C[b]||0)+'<span class="why">'+(rows.length?rows.map(function(r){return esc(r.name)+(r.alarm?' ⚠️':'')}).join(' · '):'none')+'</span></div>';
   });
+  var dry=m.dry||[];
+  if(dry.length)body+='<div class="item"><b>🔎 DRY LANES</b> · '+dry.length+'<span class="why">'+dry.map(esc).join('<br>')+'</span></div>';
   if(lights)body+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">🎯 goals: '+lights+' <span class="pill">tap ▾</span></summary>'+goalsBody(d)+'</details></div>';
   body+='<div class="item why" style="border:none">each strategy\'s card — verdict, versions, books, next step — lives in the vault Garage</div>';
   var tag=(C.working||0)+' working · '+(C.developing||0)+' developing · '+(C.discovered||0)+' need reps · '+(C.needs_work||0)+' need work'+(alarms.length?' · ⚠️ '+alarms.length:'');
