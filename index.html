@@ -786,6 +786,18 @@ function ideasPanel(d){
         (nms.length?'<div class="item why" style="border:none">'+nms.map(function(x){return esc(x.badge||'🟡')+' <b>'+esc(x.ticker)+'</b> '+esc(x.version||'')}).join(' · ')+'</div>':'')+
         '</details></div>':'');
   }
+  /* 🌙 FROM TOMORROW'S BOARD (⚖️ Jeremy Mon 11-02 "tomorrows board has gold all over it how are we
+     utilizing it?" · "build it"): last night's charts, chart first → the version that takes it →
+     a contract under $3,000. Same checks, badges and copy block as the board above. The top cards
+     ride here; every card and every chart's reason load from their own node when the fold opens. */
+  function moonBlock(M){
+    if(!M||!M.cards)return '';
+    var h='<div class="item" style="border:none;padding:8px 0 0"><b>🌙 FROM TOMORROW\'S BOARD</b> <span class="why">· '+(M.n||0)+' ideas · '+(M.waiting_n||0)+' charts waiting · '+esc(String(M.ts||'').slice(11))+' PT · not on paper, sim or the bell yet</span></div>';
+    h+=(M.cards||[]).map(bCard).join('');
+    h+='<div class="item" style="border:none"><details ontoggle="loadMoon(this)"><summary style="cursor:pointer;list-style:none" class="why">🌙 every card + why each other chart has none <span class="pill">tap ▾</span></summary><div class="mnbody" data-node="'+esc(M.node||'deskBoardWalk')+'"></div></details></div>';
+    return h;
+  }
+  window.moonCard=bCard;
   function boardBlock(B){
     var h='',quiet=[],G={'📈':'BULLISH','📉':'BEARISH','⚪':'NEUTRAL'};
     ['📈','📉','⚪'].forEach(function(dr){
@@ -797,6 +809,10 @@ function ideasPanel(d){
     var fw=B.fwatch||[];
     if(fw.length)h+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">🔭 <b style="color:#c9d1d9">F-WATCH</b> · '+fw.length+' — F charts from versions whose F ideas won · graded, never ranked · promoting F is your call <span class="pill">tap ▾</span></summary>'+
       fw.map(function(f){return '<div class="item why" style="border:none;padding:2px 0 2px 10px"><b>'+esc(f.ticker)+'</b> '+esc(f.strategy||'')+' · '+esc(f.version||'')+' — '+esc(f.f_record||'')+(f.line?'<br>'+esc(f.line):'')+'</div>'}).join('')+'</details></div>';
+    /* ⏳ THE W RULE (⚖️ Jeremy Mon 11-02): a print that would force him out inside 5 trading days — shown here, never ranked */
+    var wt=B.waiting||[];
+    if(wt.length)h+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">⏳ <b style="color:#c9d1d9">WAITING ON EARNINGS</b> · '+wt.length+' — too close to a report to hold</summary>'+
+      wt.map(function(w){return '<div class="item why" style="border:none;padding:2px 0 2px 10px"><b>'+esc(w.ticker)+'</b> '+esc(w.strategy||'')+' · '+esc(w.line||'')+'</div>'}).join('')+'</details></div>';
     if(quiet.length)h+='<div class="item why" style="border:none;padding-top:6px">🤫 <b style="color:#c9d1d9">quiet today</b></div>'+quiet.map(function(q){return '<div class="item why" style="border:none;padding:1px 0 1px 10px">'+q+'</div>'}).join('');
     h+='<div class="item why" style="border:none;padding-top:4px">🏷️ badges = each version\'s own ideas, graded (judged '+esc(String(B.badges_judged_on||'—'))+', re-judged Fridays) · 🟢 most beat the market · 🟡 young or mixed · 🔴 mostly lost — never the pooled strategy record</div>';
     return h;
@@ -825,7 +841,7 @@ function ideasPanel(d){
      fixed order"): his layout, direction first then structure, every CLEAN idea ranked by its
      VERSION's badge (🟢 most of its ideas beat the market · 🟡 young or mixed · 🔴 mostly lost),
      top 4 a section, greeks on every card, calendars with their SIGNED lean. The lanes below
-     fold into 🗂 the old view while the board rides; no board = the lanes render as before. */
+     render ONLY when there is no board (the safety net); the folded old view retired 11-07. */
   var lanes=out;out='';
   /* 🎫 TICKETS lane — today's tickets, then the repeats that still pass (🧊 dated) */
   if(tk.length||rep.length)out+=laneHead('🎫','TICKETS','passed the bar · tap 📋, paste into Claude Phone'+(rep.length?' · 🧊 = sent before, still passes today':''))+tk.concat(rep).map(tRow).join('');
@@ -891,8 +907,10 @@ function ideasPanel(d){
   out+=study.length?study.map(sRow).join(''):laneNone('no study card on this board — a developing strategy (the diagonal, your eye) shows here when a scanner prices one on an A/B chart');
   var studyHtml=out;out=lanes;
   if(B){
-    out+=boardBlock(B)+heatRide+waitsHtml;
-    out+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">🗂 the old view — tickets · radar · looks · study (retires Fri 11-06 after the first weekly check) <span class="pill">tap ▾</span></summary>'+tkHtml+radarLooks+studyHtml+'</details></div>';
+    /* 🗂 old view retired (⚖️ Jeremy Fri 11-06 'yes, take all six'; condition read Sat 11-07:
+       all 10 passes 11-02→11-06 carried a board, it never fell back). The lanes stay in the data
+       for the bot · hot hand · teaching · brief; with no board they still render below. */
+    out+=boardBlock(B)+moonBlock(I.moon)+heatRide+waitsHtml;
   }else out+=tkHtml+heatRide+radarLooks+waitsHtml+studyHtml;
   /* v5 (09-13): HELD is board-building detail — it folds into "how this board was built" (10-10) */
   function hRow(h){return '<div class="item"><span class="tk">'+esc(h.ticker)+'</span> '+esc(h.strategy||'')+(h.grade?' 📈 '+esc(h.grade):'')+' <span class="why">'+esc(h.why||'')+'</span></div>'}
@@ -1033,6 +1051,31 @@ function tournament(d){
    PAPER-PROVEN rung and he never opened it — the proving ground lives in the
    vault (proving-ground.md) and the 🖥️ machine fold's buckets. */
 
+var MN_CACHE=null;
+function moonBody(p){
+  var h='',card=window.moonCard||function(){return ''};
+  (p.sections||[]).forEach(function(s){
+    var rows=s.rows||[];
+    if(!rows.length&&!(s.names||[]).length)return;
+    h+='<div class="item why" style="border:none;padding-bottom:2px">'+esc(s.dir)+' <b style="color:#c9d1d9">'+esc(s.label)+'</b> · '+(s.n||rows.length)+'</div>'+rows.map(card).join('')+
+      ((s.names||[]).length?'<div class="item why" style="border:none">'+s.names.map(function(x){return esc(x.badge||'🟡')+' <b>'+esc(x.ticker)+'</b> '+esc(x.version||'')}).join(' · ')+'</div>':'');
+  });
+  var w=p.waiting||[];
+  if(w.length)h+='<div class="item why" style="border:none;padding-top:6px">⏳ <b style="color:#c9d1d9">WAITING</b> · '+w.length+' charts, each with its reason</div>'+
+    w.map(function(x){return '<div class="item why" style="border:none;padding:2px 0 2px 10px"><b>'+esc(x.ticker)+'</b> '+esc(x.grade||'')+' · '+esc(x.line||'')+'</div>'}).join('');
+  return h||'<div class="item muted">nothing walked this pass</div>';
+}
+function loadMoon(el){
+  if(!el||!el.open)return;
+  var box=el.querySelector('.mnbody');if(!box||box.getAttribute('data-loaded'))return;
+  box.setAttribute('data-loaded','1');
+  if(MN_CACHE){box.innerHTML=moonBody(MN_CACHE);return}
+  box.innerHTML='<div class="item muted">loading the walk…</div>';
+  fetch(FB+'/p_'+KEY+'/'+(box.getAttribute('data-node')||'deskBoardWalk')+'.json').then(function(r){return r.json()}).then(function(p){
+    if(!p){box.innerHTML='<div class="item bad">walk node empty — the next pass republishes it</div>';return}
+    MN_CACHE=p;box.innerHTML=moonBody(p);
+  }).catch(function(e){box.innerHTML='<div class="item bad">could not load the walk ('+esc(String(e))+')</div>'});
+}
 var PB_CACHE=null;
 function playbookBody(p){
   var now=Date.now();
