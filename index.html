@@ -800,6 +800,8 @@ function ideasPanel(d){
   window.moonCard=bCard;
   function boardBlock(B){
     var h='',quiet=[],G={'📈':'BULLISH','📉':'BEARISH','⚪':'NEUTRAL'};
+    /* 🧭 THE MIX LINE (⚖️ Jeremy Tue 11-10: "the charts determine the weather … i dont want the macine leaning too far bearish or bullish"): the day's A/B charts beside this board's ideas — a line, never a gate */
+    if(B.mix)h+='<div class="item why" style="border:none;padding:6px 0 0">🧭 <b style="color:#c9d1d9">MIX</b> · '+esc(B.mix)+'</div>';
     ['📈','📉','⚪'].forEach(function(dr){
       var ss=(B.sections||[]).filter(function(s){return s.dir===dr});
       var full=ss.filter(function(s){return (s.rows||[]).length});
