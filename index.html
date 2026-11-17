@@ -660,7 +660,9 @@ function ideasPanel(d){
     var gl=[];
     if(c.greeks_text)gl.push('🧮 '+esc(c.greeks_text));
     if(c.rr_text)gl.push('⚖️ '+esc(c.rr_text));
-    return (bits.length?'<span class="why">'+bits.join(' · ')+'</span>':'')+
+    /* 📅🖐️ 11-16 his edges on a calendar idea — trend · dip · 50 · wall · IV · Δ · width, always visible */
+    return (c.edges?'<span class="why">'+esc(c.edges)+'</span>':'')+
+      (bits.length?'<span class="why">'+bits.join(' · ')+'</span>':'')+
       (gl.length?'<span class="why" style="color:#c9d1d9">'+gl.join(' · ')+'</span>':'');
   }
   function legTable(c){
