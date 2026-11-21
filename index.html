@@ -327,6 +327,17 @@ function todayPanel(d){
      calendar card starts tomorrow, so nothing dated today falls through */
   var calT=((d.calendar||{}).days||[]).filter(function(x){return String(x.date)===vt})[0];
   var tIts=calT?(calT.items||[]).filter(calIsHis(d)):[];
+  /* 🧹 EACH ASK ONCE (⚖️ Jeremy Sat 11-21 "Yes, each once" — today's on this card, tomorrow's in the calendar
+     card): (1) the 📆 today: line skips an item this card already lists as an ask — its macro and ritual
+     dates, which live nowhere else, still show; (2) an "on deck" row leaves this card ONLY when the
+     calendar card draws the same item for the same day — anything the calendar would not show stays here
+     (nothing vanishes). */
+  function nkey(x){return String(x||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().slice(0,30)}
+  var hisC=calIsHis(d),calTxt={},actTxt={};
+  ((d.calendar||{}).days||[]).forEach(function(x){if(String(x.date)>vt)(x.items||[]).filter(hisC).forEach(function(i){calTxt[String(x.date)+'|'+nkey(i.full||i.text)]=1;calTxt[String(x.date)+'|'+nkey(i.text)]=1})});
+  deck=deck.filter(function(e){return !calTxt[String(e.date)+'|'+nkey(e.full||e.text)]&&!calTxt[String(e.date)+'|'+nkey(e.text)]});
+  act.forEach(function(e){actTxt[nkey(e.full||e.text)]=1;actTxt[nkey(e.text)]=1});
+  tIts=tIts.filter(function(i){return !actTxt[nkey(i.full||i.text)]&&!actTxt[nkey(i.text)]});
   if(tIts.length)asks='<div class="item">📆 today: '+tIts.map(function(i){return i.icon+' '+esc(String(i.text||'').slice(0,80))+(i.due?' <span class="pill">'+esc(i.due)+'</span>':'')}).join(' · ')+'</div>'+asks;
   if(deck.length)asks+='<div class="item why" style="border:none;padding:6px 0 2px">on deck '+esc(fmtDayS(deck[0].date))+' ↓</div>'+deck.map(function(e){return row(e,true)}).join('');
   if(fold.length)asks+='<div class="item" style="border:none;padding:2px 0 0"><details><summary style="cursor:pointer;list-style:none;padding:2px 0" class="why">🌒 from '+esc(fmtDayS(fold[0].date))+' — data hasn\'t rebuilt yet <span class="pill">tap ▾</span></summary>'+fold.map(function(e){return '<div class="item why" style="padding:3px 0;border:none">• '+esc(e.text)+'</div>'}).join('')+'</details></div>';
