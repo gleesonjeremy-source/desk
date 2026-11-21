@@ -31,6 +31,7 @@ h1{font-size:21px;margin:4px 0 0}.sub{color:#8b949e;font-size:12px;margin:2px 0 
 .card h2 .tag{font-size:10px;font-weight:400;color:#8b949e;text-transform:uppercase;letter-spacing:.05em;margin-left:auto}
 .ok{color:#3fb950}.warn{color:#d29922}.bad{color:#f85149}.muted{color:#8b949e}
 .item{padding:7px 0;border-bottom:1px solid #21262d;font-size:14px}
+.idea>summary::-webkit-details-marker{display:none}
 .item:last-child{border-bottom:none}
 .item .why{color:#8b949e;font-size:12px;display:block}
 .pill{display:inline-block;font-size:10px;border:1px solid #30363d;border-radius:999px;padding:0 8px;margin-left:6px;color:#8b949e;vertical-align:1px}
@@ -256,6 +257,10 @@ function positionsPanel(d){
     var whys={};base.forEach(function(r){var w=r.text||r.why||'';(whys[w]=whys[w]||[]).push(esc(r.ticker)+' '+esc(r.leg||''))});
     out+='<div class="item why" style="border:none">💎 <b style="color:#c9d1d9">BASE</b> '+Object.keys(whys).map(function(w){return whys[w].join(' · ')+' — '+esc(w)}).join(' · ')+'</div>';
   }
+  /* ⚖️ THE BALANCE LINE (⚖️ Jeremy Sat 11-21: "keep a balanced portfolio (right now we are not but we will be
+     eventually)" · real-book counts on the Desk "yes lets try it for now and see if i like it" · the 💎 base names
+     counted, marked): his book by the group each name moves with, bullish against bearish — counts and tickers only */
+  if(p.balance&&p.balance.line)out+='<div class="item why" style="border:none">⚖️ <b style="color:#c9d1d9">your book</b>: '+esc(p.balance.line)+'</div>';
   if(p.room)out+='<div class="item '+(p.room_over?'bad':'why')+'" style="border:none">💳 room: '+esc(p.room)+'</div>';   /* ⚖️ 09-22: HIS 50% ceiling, red past it */
   return out+'</div>';
 }
@@ -785,18 +790,31 @@ function ideasPanel(d){
     var g=c.grade?'<span class="pill '+(c.grade==='A'?'good':'')+'">📈 '+esc(c.grade)+'</span>':'';
     var bd='<span class="pill '+(c.badge==='🟢'?'good':(c.badge==='🔴'?'hi':''))+'">'+esc(c.badge||'🟡')+' '+esc(c.version||'')+'</span>';
     var nd=c.net_delta_signed!=null?'<span class="pill">net Δ '+(c.net_delta_signed>0?'+':'')+esc(String(c.net_delta_signed))+(c.delta_short!=null?' · short Δ '+Math.abs(Number(c.delta_short)).toFixed(2):'')+'</span>':'';
-    return '<div class="item"><div>'+nm(c,'<span class="tk">'+(i+1)+'. '+esc(c.ticker)+'</span> — '+esc(c.strategy)+(c.structure?' · '+esc(c.structure):''))+' '+bd+g+nd+livePill(c)+passPill(c)+'</div>'+
+    /* 🖥️ THE HUB — ONE LINE PER IDEA (⚖️ Jeremy Sat 11-21, Desk review #5: "the desk needs to make it
+       easy for me to pick which ones" — the page measured 16 phone screens, this card 11 of them, every
+       idea drawn open). The line = who · what · the version's badge · chart · cost · reward, and under it
+       the FACTS: 💳 his margin rule in his words ("breaks margin rule" / "does not break margin rule" —
+       a stamp, never a filter or a rank) · what it does to his book · the version's record in paper and
+       in the practice account. A tap opens the SAME card as before — the whole card is built inside the
+       fold, so 📋 COPY TICKET and 🖐️ SIM IT work exactly as they did. No script, no ids. */
+    var ms=c.margin_stamp==='ok'?'💳 does not break margin rule':(c.margin_stamp==='breaks'?'<span style="color:#f0883e">💳 breaks margin rule</span>':'💳 margin not checked yet');
+    var facts=[ms].concat(c.book_words?[esc(c.book_words)]:[]).concat(c.pf_words?[esc(c.pf_words)]:[]);
+    var px=(c.cost!=null?' <span class="muted">$'+Math.round(Math.abs(c.cost)).toLocaleString('en-US')+(c.rr!=null?' · 1:'+Number(c.rr).toFixed(1):'')+'</span>':'');
+    var warn=((c.flags||[]).length?' <span style="color:#f0883e">⚠️</span>':'')+(c.live==='spent'?' <span class="pill hi">spent</span>':'');
+    var line='<summary style="cursor:pointer;list-style:none">'+nm(c,'<span class="tk">'+(i+1)+'. '+esc(c.ticker)+'</span> '+esc(c.structure||c.strategy||''))+' '+bd+g+px+warn+' <span class="muted">▾</span>'+
+      '<span class="why">'+facts.join(' · ')+'</span></summary>';
+    return '<div class="item"><details class="idea">'+line+'<div style="margin-top:6px">'+nm(c,'<span class="tk">'+esc(c.ticker)+'</span> — '+esc(c.strategy)+(c.structure?' · '+esc(c.structure):''))+nd+livePill(c)+passPill(c)+'</div>'+
       liveSpent(c)+
       '<span class="why">🏷️ '+esc(c.badge_line||'')+'</span>'+
       (c.chart_note?'<span class="why">📈 '+esc(c.chart_note)+'</span>':'')+
       (c.flags||[]).map(function(f){return '<span class="why" style="color:#f0883e">'+esc(f)+'</span>'}).join('')+
       '<div style="margin:3px 0">'+nm(c,contractLine(c)+(c.cost!=null?' <span class="muted">@ $'+Math.abs(c.cost)+'</span>':''))+'</div>'+
       glance(c)+caseFold(c,'the case — read · legs · shape · exits')+
-      cbtnLive(c,'the board')+'</div>';
+      cbtnLive(c,'the board')+'</details></div>';
   }
   function bSection(s){
     var rows=s.rows||[],v=rows.slice(0,4),m=rows.slice(4),nms=s.names||[],more=m.length+nms.length;
-    return '<div class="item why" style="border:none;padding-bottom:2px">'+esc(s.dir)+' <b style="color:#c9d1d9">'+esc(s.label)+'</b> · '+(s.n||rows.length)+'</div>'+
+    return '<div class="item why" id="sec-'+esc(s.key||'')+'" style="border:none;padding-bottom:2px">'+esc(s.dir)+' <b style="color:#c9d1d9">'+esc(s.label)+'</b> · '+(s.n||rows.length)+'</div>'+
       v.map(bCard).join('')+
       (more?'<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">+'+more+' more '+esc(String(s.label).toLowerCase())+' <span class="pill">tap ▾</span></summary>'+
         m.map(function(c,i){return bCard(c,i+4)}).join('')+
@@ -819,6 +837,10 @@ function ideasPanel(d){
     var h='',quiet=[],G={'📈':'BULLISH','📉':'BEARISH','⚪':'NEUTRAL'};
     /* 🧭 THE MIX LINE (⚖️ Jeremy Tue 11-10: "the charts determine the weather … i dont want the macine leaning too far bearish or bullish"): the day's A/B charts beside this board's ideas — a line, never a gate */
     if(B.mix)h+='<div class="item why" style="border:none;padding:6px 0 0">🧭 <b style="color:#c9d1d9">MIX</b> · '+esc(B.mix)+'</div>';
+    /* 🖥️ 11-21 THE HUB: jump chips — one per section that holds ideas, with its count */
+    var chips=(B.sections||[]).filter(function(s){return (s.rows||[]).length}).map(function(s){
+      return '<a href="#sec-'+esc(s.key||'')+'" class="pill" style="margin:0 6px 4px 0;text-decoration:none">'+esc(s.dir)+' '+esc(s.label)+' '+(s.n||s.rows.length)+'</a>'}).join('');
+    if(chips)h+='<div class="item" style="border:none;padding:6px 0 0">'+chips+'</div>';
     ['📈','📉','⚪'].forEach(function(dr){
       var ss=(B.sections||[]).filter(function(s){return s.dir===dr});
       var full=ss.filter(function(s){return (s.rows||[]).length});
@@ -836,7 +858,9 @@ function ideasPanel(d){
     var ur=B.under_rr||[];
     if(ur.length)h+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">📐 <b style="color:#c9d1d9">UNDER YOUR 1:1</b> · '+ur.length+' — bull puts that risk more than they make · shown, never a ticket</summary>'+
       ur.map(function(w){return '<div class="item why" style="border:none;padding:2px 0 2px 10px"><b>'+esc(w.ticker)+'</b> '+esc(w.version||w.strategy||'')+' · '+esc(w.line||'')+'</div>'}).join('')+'</details></div>';
-    if(quiet.length)h+='<div class="item why" style="border:none;padding-top:6px">🤫 <b style="color:#c9d1d9">quiet today</b></div>'+quiet.map(function(q){return '<div class="item why" style="border:none;padding:1px 0 1px 10px">'+q+'</div>'}).join('');
+    /* 🖥️ 11-21 THE HUB: the empty lanes are ONE line — every lane's own reason is inside, one tap away (nothing vanishes) */
+    if(quiet.length)h+='<div class="item" style="border:none"><details><summary style="cursor:pointer;list-style:none" class="why">🤫 <b style="color:#c9d1d9">quiet today</b> · nothing found in '+quiet.length+' lane'+(quiet.length===1?'':'s')+' · why <span class="pill">tap ▾</span></summary>'+
+      quiet.map(function(q){return '<div class="item why" style="border:none;padding:1px 0 1px 10px">'+q+'</div>'}).join('')+'</details></div>';
     h+='<div class="item why" style="border:none;padding-top:4px">🏷️ badges = each version\'s own ideas, graded (judged '+esc(String(B.badges_judged_on||'—'))+', re-judged Fridays) · 🟢 most beat the market · 🟡 young or mixed · 🔴 mostly lost — never the pooled strategy record</div>';
     return h;
   }
