@@ -470,7 +470,22 @@ function tsSim(d){
   /* v5 (09-13 re-cut, Jeremy: "TS sim should be a drop down"): folds shut;
      the summary line carries the pulse — open · recent closes · the gap */
   var tag=npos+' positions · '+(cs.rung_filled||0)+' twins · '+(cs.mirror_filled||0)+' mirrors'+(fw&&fw.attempted?' · '+fw.filled+'/'+(fw.filled+fw.no_fill)+' filled this week':'');
-  return foldCard('🏦 TS-SIM — the practice account at TradeStation (real orders, fake money)',tag,head+open+rec+nf+sf,false);
+  /* 🧩 THE BOOK BY GROUP (⚖️ Jeremy Fri 11-20 'Book count by family' · 'Desk, practice-account fold'):
+     every live practice trade counted by the group its ticker moves with, bullish beside bearish.
+     A count, never a limit. The 🎓 line is its grader. Drawn only when the payload carries it. */
+  var grp='';
+  if(s.groups&&(s.groups.rows||[]).length){
+    var G=s.groups;
+    grp='<div class="item"><b>🧩 by group — names that move together</b><span class="why">'+esc(G.line||'')+'</span>'+
+      G.rows.map(function(r){
+        return '<div style="padding:3px 0"><div class="row"><span>'+esc(r.label)+'</span>'+
+          '<span class="num" style="white-space:nowrap">'+r.bull+' bullish · '+r.bear+' bearish'+(r.none?' · '+r.none+' other':'')+'</span></div>'+
+          '<span class="why">'+esc(r.names||'')+'</span></div>';
+      }).join('')+
+      (G.grader&&G.grader.line?'<span class="why">🎓 '+esc(G.grader.line)+'</span>':'')+
+      '<span class="why">a count, never a limit — nothing blocks a trade on it</span></div>';
+  }
+  return foldCard('🏦 TS-SIM — the practice account at TradeStation (real orders, fake money)',tag,head+grp+open+rec+nf+sf,false);
 }
 
 function legDesc(s){ /* "O:GIS261016C00032500:long" -> {act,strike,cp,date} */
