@@ -804,6 +804,8 @@ function ideasPanel(d){
     var line='<summary style="cursor:pointer;list-style:none">'+nm(c,'<span class="tk">'+(i+1)+'. '+esc(c.ticker)+'</span> '+esc(c.structure||c.strategy||''))+' '+bd+g+px+warn+' <span class="muted">▾</span>'+
       '<span class="why">'+facts.join(' · ')+'</span></summary>';
     return '<div class="item"><details class="idea">'+line+'<div style="margin-top:6px">'+nm(c,'<span class="tk">'+esc(c.ticker)+'</span> — '+esc(c.strategy)+(c.structure?' · '+esc(c.structure):''))+nd+livePill(c)+passPill(c)+'</div>'+
+      /* 🎯 11-21 THE PLAN LINE (⚖️ Jeremy: "the risk is a dollar amount and where the stop is around and where the target is and how much i make if we get there and by when") — the first thing inside the opened card */
+      (c.plan_text?'<span class="why" style="color:#c9d1d9">🎯 <b>PLAN</b> '+esc(c.plan_text)+'</span>':'')+
       liveSpent(c)+
       '<span class="why">🏷️ '+esc(c.badge_line||'')+'</span>'+
       (c.chart_note?'<span class="why">📈 '+esc(c.chart_note)+'</span>':'')+
