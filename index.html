@@ -199,7 +199,9 @@ function topLine(d){
   var pg=d.progress;
   if(pg&&pg.rows&&pg.rows.length){
     bits.push('🎯 '+pg.rows.map(function(r){
-      return esc(r.icon||'')+' '+esc(r.label||r.strategy)+' <b>'+(r.lead_reps||0)+'/'+(pg.target||20)+'</b>'+(r.closed_wk?' <span class="ok">+'+r.closed_wk+'</span>':'');
+      /* 🎯 11-25 never a count alone (⚖️ quality reps): the lead version's record in one word — paying · near the bar · losing · too few to say */
+      var qw=r.lead_word?' <span'+(r.lead_word==='losing'?' style="color:#f0883e"':(r.lead_word==='paying'?' class="ok"':' class="muted"'))+'>'+esc(r.lead_word)+'</span>':'';
+      return esc(r.icon||'')+' '+esc(r.label||r.strategy)+' <b>'+(r.lead_reps||0)+'/'+(pg.target||20)+'</b>'+qw+(r.closed_wk?' <span class="ok">+'+r.closed_wk+'</span>':'');
     }).join(' · ')+' <span class="muted">sim reps</span>');
   }
   var mini=(d.schedule||{}).mini||[],red=mini.filter(function(j){return !j.ok}).length;
@@ -809,7 +811,7 @@ function ideasPanel(d){
        in the practice account. A tap opens the SAME card as before — the whole card is built inside the
        fold, so 📋 COPY TICKET and 🖐️ SIM IT work exactly as they did. No script, no ids. */
     var ms=c.margin_stamp==='ok'?'💳 does not break margin rule':(c.margin_stamp==='breaks'?'<span style="color:#f0883e">💳 breaks margin rule</span>':'💳 margin not checked yet');
-    var facts=[ms].concat(c.book_words?[esc(c.book_words)]:[]).concat(c.pf_words?[esc(c.pf_words)]:[]);
+    var facts=[ms].concat(c.book_words?[esc(c.book_words)]:[]).concat(c.pf_words?[esc(c.pf_words)]:[]).concat(c.wx_words?[esc(c.wx_words)]:[]);   /* 🌦️ 11-25 the version in a market like today's — counts, a label */
     var px=(c.cost!=null?' <span class="muted">$'+Math.round(Math.abs(c.cost)).toLocaleString('en-US')+(c.rr!=null?' · 1:'+Number(c.rr).toFixed(1):'')+'</span>':'');
     var warn=((c.flags||[]).length?' <span style="color:#f0883e">⚠️</span>':'')+(c.live==='spent'?' <span class="pill hi">spent</span>':'');
     var line='<summary style="cursor:pointer;list-style:none">'+nm(c,'<span class="tk">'+(i+1)+'. '+esc(c.ticker)+'</span> '+esc(c.structure||c.strategy||''))+' '+bd+g+px+warn+' <span class="muted">▾</span>'+
